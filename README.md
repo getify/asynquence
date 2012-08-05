@@ -26,7 +26,7 @@ Using the following example setup:
        alert("Done!");
     }
 
-Execute `fn1` and `fn2` in parallel, then call `yay` when complete:
+Execute `fn1`, then `fn2`, then finally `yay`:
 
     $AS(fn1)
     .then(fn2)
