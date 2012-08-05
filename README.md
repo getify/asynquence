@@ -4,7 +4,7 @@ A lightweight API for performing serial async tasks ("steps"), each in successio
 
 ## Explanation
 
-Say you want do two or more asynchronous tasks in one after the other (like animation delays, XHR calls, etc). You want to set up an ordered sequence of tasks and make sure the previous one finishes before the next one is processed. You need a step chain.
+Say you want do two or more asynchronous tasks one after the other (like animation delays, XHR calls, etc). You want to set up an ordered sequence of tasks and make sure the previous one finishes before the next one is processed. You need a step chain.
 
 You create a step chain by calling `$AS(...)`. **Each time you call `$AS()`, you create a new, separate step chain.**
 
