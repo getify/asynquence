@@ -22,6 +22,8 @@ Passing in multiple functions to `$AS(...)` or `then(...)` creates an [implicit 
 
 For implicit parallel gate steps, each segment of that gate will receive a copy of the message(s) passed from the previous step. Also, all messages from the segments of this gate will be passed along to the next step (or the next failure handler, in the case of a gate segment indicating a failure).
 
+**NOTE: this code explicitly depends on [asyncGate.js](http://github.com/getify/asyncGate.js).** Either "ag.js" (or "ag.src.js") must be present prior to including "as.js" (or "as.src.js"), or you must bundle the two together in the proper order.
+
 ## Usage Examples
 
 Using the following example setup:
