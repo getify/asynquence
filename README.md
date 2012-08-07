@@ -22,6 +22,8 @@ Passing in multiple functions to `$AS(...)` or `then(...)` creates an [implicit 
 
 For implicit parallel gate steps, each segment of that gate will receive a copy of the message(s) passed from the previous step. Also, all messages from the segments of this gate will be passed along to the next step (or the next failure handler, in the case of a gate segment indicating a failure).
 
+You can also `abort()` a step chain at any time, which will prevent any further actions from occurring on that step chain (all callbacks will be ignored). The call to `abort()` can happen on the step chain API itself, or using the `abort` flag on a completion callback in any step (see example below).
+
 **NOTE: this code explicitly depends on [asyncGate.js](http://github.com/getify/asyncGate.js).** Either "ag.js" (or "ag.src.js") must be present prior to including "as.js" (or "as.src.js"), or you must bundle the two together in the proper order.
 
 ## Usage Examples
@@ -109,7 +111,28 @@ Create a step that's an [implicit async parallel gate (aka asyncGate.js)](http:/
         alert("Greeting: " + msg1[0] + " " + msg1[1]); // 'Greeting: hello world'
         alert("Greeting: " + msg2[0] + " " + msg2[1]); // 'Greeting: hello mikey'
     });
+
+Abort a step chain in progress:
+
+    var steps = $AS()
+    .then(fn1)
+    .then(fn2)
+    .then(yay);
+    setTimeout(function(){
+        steps.abort(); // will stop the step chain before running steps `fn2` and `yay`
+    },100);
     
+    // same as above
+    $AS()
+    .then(fn1)
+    .then(function(done){
+        setTimeout(function(){
+            done.abort(); // `abort` flag will stop the step chain before running steps `fn2` and `yay`
+        },100);
+    })
+    .then(fn2)
+    .then(yay);
+
 ## License 
 
 The code and all the documentation are released under the MIT license.

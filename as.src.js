@@ -1,5 +1,5 @@
 /*! asyncSteps.js
-    v0.1 (c) Kyle Simpson
+    v0.2 (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -30,6 +30,9 @@
     instanceAPI = function() {
       function do_then_queue() {
         var next, i, _msgs;
+
+        if (aborted) return;
+
         if (then_queue.length) {
           _msgs = msgs.slice();
           msgs = [];
@@ -39,6 +42,9 @@
             (function(fn){
               current_gate.and(function(done){
                 var args = _msgs.slice();
+                done.abort = function(){
+                  chainAPI.abort();
+                };
                 args.unshift(done);
                 fn.apply(fn,args);
               });
@@ -47,11 +53,16 @@
           current_gate.then(gate_finish).or(gate_error);
           _msgs = null;
         }
-        else current_gate = null;
+        else {
+          current_gate.abort();
+          current_gate = null;
+        }
       }
 
       function do_or_queue(){
         var fn;
+
+        if (aborted) return;
 
         // reset the success queue
         then_queue = true;
@@ -59,7 +70,7 @@
         // make sure at least one error callback is registered
         if (or_queue !== true && or_queue.length) {
           // empty the queue
-          while (fn = or_queue.shift()) {
+          while (or_queue && (fn = or_queue.shift())) {
             if (msgs.length > 0) {
               fn.apply({},msgs);
               msgs = [];
@@ -69,26 +80,26 @@
         }
 
         or_queue = true; // flag it as complete
+        current_gate.abort();
         current_gate = null;
       }
 
       function gate_finish() {
         var args = [].slice.call(arguments), i;
-        if (!chain_error) {
+        if (!(chain_error || aborted)) {
           if (arguments.length) {
             for (i=0; i<args.length; i++) {
               if (is_array(args[i]) && args[i].length == 1) msgs.push(args[i][0]);
               else msgs.push(args[i]);
             }
           }
-          console.log("gate_finish: " + JSON.stringify(msgs));
           do_then_queue();
         }
       }
 
       function gate_error() {
         var args = [].slice.call(arguments), i;
-        if (!chain_error) {
+        if (!(chain_error || aborted)) {
           chain_error = true;
 
           if (arguments.length) {
@@ -97,7 +108,6 @@
               else msgs.push(args[i]);
             }
           }
-          console.log("gate_error: " + JSON.stringify(msgs));
           do_or_queue();
         }
       }
@@ -120,6 +130,9 @@
           fn.__wrapper__ = true;
 
           trigger_done(fn);
+        };
+        trigger.abort = function() {
+          chainAPI.abort();
         };
 
         gate
@@ -146,13 +159,14 @@
           then_queue = [],
           or_queue = [],
           msgs = [],
-          chain_error = false
+          chain_error = false,
+          aborted = false
       ;
             
       chainAPI = {
         then: function(){
           // has the step chain already error'd? if so, bail
-          if (chain_error) return chainAPI;
+          if (chain_error || aborted) return chainAPI;
 
           var args = flatten_array([].slice.call(arguments)), ret;
 
@@ -171,6 +185,8 @@
           return ret;
         },
         or: function(fn){
+          if (aborted) return chainAPI;
+
           if (or_queue !== true) {
             or_queue.push(fn);
           }
@@ -180,6 +196,11 @@
           }
 
           return chainAPI;
+        },
+        abort: function(){
+          aborted = false;
+          if (current_gate) current_gate.abort();
+          current_gate = then_queue = or_queue = msgs = null;
         }
       };
       

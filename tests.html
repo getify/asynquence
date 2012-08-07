@@ -282,6 +282,81 @@ tests.push(function(test_done){
     });
   },1000);
 });
+tests.push(function(test_done){
+  var failed = false, steps = $AS();
+
+  steps
+  .then(asyncDelayFn(1000))
+  .then(function(){
+    failed = true;
+  });
+
+  setTimeout(function(){
+    steps.abort();
+  },100);
+
+  setTimeout(function(){
+    if (!failed) {
+      doneLogMsg("test #11 passed")();
+      test_done();
+    }
+    else {
+      doneLogMsg("test #11 failed")();
+    }
+  },2000);
+});
+tests.push(function(test_done){
+  var failed = false, steps = $AS();
+
+  steps
+  .then(asyncDelayFn(100))
+  .then(function(done){
+    setTimeout(done.fail,1000);
+  })
+  .then(function(){
+    failed = true;
+  })
+  .or(function(){
+    failed = true;
+  });
+
+  setTimeout(function(){
+    steps.abort();
+  },500);
+
+  setTimeout(function(){
+    if (!failed) {
+      doneLogMsg("test #12 passed")();
+      test_done();
+    }
+    else {
+      doneLogMsg("test #12 failed")();
+    }
+  },2000);
+});
+tests.push(function(test_done){
+  var failed = false, steps = $AS();
+
+  steps
+  .then(asyncDelayFn(100))
+  .then(function(done){
+    setTimeout(done.abort,1000);
+  })
+  .then(function(){
+    failed = true;
+  });
+
+  setTimeout(function(){
+    if (!failed) {
+      doneLogMsg("test #13 passed")();
+      test_done();
+    }
+    else {
+      doneLogMsg("test #13 failed")();
+    }
+  },2000);
+});
+
 </script>
 
 
