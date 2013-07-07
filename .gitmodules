@@ -1,3 +1,0 @@
-[submodule "asyncGate"]
-	path = asyncGate
-	url = git@github.com:getify/asyncGate.js.git
