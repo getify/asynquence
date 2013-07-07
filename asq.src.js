@@ -25,9 +25,57 @@
 	}
 
 	function create_sandbox() {
-		var instanceAPI;
 
-		instanceAPI = {};
+		function create_trigger() {
+
+		}
+
+		function create_gate() {
+
+		}
+
+		function then() {
+			return instanceAPI;
+		}
+
+		function or() {
+			return instanceAPI;
+		}
+
+		function gate() {
+			return instanceAPI;
+		}
+
+		function pipe() {
+			return instanceAPI;
+		}
+
+		function seq() {
+			return instanceAPI;
+		}
+
+		function val() {
+			return instanceAPI;
+		}
+
+		function abort() {
+			return instanceAPI;
+		}
+
+
+		var then_queue = [],
+			or_queue = [],
+
+			instanceAPI = {
+				then: then,
+				or: or,
+				gate: gate,
+				pipe: pipe,
+				seq: seq,
+				val: val,
+				abort: abort
+			}
+		;
 
 		return instanceAPI;
 	}
