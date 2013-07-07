@@ -6,7 +6,7 @@ A lightweight API for asynchronous sequences and gates.
 
 Say you want do two or more asynchronous tasks one after the other (like animation delays, XHR calls, etc). You want to set up an ordered sequence of tasks and make sure the previous one finishes before the next one is processed. You need a sequence.
 
-You create a sequence by calling `$AS(...)`. **Each time you call `$AS()`, you create a new, separate sequence.**
+You create a sequence by calling `ASQ(...)`. **Each time you call `ASQ()`, you create a new, separate sequence.**
 
 To create a new step, simply call `then(...)` with a function (or multiple functions, see below). That function will be executed when that step is ready to be processed, and it will be passed as its first parameter the completion trigger. Subsequent parameters, if any, will be any messages passsed on from the immediately previous step.
 
@@ -18,7 +18,7 @@ You can register multiple steps, and multiple failure handlers. However, message
 
 To listen for any step failing, call `or(...)` on your sequence to register a failure callback. You can call `or()` as many times as you would like. If you call `or()` on a sequence that has already been flagged as failed, the callback you specify will just be executed immediately.
 
-Passing in multiple functions to `$AS(...)` or `then(...)` creates an [implicit async parallel gate (aka asyncGate.js)](http://github.com/getify/asyncGate.js) across those functions, such that the single step in question isn't complete until all segments of the parallel gate are complete.
+Passing in multiple functions to `ASQ(...)` or `then(...)` creates an [implicit async parallel gate (aka asyncGate.js)](http://github.com/getify/asyncGate.js) across those functions, such that the single step in question isn't complete until all segments of the parallel gate are complete.
 
 For implicit parallel gate steps, each segment of that gate will receive a copy of the message(s) passed from the previous step. Also, all messages from the segments of this gate will be passed along to the next step (or the next failure handler, in the case of a gate segment indicating a failure).
 
@@ -46,13 +46,13 @@ Using the following example setup:
 
 Execute `fn1`, then `fn2`, then finally `yay`:
 
-    $AS(fn1)
+    ASQ(fn1)
     .then(fn2)
     .then(yay);
 
 Pass messages from step to step:
 
-    $AS(function(done){
+    ASQ(function(done){
         setTimeout(function(){
             done("hello");
         },1000);
@@ -68,7 +68,7 @@ Pass messages from step to step:
 
 Handle step failure:
 
-    $AS(function(done){
+    ASQ(function(done){
         setTimeout(function(){
             done("hello");
         },1000);
@@ -87,7 +87,7 @@ Handle step failure:
 
 Create a step that's an [implicit async parallel gate (aka asyncGate.js)](http://github.com/getify/asyncGate.js):
 
-    $AS()
+    ASQ()
     // normal async step
     .then(function(done){
         setTimeout(function(){
@@ -114,7 +114,7 @@ Create a step that's an [implicit async parallel gate (aka asyncGate.js)](http:/
 
 Abort a sequence in progress:
 
-    var steps = $AS()
+    var steps = ASQ()
     .then(fn1)
     .then(fn2)
     .then(yay);
@@ -123,7 +123,7 @@ Abort a sequence in progress:
     },100);
     
     // same as above
-    $AS()
+    ASQ()
     .then(fn1)
     .then(function(done){
         setTimeout(function(){
