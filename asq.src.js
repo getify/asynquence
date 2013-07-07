@@ -28,22 +28,42 @@
 
 		function createSequence() {
 
-			function scheduleNextTick() {
+			function scheduleSequenceTick() {
 
 			}
 
-			function createSequenceTrigger() {
+			function createStepCompletion() {
 				function done() {
+					if (seq_error || seq_aborted) return;
 
+					var args = Array.prototype.slice.call(arguments);
+
+					sequence_messages = args.length > 1 ? args : args[0];
+					sequence_errors = null;
+
+					scheduleSequenceTick();
 				}
 
-				var pool_idx = pool.length;
-
 				done.fail = function(){
+					if (seq_error || seq_aborted) return;
 
+					var args = Array.prototype.slice.call(arguments);
+
+					seq_error = true;
+					sequence_messages.length = 0;
+					sequence_errors = args.length > 1 ? args : args[0];
+
+					scheduleSequenceTick();
 				};
-				done.abort = function(){
 
+				done.abort = function(){
+					if (seq_error || seq_aborted) return;
+
+					seq_aborted = true;
+					sequence_messages.length = 0;
+					sequence_errors.length = 0;
+
+					scheduleSequenceTick();
 				};
 
 				return done;
@@ -51,45 +71,97 @@
 
 			function createGate(segments) {
 
-				function checkGate() {
-					scheduleNextTick();
+				function scheduleGateTick() {
+
 				}
 
-				function createGateTrigger() {
+				function checkGate() {
+					if (seq_error || seq_aborted || gate_error || gate_aborted || gate_completed || segment_completion.length === 0) return;
 
-					function done() {
+					var i, fulfilled = true;
 
+					for (i=0; i<segment_completion.length; i++) {
+						if (segment_completion[i] === null) {
+							fulfilled = false;
+							break;
+						}
 					}
 
-					var pool_idx = pool.length;
+					if (fulfilled) {
+						gate_completed = true;
+						segment_completion.length = 0;
+					}
+				}
+
+				function createSegmentCompletion() {
+
+					function done() {
+						if (seq_error || seq_aborted || gate_error || gate_aborted || gate_completed) return;
+
+						var args = Array.prototype.slice.call(arguments);
+
+						segment_messages["m" + segment_completion_idx] = args.length > 1 ? args : args[0];
+						segment_completion[segment_completion_idx] = true;
+						segment_error_message = null;
+
+						scheduleGateTick();
+					}
+
+					var segment_completion_idx = segment_completion.length;
 
 					done.fail = function(){
+						if (seq_error || seq_aborted || gate_error || gate_aborted || gate_completed) return;
 
+						var args = Array.prototype.slice.call(arguments);
+
+						gate_error = true;
+						segment_completion.length = 0;
+						segment_messages = {};
+						segment_error_message = args.length > 1 ? args : args[0];
+
+						scheduleGateTick();
 					};
+
 					done.abort = function(){
+						if (seq_error || seq_aborted || gate_error || gate_aborted || gate_completed) return;
 
+						gate_aborted = true;
+						segment_completion.length = 0;
+						segment_messages = {};
+						segment_error_message = null;
+
+						scheduleGateTick();
 					};
+
+					// placeholder for when a gate-segment completes
+					segment_completion[segment_completion_idx] = null;
 
 					return done;
 				}
 
-				var i, args,
-					error = false,
-					aborted = false,
+				var gate_error = false,
+					gate_aborted = false,
+					gate_completed = false,
+
+					i,
+					args,
 					err_msg,
-					pool = [],
-					gate_messages = []
+
+					segment_completion = [],
+					segment_messages = {},
+					segment_error_message
 				;
 
 				for (i=0; i<segments.length; i++) {
-					if (error) break;
+					if (gate_error || gate_aborted) break;
 
-					args = sequence_messages.slice().unshift(createGateTrigger());
+					args = sequence_messages.slice().unshift(createSegmentCompletion());
 					try {
 						segments[i].apply(segments[i],args);
 					}
 					catch (err) {
 						err_msg = err;
+						gate_error = true;
 						break;
 					}
 				}
@@ -100,60 +172,61 @@
 			}
 
 			function sequenceError() {
+				if (seq_error || seq_aborted) return sequenceAPI;
+
 				var args = Array.prototype.slice.call(arguments);
 
-				error = true;
-
+				seq_error = true;
 				sequence_errors.push.apply(sequence_errors,args);
 
-				scheduleNextTick();
+				scheduleSequenceTick();
 			}
 
 			function then() {
-				if (error || aborted) return sequenceAPI;
+				if (seq_error || seq_aborted) return sequenceAPI;
 
 				return sequenceAPI;
 			}
 
 			function or() {
-				if (aborted) return sequenceAPI;
+				if (seq_aborted) return sequenceAPI;
 
 				return sequenceAPI;
 			}
 
 			function gate() {
-				if (error || aborted) return sequenceAPI;
+				if (seq_error || seq_aborted) return sequenceAPI;
 
 				return sequenceAPI;
 			}
 
 			function pipe() {
-				if (error || aborted) return sequenceAPI;
+				if (seq_error || seq_aborted) return sequenceAPI;
 
 				return sequenceAPI;
 			}
 
 			function seq() {
-				if (error || aborted) return sequenceAPI;
+				if (seq_error || seq_aborted) return sequenceAPI;
 
 				return sequenceAPI;
 			}
 
 			function val() {
-				if (error || aborted) return sequenceAPI;
+				if (seq_error || seq_aborted) return sequenceAPI;
 
 				return sequenceAPI;
 			}
 
 			function abort() {
-				if (error) return sequenceAPI;
-				
+				if (seq_error) return sequenceAPI;
+
 				return sequenceAPI;
 			}
 
 
-			var error = false,
-				aborted = false,
+			var seq_error = false,
+				seq_aborted = false,
 
 				then_queue = [],
 				or_queue = [],
