@@ -106,7 +106,7 @@ Create a step that's a parallel gate:
                 done(msg1,"mikey");
             },1000);
         }
-    })
+    )
     .then(function(_,msg1,msg2){
         alert("Greeting: " + msg1[0] + " " + msg1[1]); // 'Greeting: hello world'
         alert("Greeting: " + msg2[0] + " " + msg2[1]); // 'Greeting: hello mikey'
