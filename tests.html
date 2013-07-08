@@ -20,21 +20,273 @@ function doneLogMsg(msg) {
 	};
 }
 
+function PASS(testDone,testLabel) {
+	doneLogMsg(testLabel + ": PASSED")();
+	testDone();
+}
+
+function FAIL(testDone,testLabel) {
+	doneLogMsg(testLabel + ": FAILED")();
+	testDone.fail.apply(testDone,ARRAY_SLICE.call(arguments,2));
+}
+
+var ARRAY_SLICE = Array.prototype.slice;
 var tests = [];
 
-tests
-.push(
-	asyncDelayFn(1000),
-	function(done){
-		asyncDelayFn(1000)(function(){
+tests.push(function(testDone){
+	var label = "Test #1", timeout;
+
+	ASQ()
+	.then(function(done){
+		asyncDelayFn(100)(done);
+	})
+	.then(function(){
+		clearTimeout(timeout);
+		PASS(testDone,label);
+	})
+	.or(function(){
+		clearTimeout(timeout);
+		var args = ARRAY_SLICE.call(arguments);
+		args.unshift(testDone,label);
+		FAIL.apply(FAIL,args);
+	});
+
+	timeout = setTimeout(function(){
+		FAIL(testDone,label + "(from timeout)");
+	},1000);
+});
+tests.push(function(testDone){
+	var label = "Test #2", timeout;
+
+	ASQ()
+	.then(function(done){
+		asyncDelayFn(100)(function(){
+			done("Hello World");
+		});
+	})
+	.then(function(_,msg1){
+		clearTimeout(timeout);
+		if (msg1 === "Hello World") {
+			PASS(testDone,label);
+		}
+		else {
+			var args = ARRAY_SLICE.call(arguments);
+			args.unshift(testDone,label);
+			FAIL.apply(FAIL,args);
+		}
+	})
+	.or(function(){
+		clearTimeout(timeout);
+		var args = ARRAY_SLICE.call(arguments);
+		args.unshift(testDone,label);
+		FAIL.apply(FAIL,args);
+	});
+
+	timeout = setTimeout(function(){
+		FAIL(testDone,label + "(from timeout)");
+	},1000);
+});
+tests.push(function(testDone){
+	var label = "Test #3", timeout;
+
+	ASQ()
+	.then(function(done){
+		asyncDelayFn(100)(function(){
 			done("Hello");
-		});	
-	},
-	function(done,msg){
-		console.log(msg);
-		done();
-	}
-);
+		});
+	})
+	.then(function(done,msg1){
+		asyncDelayFn(100)(function(){
+			done(msg1,"World");
+		});
+	})
+	.then(function(_,msg1,msg2){
+		clearTimeout(timeout);
+		if (msg1 === "Hello" && msg2 === "World") {
+			PASS(testDone,label);
+		}
+		else {
+			var args = ARRAY_SLICE.call(arguments);
+			args.unshift(testDone,label);
+			FAIL.apply(FAIL,args);
+		}
+	})
+	.or(function(){
+		clearTimeout(timeout);
+		var args = ARRAY_SLICE.call(arguments);
+		args.unshift(testDone,label);
+		FAIL.apply(FAIL,args);
+	});
+
+	timeout = setTimeout(function(){
+		FAIL(testDone,label + "(from timeout)");
+	},1000);
+});
+tests.push(function(testDone){
+	var label = "Test #4", timeout;
+
+	ASQ()
+	.then(function(done){
+		asyncDelayFn(100)(function(){
+			done.fail("Hello");
+		});
+	})
+	.then(function(){
+		clearTimeout(timeout);
+		var args = ARRAY_SLICE.call(arguments);
+		args.unshift(testDone,label);
+		FAIL.apply(FAIL,args);
+	})
+	.or(function(msg1){
+		clearTimeout(timeout);
+		if (msg1 === "Hello") {
+			PASS(testDone,label);
+		}
+		else {
+			var args = ARRAY_SLICE.call(arguments);
+			args.unshift(testDone,label);
+			FAIL.apply(FAIL,args);
+		}
+	});
+
+	timeout = setTimeout(function(){
+		FAIL(testDone,label + "(from timeout)");
+	},1000);
+});
+tests.push(function(testDone){
+	var label = "Test #5", timeout;
+
+	ASQ()
+	.then(function(done){
+		done.a.b; // throwing JS error to make sure it's caught and propagated
+	})
+	.then(function(){
+		clearTimeout(timeout);
+		var args = ARRAY_SLICE.call(arguments);
+		args.unshift(testDone,label);
+		FAIL.apply(FAIL,args);
+	})
+	.or(function(msg1){
+		clearTimeout(timeout);
+		if (msg1 instanceof Error) {
+			PASS(testDone,label);
+		}
+		else {
+			var args = ARRAY_SLICE.call(arguments);
+			args.unshift(testDone,label);
+			FAIL.apply(FAIL,args);
+		}
+	});
+
+	timeout = setTimeout(function(){
+		FAIL(testDone,label + "(from timeout)");
+	},1000);
+});
+tests.push(function(testDone){
+	var label = "Test #6", timeout;
+
+	ASQ()
+	.then(asyncDelayFn(100))
+	.gate(
+		asyncDelayFn(800),
+		asyncDelayFn(600),
+		asyncDelayFn(700)
+	)
+	.then(function(){
+		clearTimeout(timeout);
+		PASS(testDone,label);
+	})
+	.or(function(){
+		clearTimeout(timeout);
+		var args = ARRAY_SLICE.call(arguments);
+		args.unshift(testDone,label);
+		FAIL.apply(FAIL,args);
+	});
+
+	timeout = setTimeout(function(){
+		FAIL(testDone,label + "(from timeout)");
+	},1000);
+});
+tests.push(function(testDone){
+	var label = "Test #7", timeout;
+
+	ASQ()
+	.then(asyncDelayFn(100))
+	.gate(
+		function(done){
+			asyncDelayFn(200)(function(){
+				done("Hello");
+			});
+		},
+		function(done){
+			asyncDelayFn(100)(function(){
+				done("World");
+			});
+		}
+	)
+	.then(function(_,msg1,msg2){
+		clearTimeout(timeout);
+
+		if (msg1 === "Hello" && msg2 === "World") {
+			PASS(testDone,label);
+		}
+		else {
+			var args = ARRAY_SLICE.call(arguments);
+			args.unshift(testDone,label);
+			FAIL.apply(FAIL,args);
+		}
+	})
+	.or(function(){
+		clearTimeout(timeout);
+		var args = ARRAY_SLICE.call(arguments);
+		args.unshift(testDone,label);
+		FAIL.apply(FAIL,args);
+	});
+
+	timeout = setTimeout(function(){
+		FAIL(testDone,label + "(from timeout)");
+	},1000);
+});
+tests.push(function(testDone){
+	var label = "Test #8", timeout;
+
+	ASQ()
+	.then(asyncDelayFn(100))
+	.gate(
+		function(done){
+			asyncDelayFn(100)(function(){
+				done("Hello");
+			});
+		},
+		function(done){
+			asyncDelayFn(200)(function(){
+				done.fail("World");
+			});
+		}
+	)
+	.then(function(){
+		clearTimeout(timeout);
+		var args = ARRAY_SLICE.call(arguments);
+		args.unshift(testDone,label);
+		FAIL.apply(FAIL,args);
+	})
+	.or(function(msg1){
+		clearTimeout(timeout);
+
+		if (msg1 === "World") {
+			PASS(testDone,label);
+		}
+		else {
+			var args = ARRAY_SLICE.call(arguments);
+			args.unshift(testDone,label);
+			FAIL.apply(FAIL,args);
+		}
+	});
+
+	timeout = setTimeout(function(){
+		FAIL(testDone,label + "(from timeout)");
+	},1000);
+});
 
 </script>
 
@@ -46,11 +298,13 @@ tests
 
 <script>
 ASQ.apply(ASQ,tests)
-.then(doneLogMsg("ALL TESTS PASSED"))
+.then(doneLogMsg("ALL TESTS PASSED!"))
 .or(function(){
-	doneLogMsg("FAILURE")();
+	doneLogMsg("*** TEST SUITE FAILURE ***")();
 	for (var i=0; i<arguments.length; i++) {
-		doneLogMsg(arguments[i].stack)();
+		doneLogMsg(arguments[i] +
+			(arguments[i] && arguments[i].stack ? arguments[i].stack : "")
+		)();
 	}
 });
 </script>

@@ -63,6 +63,7 @@
 						}
 						catch (err) {
 							sequence_errors.push(err);
+							if (err.stack) sequence_errors.push(err.stack);
 							if (or_queue.length === 0) {
 								console.error.apply(console,sequence_errors);
 							}
@@ -79,11 +80,11 @@
 						fn.apply(fn,args);
 					}
 					catch (err) {
-						sequence_messages.length = 0;
 						sequence_errors.push(err);
 						seq_error = true;
 						scheduleSequenceTick();
 					}
+					sequence_messages.length = 0;
 				}
 			}
 
@@ -123,7 +124,7 @@
 				return done;
 			}
 
-			function createGate(segments) {
+			function createGate(stepCompletion,segments) {
 
 				function resetGate() {
 					clearTimeout(gate_tick);
@@ -147,12 +148,12 @@
 					gate_tick = null;
 
 					if (gate_error) {
-						step_completion.fail.apply(step_completion,segment_error_message);
+						stepCompletion.fail.apply(stepCompletion,segment_error_message);
 
 						resetGate();
 					}
 					else if (gate_aborted) {
-						step_completion.abort();
+						stepCompletion.abort();
 
 						resetGate();
 					}
@@ -164,7 +165,7 @@
 							args.push(segment_messages["m" + i]);
 						}
 
-						step_completion.apply(step_completion,args);
+						stepCompletion.apply(stepCompletion,args);
 
 						resetGate();
 					}
@@ -203,10 +204,8 @@
 					done.fail = function(){
 						if (seq_error || seq_aborted || gate_error || gate_aborted || gate_completed) return;
 
-						var args = ARRAY_SLICE.call(arguments);
-
 						gate_error = true;
-						segment_error_message = args;
+						segment_error_message = ARRAY_SLICE.call(arguments);
 
 						scheduleGateTick();
 					};
@@ -237,9 +236,7 @@
 					segment_messages = {},
 					segment_error_message,
 
-					gate_tick,
-
-					step_completion = createStepCompletion()
+					gate_tick
 				;
 
 				for (i=0; i<segments.length; i++) {
@@ -258,7 +255,7 @@
 				}
 
 				if (err_msg) {
-					step_completion.fail(err_msg);
+					stepCompletion.fail(err_msg);
 				}
 			}
 
@@ -285,9 +282,13 @@
 			}
 
 			function gate() {
-				if (seq_error || seq_aborted) return sequence_api;
+				if (seq_error || seq_aborted || arguments.length === 0) return sequence_api;
 
-				createGate(ARRAY_SLICE.apply(arguments));
+				var args = ARRAY_SLICE.apply(arguments);
+
+				then_queue.push(function(done){
+					createGate(done,args);
+				});
 
 				scheduleSequenceTick();
 
