@@ -3,6 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <title>asynquence test suite</title>
+<style>#logmsgs{font-family:monospace;}</style>
 
 <script src="asq.src.js"></script>
 <script>
@@ -37,9 +38,7 @@ tests.push(function(testDone){
 	var label = "Test  #1", timeout;
 
 	ASQ()
-	.then(function(done){
-		asyncDelayFn(100)(done);
-	})
+	.then(asyncDelayFn(100))
 	.then(function(){
 		clearTimeout(timeout);
 		PASS(testDone,label);
@@ -462,7 +461,7 @@ tests.push(function(testDone){
 		done.fail("Hello");
 		done("World");
 	})
-	.then(function(done){
+	.then(function(){
 		clearTimeout(timeout);
 		var args = ARRAY_SLICE.call(arguments);
 		args.unshift(testDone,label);
@@ -479,6 +478,134 @@ tests.push(function(testDone){
 			args.unshift(testDone,label);
 			FAIL.apply(FAIL,args);
 		}
+	});
+
+	timeout = setTimeout(function(){
+		FAIL(testDone,label + "(from timeout)");
+	},1000);
+});
+tests.push(function(testDone){
+
+	function doSeq(msg1,msg2) {
+		var seq = ASQ();
+
+		seq
+		.then(asyncDelayFn(100))
+		.then(function(done){
+			done(msg2);
+		});
+
+		return seq;
+	}
+
+	var label = "Test #15", timeout;
+
+	ASQ()
+	.then(function(done){
+		asyncDelayFn(100)(function(){
+			done("Hello","World");
+		});
+	})
+	.seq(doSeq)
+	.then(function(done,msg1){
+		clearTimeout(timeout);
+
+		if (msg1 === "World") {
+			PASS(testDone,label);
+		}
+		else {
+			var args = ARRAY_SLICE.call(arguments);
+			args.unshift(testDone,label);
+			FAIL.apply(FAIL,args);
+		}
+	})
+	.or(function(){
+		clearTimeout(timeout);
+		var args = ARRAY_SLICE.call(arguments);
+		args.unshift(testDone,label);
+		FAIL.apply(FAIL,args);
+	});
+
+	timeout = setTimeout(function(){
+		FAIL(testDone,label + "(from timeout)");
+	},1000);
+});
+tests.push(function(testDone){
+
+	function doSeq(msg1,msg2) {
+		var seq = ASQ();
+
+		seq
+		.then(asyncDelayFn(100))
+		.then(function(done){
+			done.fail(msg2);
+		});
+
+		return seq;
+	}
+
+	var label = "Test #16", timeout;
+
+	ASQ()
+	.then(function(done){
+		asyncDelayFn(100)(function(){
+			done("Hello","World");
+		});
+	})
+	.seq(doSeq)
+	.then(function(){
+		clearTimeout(timeout);
+		var args = ARRAY_SLICE.call(arguments);
+		args.unshift(testDone,label);
+		FAIL.apply(FAIL,args);
+	})
+	.or(function(msg1){
+		clearTimeout(timeout);
+
+		if (msg1 === "World") {
+			PASS(testDone,label);
+		}
+		else {
+			var args = ARRAY_SLICE.call(arguments);
+			args.unshift(testDone,label);
+			FAIL.apply(FAIL,args);
+		}
+	});
+
+	timeout = setTimeout(function(){
+		FAIL(testDone,label + "(from timeout)");
+	},1000);
+});
+tests.push(function(testDone){
+	var label = "Test #17", timeout;
+
+	ASQ()
+	.then(asyncDelayFn(100))
+	.then(function(done){
+		asyncDelayFn(100)(function(){
+			done("Hello","World");
+		});
+	})
+	.val(function(msg1,msg2){
+		return msg1.toUpperCase() + " " + msg2.toUpperCase();
+	})
+	.then(function(_,msg1){
+		clearTimeout(timeout);
+
+		if (msg1 === "HELLO WORLD") {
+			PASS(testDone,label);
+		}
+		else {
+			var args = ARRAY_SLICE.call(arguments);
+			args.unshift(testDone,label);
+			FAIL.apply(FAIL,args);
+		}
+	})
+	.or(function(){
+		clearTimeout(timeout);
+		var args = ARRAY_SLICE.call(arguments);
+		args.unshift(testDone,label);
+		FAIL.apply(FAIL,args);
 	});
 
 	timeout = setTimeout(function(){

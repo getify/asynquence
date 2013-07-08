@@ -8,23 +8,6 @@
 	var old_ASQ = global.ASQ;
 	var ARRAY_SLICE = Array.prototype.slice;
 
-	// test for array
-	function is_array(arr) { return Object.prototype.toString.call(arr) == "[object Array]"; }
-
-	// flatten array
-	function flatten_array(arr) {
-		for (var i=0; i<arr.length; ) {
-			if (is_array(arr[i])) {
-				// prepend `splice()` arguments to `tmp` array, to enable `apply()` call
-				arr.splice.apply(arr,[i,1].concat(arr[i]));
-				continue;
-			}
-			i++;
-		}
-
-		return arr;
-	}
-
 	function createSandbox() {
 
 		function createSequence() {
@@ -306,27 +289,56 @@
 				return sequence_api;
 			}
 
-			function pipe(targetCompletion) {
-				if (seq_error || seq_aborted) return sequence_api;
+			function pipe() {
+				if (seq_error || seq_aborted || arguments.length === 0) return sequence_api;
 
-				then(function(done){
-					var args = Array.prototype.slice.call(arguments,1);
-					targetCompletion.apply(targetCompletion,args);
-					done();
-				})
-				.or(targetCompletion.fail);
+				var i, fns = ARRAY_SLICE.call(arguments);
+
+				for (i=0; i<fns.length; i++) {
+					(function(fn){
+						then(function(done){
+							var args = ARRAY_SLICE.call(arguments,1);
+							fn.apply(fn,args);
+							done();
+						})
+						.or(fn.fail);
+					})(fns[i]);
+				}
 
 				return sequence_api;
 			}
 
 			function seq() {
-				if (seq_error || seq_aborted) return sequence_api;
+				if (seq_error || seq_aborted || arguments.length === 0) return sequence_api;
+
+				var i, fns = ARRAY_SLICE.call(arguments);
+
+				for (i=0; i<fns.length; i++) {
+					(function(fn){
+						then(function(done){
+							var args = ARRAY_SLICE.call(arguments,1);
+							fn.apply(fn,args)
+							.pipe(done);
+						});
+					})(fns[i]);
+				}
 
 				return sequence_api;
 			}
 
 			function val() {
-				if (seq_error || seq_aborted) return sequence_api;
+				if (seq_error || seq_aborted || arguments.length === 0) return sequence_api;
+
+				var i, fns = ARRAY_SLICE.call(arguments);
+
+				for (i=0; i<fns.length; i++) {
+					(function(fn){
+						then(function(done){
+							var args = ARRAY_SLICE.call(arguments,1);
+							done(fn.apply(fn,args));
+						});
+					})(fns[i]);
+				}
 
 				return sequence_api;
 			}
