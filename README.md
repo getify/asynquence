@@ -18,9 +18,9 @@ You can register multiple steps, and multiple failure handlers. However, message
 
 To listen for any step failing, call `or(...)` on your sequence to register a failure callback. You can call `or()` as many times as you would like. If you call `or()` on a sequence that has already been flagged as failed, the callback you specify will just be executed immediately.
 
-Passing in multiple functions to `ASQ(...)` or `then(...)` creates an [implicit async parallel gate (aka asyncGate.js)](http://github.com/getify/asyncGate.js) across those functions, such that the single step in question isn't complete until all segments of the parallel gate are complete.
+Calling `gate(..)` with two or more functions creates a step that is a parallel gate across those functions, such that the single step in question isn't complete until all segments of the parallel gate are complete.
 
-For implicit parallel gate steps, each segment of that gate will receive a copy of the message(s) passed from the previous step. Also, all messages from the segments of this gate will be passed along to the next step (or the next failure handler, in the case of a gate segment indicating a failure).
+For parallel gate steps, each segment of that gate will receive a copy of the message(s) passed from the previous step. Also, all messages from the segments of this gate will be passed along to the next step (or the next failure handler, in the case of a gate segment indicating a failure).
 
 You can also `abort()` a sequence at any time, which will prevent any further actions from occurring on that sequence (all callbacks will be ignored). The call to `abort()` can happen on the sequence API itself, or using the `abort` flag on a completion callback in any step (see example below).
 
