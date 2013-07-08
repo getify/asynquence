@@ -34,7 +34,7 @@ var ARRAY_SLICE = Array.prototype.slice;
 var tests = [];
 
 tests.push(function(testDone){
-	var label = "Test #1", timeout;
+	var label = "Test  #1", timeout;
 
 	ASQ()
 	.then(function(done){
@@ -56,7 +56,7 @@ tests.push(function(testDone){
 	},1000);
 });
 tests.push(function(testDone){
-	var label = "Test #2", timeout;
+	var label = "Test  #2", timeout;
 
 	ASQ()
 	.then(function(done){
@@ -87,7 +87,7 @@ tests.push(function(testDone){
 	},1000);
 });
 tests.push(function(testDone){
-	var label = "Test #3", timeout;
+	var label = "Test  #3", timeout;
 
 	ASQ()
 	.then(function(done){
@@ -123,12 +123,12 @@ tests.push(function(testDone){
 	},1000);
 });
 tests.push(function(testDone){
-	var label = "Test #4", timeout;
+	var label = "Test  #4", timeout;
 
 	ASQ()
 	.then(function(done){
 		asyncDelayFn(100)(function(){
-			done.fail("Hello");
+			done.fail("Hello","World");
 		});
 	})
 	.then(function(){
@@ -137,9 +137,9 @@ tests.push(function(testDone){
 		args.unshift(testDone,label);
 		FAIL.apply(FAIL,args);
 	})
-	.or(function(msg1){
+	.or(function(msg1,msg2){
 		clearTimeout(timeout);
-		if (msg1 === "Hello") {
+		if (msg1 === "Hello" && msg2 === "World") {
 			PASS(testDone,label);
 		}
 		else {
@@ -154,7 +154,7 @@ tests.push(function(testDone){
 	},1000);
 });
 tests.push(function(testDone){
-	var label = "Test #5", timeout;
+	var label = "Test  #5", timeout;
 
 	ASQ()
 	.then(function(done){
@@ -183,7 +183,7 @@ tests.push(function(testDone){
 	},1000);
 });
 tests.push(function(testDone){
-	var label = "Test #6", timeout;
+	var label = "Test  #6", timeout;
 
 	ASQ()
 	.then(asyncDelayFn(100))
@@ -208,7 +208,7 @@ tests.push(function(testDone){
 	},1000);
 });
 tests.push(function(testDone){
-	var label = "Test #7", timeout;
+	var label = "Test  #7", timeout;
 
 	ASQ()
 	.then(asyncDelayFn(100))
@@ -248,7 +248,7 @@ tests.push(function(testDone){
 	},1000);
 });
 tests.push(function(testDone){
-	var label = "Test #8", timeout;
+	var label = "Test  #8", timeout;
 
 	ASQ()
 	.then(asyncDelayFn(100))
@@ -274,6 +274,204 @@ tests.push(function(testDone){
 		clearTimeout(timeout);
 
 		if (msg1 === "World") {
+			PASS(testDone,label);
+		}
+		else {
+			var args = ARRAY_SLICE.call(arguments);
+			args.unshift(testDone,label);
+			FAIL.apply(FAIL,args);
+		}
+	});
+
+	timeout = setTimeout(function(){
+		FAIL(testDone,label + "(from timeout)");
+	},1000);
+});
+tests.push(function(testDone){
+	var label = "Test  #9", timeout;
+
+	ASQ()
+	.then(asyncDelayFn(100))
+	.then(function(done){
+		ASQ()
+		.then(asyncDelayFn(100))
+		.then(function(done){
+			asyncDelayFn(100)(function(){
+				done("Hello");
+			});
+		})
+		.pipe(done);
+	})
+	.then(function(done,msg1){
+		clearTimeout(timeout);
+
+		if (msg1 === "Hello") {
+			PASS(testDone,label);
+		}
+		else {
+			var args = ARRAY_SLICE.call(arguments);
+			args.unshift(testDone,label);
+			FAIL.apply(FAIL,args);
+		}
+	})
+	.or(function(){
+		clearTimeout(timeout);
+		var args = ARRAY_SLICE.call(arguments);
+		args.unshift(testDone,label);
+		FAIL.apply(FAIL,args);
+	});
+
+	timeout = setTimeout(function(){
+		FAIL(testDone,label + "(from timeout)");
+	},1000);
+});
+tests.push(function(testDone){
+	var label = "Test #10", timeout;
+
+	ASQ()
+	.then(asyncDelayFn(100))
+	.then(function(done){
+		ASQ()
+		.then(asyncDelayFn(100))
+		.then(function(done){
+			asyncDelayFn(100)(function(){
+				done.fail("Hello");
+			});
+		})
+		.pipe(done);
+	})
+	.then(function(done){
+		clearTimeout(timeout);
+		var args = ARRAY_SLICE.call(arguments);
+		args.unshift(testDone,label);
+		FAIL.apply(FAIL,args);
+	})
+	.or(function(msg1){
+		clearTimeout(timeout);
+
+		if (msg1 === "Hello") {
+			PASS(testDone,label);
+		}
+		else {
+			var args = ARRAY_SLICE.call(arguments);
+			args.unshift(testDone,label);
+			FAIL.apply(FAIL,args);
+		}
+	});
+
+	timeout = setTimeout(function(){
+		FAIL(testDone,label + "(from timeout)");
+	},1000);
+});
+tests.push(function(testDone){
+	var label = "Test #11", timeout;
+
+	ASQ()
+	.then(function(done){
+		done("Hello");
+	})
+	.then(function(done,msg1){
+		clearTimeout(timeout);
+
+		if (msg1 === "Hello") {
+			PASS(testDone,label);
+		}
+		else {
+			var args = ARRAY_SLICE.call(arguments);
+			args.unshift(testDone,label);
+			FAIL.apply(FAIL,args);
+		}
+	})
+	.or(function(){
+		clearTimeout(timeout);
+		var args = ARRAY_SLICE.call(arguments);
+		args.unshift(testDone,label);
+		FAIL.apply(FAIL,args);
+	});
+
+	timeout = setTimeout(function(){
+		FAIL(testDone,label + "(from timeout)");
+	},1000);
+});
+tests.push(function(testDone){
+	var label = "Test #12", timeout;
+
+	ASQ()
+	.then(function(done){
+		done.fail("Hello");
+	})
+	.then(function(done){
+		clearTimeout(timeout);
+		var args = ARRAY_SLICE.call(arguments);
+		args.unshift(testDone,label);
+		FAIL.apply(FAIL,args);
+	})
+	.or(function(msg1){
+		clearTimeout(timeout);
+
+		if (msg1 === "Hello") {
+			PASS(testDone,label);
+		}
+		else {
+			var args = ARRAY_SLICE.call(arguments);
+			args.unshift(testDone,label);
+			FAIL.apply(FAIL,args);
+		}
+	});
+
+	timeout = setTimeout(function(){
+		FAIL(testDone,label + "(from timeout)");
+	},1000);
+});
+tests.push(function(testDone){
+	var label = "Test #13", timeout;
+
+	ASQ()
+	.then(function(done){
+		done("Hello");
+		done.fail("World");
+	})
+	.then(function(done,msg1){
+		clearTimeout(timeout);
+
+		if (msg1 === "Hello") {
+			PASS(testDone,label);
+		}
+		else {
+			var args = ARRAY_SLICE.call(arguments);
+			args.unshift(testDone,label);
+			FAIL.apply(FAIL,args);
+		}
+	})
+	.or(function(){
+		clearTimeout(timeout);
+		var args = ARRAY_SLICE.call(arguments);
+		args.unshift(testDone,label);
+		FAIL.apply(FAIL,args);
+	});
+
+	timeout = setTimeout(function(){
+		FAIL(testDone,label + "(from timeout)");
+	},1000);
+});
+tests.push(function(testDone){
+	var label = "Test #14", timeout;
+
+	ASQ()
+	.then(function(done){
+		done.fail("Hello");
+		done("World");
+	})
+	.then(function(done){
+		clearTimeout(timeout);
+		var args = ARRAY_SLICE.call(arguments);
+		args.unshift(testDone,label);
+		FAIL.apply(FAIL,args);
+	})
+	.or(function(msg1){
+		clearTimeout(timeout);
+
+		if (msg1 === "Hello") {
 			PASS(testDone,label);
 		}
 		else {

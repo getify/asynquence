@@ -74,6 +74,7 @@
 					then_ready = false;
 					fn = then_queue.shift();
 					args = sequence_messages.slice();
+					sequence_messages.length = 0;
 					args.unshift(createStepCompletion());
 
 					try {
@@ -84,13 +85,13 @@
 						seq_error = true;
 						scheduleSequenceTick();
 					}
-					sequence_messages.length = 0;
 				}
 			}
 
 			function createStepCompletion() {
 				function done() {
-					if (seq_error || seq_aborted) return;
+					// ignore this call?
+					if (seq_error || seq_aborted || then_ready) return;
 
 					then_ready = true;
 					sequence_messages.push.apply(sequence_messages,arguments);
@@ -100,9 +101,9 @@
 				}
 
 				done.fail = function(){
-					if (seq_error || seq_aborted) return;
+					// ignore this call?
+					if (seq_error || seq_aborted || then_ready) return;
 
-					then_ready = false;
 					seq_error = true;
 					sequence_messages.length = 0;
 					sequence_errors.push.apply(sequence_errors,arguments);
@@ -189,7 +190,13 @@
 				function createSegmentCompletion() {
 
 					function done() {
-						if (seq_error || seq_aborted || gate_error || gate_aborted || gate_completed) return;
+						// ignore this call?
+						if (seq_error || seq_aborted || gate_error ||
+							gate_aborted || gate_completed ||
+							segment_completion[segment_completion_idx]
+						) {
+							return;
+						}
 
 						var args = ARRAY_SLICE.call(arguments);
 
@@ -202,7 +209,13 @@
 					var segment_completion_idx = segment_completion.length;
 
 					done.fail = function(){
-						if (seq_error || seq_aborted || gate_error || gate_aborted || gate_completed) return;
+						// ignore this call?
+						if (seq_error || seq_aborted || gate_error ||
+							gate_aborted || gate_completed ||
+							segment_completion[segment_completion_idx]
+						) {
+							return;
+						}
 
 						gate_error = true;
 						segment_error_message = ARRAY_SLICE.call(arguments);
@@ -286,17 +299,22 @@
 
 				var args = ARRAY_SLICE.apply(arguments);
 
-				then_queue.push(function(done){
+				then(function(done){
 					createGate(done,args);
 				});
-
-				scheduleSequenceTick();
 
 				return sequence_api;
 			}
 
-			function pipe() {
+			function pipe(targetCompletion) {
 				if (seq_error || seq_aborted) return sequence_api;
+
+				then(function(done){
+					var args = Array.prototype.slice.call(arguments,1);
+					targetCompletion.apply(targetCompletion,args);
+					done();
+				})
+				.or(targetCompletion.fail);
 
 				return sequence_api;
 			}
