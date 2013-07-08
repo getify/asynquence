@@ -85,7 +85,7 @@ Handle step failure:
         alert("Failure: " + msg1 + " " + msg2); // 'Failure: hello world'
     });
 
-Create a step that's an [implicit async parallel gate (aka asyncGate.js)](http://github.com/getify/asyncGate.js):
+Create a step that's a parallel gate:
 
     ASQ()
     // normal async step
@@ -95,7 +95,7 @@ Create a step that's an [implicit async parallel gate (aka asyncGate.js)](http:/
         },1000);
     })
     // implicit async parallel gate (segments will go in parallel!) step
-    .then(
+    .gate(
         function(done,msg1){ // gate segment
             setTimeout(function(){
                 done(msg1,"world");
