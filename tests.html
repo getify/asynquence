@@ -22,6 +22,20 @@ function doneLogMsg(msg) {
 
 var tests = [];
 
+tests
+.push(
+	asyncDelayFn(1000),
+	function(done){
+		asyncDelayFn(1000)(function(){
+			done("Hello");
+		});	
+	},
+	function(done,msg){
+		console.log(msg);
+		done();
+	}
+);
+
 </script>
 
 
@@ -30,6 +44,15 @@ var tests = [];
 <h1>asynquence test suite</h1>
 <textarea id="logmsgs" cols="40" rows="25"></textarea>
 
-<script>ASQ(tests).then(doneLogMsg("ALL TESTS PASSED"));</script>
+<script>
+ASQ.apply(ASQ,tests)
+.then(doneLogMsg("ALL TESTS PASSED"))
+.or(function(){
+	doneLogMsg("FAILURE")();
+	for (var i=0; i<arguments.length; i++) {
+		doneLogMsg(arguments[i].stack)();
+	}
+});
+</script>
 </body>
 </html>
