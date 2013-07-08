@@ -24,8 +24,6 @@ For parallel gate steps, each segment of that gate will receive a copy of the me
 
 You can also `abort()` a sequence at any time, which will prevent any further actions from occurring on that sequence (all callbacks will be ignored). The call to `abort()` can happen on the sequence API itself, or using the `abort` flag on a completion callback in any step (see example below).
 
-**NOTE: this code explicitly depends on [asyncGate.js](http://github.com/getify/asyncGate.js).** Either "ag.js" (or "ag.src.js") must be present prior to including "as.js" (or "as.src.js"), or you must bundle the two together in the proper order.
-
 ## Usage Examples
 
 Using the following example setup:
