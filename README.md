@@ -22,7 +22,15 @@ Calling `gate(..)` with two or more functions creates a step that is a parallel 
 
 For parallel gate steps, each segment of that gate will receive a copy of the message(s) passed from the previous step. Also, all messages from the segments of this gate will be passed along to the next step (or the next failure handler, in the case of a gate segment indicating a failure).
 
-You can also `abort()` a sequence at any time, which will prevent any further actions from occurring on that sequence (all callbacks will be ignored). The call to `abort()` can happen on the sequence API itself, or using the `abort` flag on a completion callback in any step (see example below).
+There are a few convenience methods on the API, as well:
+
+* `pipe(..)` takes one or more completion triggers from other sequences, treating each one as a separate step in the sequence in question. These completion triggers will, in turn, be piped both the success and failure streams from the sequence.
+
+* `seq(..)` takes one or more functions, treating each one as a separate step in the sequence in question. These functions are expected to return new sequences, from which, in turn, both the success and failure streams will be piped back to the sequence in question.
+
+* `val(..)` takes one or more functions, treating each one as a separate step in the sequence in question. These functions can each optionally return a value, each value of which will, in turn, be passed as the completion value for that sequence step.
+
+You can also `abort()` a sequence at any time, which will prevent any further actions from occurring on that sequence (all callbacks will be ignored). The call to `abort()` can happen on the sequence API itself, or using the `abort` flag on a completion trigger in any step (see example below).
 
 ## Usage Examples
 
@@ -92,7 +100,7 @@ Create a step that's a parallel gate:
             done("hello");
         },1000);
     })
-    // implicit async parallel gate (segments will go in parallel!) step
+    // parallel gate step (segments run in parallel)
     .gate(
         function(done,msg1){ // gate segment
             setTimeout(function(){
@@ -110,14 +118,46 @@ Create a step that's a parallel gate:
         alert("Greeting: " + msg2[0] + " " + msg2[1]); // 'Greeting: hello mikey'
     });
 
+Use `pipe(..)`, `seq(..)`, and `val(..)` helpers:
+
+    var seq = ASQ()
+    .then(function(done){
+        ASQ()
+        .then(function(done){
+            setTimeout(function(){
+                done("Hello World");
+            },100);
+        })
+        .pipe(done); // pipe sequence output to `done` completion trigger
+    })
+    .val(function(msg){ // NOTE: no completion trigger passed in!
+        return msg.toUpperCase(); // map return value as step output
+    })
+    .seq(function(msg){ // NOTE: no completion trigger passed in!
+        var seq = ASQ();
+
+        seq
+        .then(function(done){
+            setTimeout(function(){
+                done(msg.split(" ")[0]);
+            },100);
+        });
+
+        return seq; // pipe this sub-sequence back into the main sequence
+    })
+    .then(function(_,msg){
+        alert(msg); // "HELLO"
+    });
+
 Abort a sequence in progress:
 
-    var steps = ASQ()
+    var seq = ASQ()
     .then(fn1)
     .then(fn2)
     .then(yay);
+
     setTimeout(function(){
-        steps.abort(); // will stop the sequence before running steps `fn2` and `yay`
+        seq.abort(); // will stop the sequence before running steps `fn2` and `yay`
     },100);
     
     // same as above
