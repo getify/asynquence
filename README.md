@@ -2,6 +2,16 @@
 
 A lightweight API for asynchronous sequences and gates.
 
+## *asynquence* & Promises
+
+**You should be able to use *asynquence* as your primary async flow control library, without the need for other Promises implementations.**
+
+This lib is intentionally designed to hide/abstract the idea of Promises, such that you can do quick and easy async flow control programming without using Promises directly. As such, *asynquence* is *not [Promises/A+](http://promisesaplus.com/) compliant*, nor *should* it be, because the "promises" used are hidden underneath *asynquence*'s API.
+
+If you are already using other Promises implementations, you *can* quite easily receive and consume a regular Promise value from some other method and wire it up to signal/control flow for an *asynquence* instance.
+
+**However**, despite API similarities, an *asynquence* instance is **not** designed to be used *as a Promise value* passed to a regular Promises-based system. Trying to do so will likely cause unexpected behavior, because Promises/A+ suggests problematic (read: "dangerous") duck-typing for objects that have a `then()` method, as `asynquence` instances do.
+
 ## Explanation
 
 Say you want do two or more asynchronous tasks one after the other (like animation delays, XHR calls, etc). You want to set up an ordered sequence of tasks and make sure the previous one finishes before the next one is processed. You need a sequence.
