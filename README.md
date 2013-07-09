@@ -110,7 +110,7 @@ Create a step that's a parallel gate:
         function(done,msg1){ // gate segment
             setTimeout(function(){
                 done(msg1,"mikey");
-            },1000);
+            },100); // segment finishes first, but message still kept "in order"
         }
     )
     .then(function(_,msg1,msg2){
