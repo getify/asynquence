@@ -1,5 +1,5 @@
 /*! asynquence
-    v0.0.1 (c) Kyle Simpson
+    v0.0.2 (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -7,6 +7,10 @@
 
 	var old_ASQ = global.ASQ;
 	var ARRAY_SLICE = Array.prototype.slice;
+
+	function schedule(fn) {
+		return (typeof setImmediate !== "undefined") ? setImmediate(fn) : setTimeout(fn,0);
+	}
 
 	function createSandbox() {
 
@@ -24,9 +28,8 @@
 			function scheduleSequenceTick() {
 				if (seq_aborted) return sequenceTick();
 
-				// TODO: do this right
 				if (!seq_tick) {
-					seq_tick = setTimeout(sequenceTick,0);
+					seq_tick = schedule(sequenceTick);
 				}
 			}
 
@@ -118,9 +121,8 @@
 				function scheduleGateTick() {
 					if (gate_aborted) return gateTick();
 
-					// TODO: do this right
 					if (!gate_tick) {
-						gate_tick = setTimeout(gateTick,0);
+						gate_tick = schedule(gateTick);
 					}
 				}
 
