@@ -1,0 +1,25 @@
+{
+  "name": "asynquence",
+  "version": "0.1.0",
+  "description": "asynquence: async sequences & gates for flow-control",
+  "main": "./asq.js",
+  "scripts": {
+    "test": "node node-tests.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/getify/asynquence.git"
+  },
+  "keywords": [
+    "async",
+    "flow-control",
+    "sequences"
+  ],
+  "bugs": {
+    "url": "https://github.com/getify/asynquence/issues",
+    "email": "getify@gmail.com"
+  },
+  "homepage": "http://github.com/getify/asynquence",
+  "author": "Kyle Simpson <getify@gmail.com>",
+  "license": "MIT"
+}

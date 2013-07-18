@@ -42,6 +42,14 @@ There are a few convenience methods on the API, as well:
 
 You can also `abort()` a sequence at any time, which will prevent any further actions from occurring on that sequence (all callbacks will be ignored). The call to `abort()` can happen on the sequence API itself, or using the `abort` flag on a completion trigger in any step (see example below).
 
+`ASQ.noConflict()` rolls back a browser's global `ASQ` symbol and returns the current API instance to you. This can be used to keep your browser global namespace clean, or it can be used to have multiple simultaneous libraries (including separate versions/copies of *asynquence*!) in the same page without conflicts over the `ASQ` global symbol. 
+
+## Browser, node.js (CommonJS), AMD: ready!
+
+The *asynquence* library is packaged with a light variation of the [UMD (universal module definition)](https://github.com/umdjs/umd) pattern, which means the same file is suitable for inclusion either as a normal browser .js file, as a node.js module, or as an AMD module. Can't get any simpler than that, can it?
+
+**Note:** The `ASQ.noConflict()` method really only makes sense when used in a normal browser global namespace environment. It **should not** be used when the node.js or AMD style modules are your method of inclusion. 
+
 ## Usage Examples
 
 Using the following example setup:

@@ -1,12 +1,18 @@
 /*! asynquence
-    v0.0.2 (c) Kyle Simpson
+    v0.1.0 (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
-(function(global){
+(function(name,context,definition){
+	if (typeof module !== "undefined" && module.exports) module.exports = definition();
+	else if (typeof define === "function" && define.amd) define(definition);
+	else context[name] = definition(name,context);
+})("ASQ",this,function(name,context){
 
-	var old_ASQ = global.ASQ;
-	var ARRAY_SLICE = Array.prototype.slice;
+	var public_api,
+		old_public_api = (context || {})[name],
+		ARRAY_SLICE = Array.prototype.slice
+	;
 
 	function schedule(fn) {
 		return (typeof setImmediate !== "undefined") ? setImmediate(fn) : setTimeout(fn,0);
@@ -390,12 +396,14 @@
 		return createSequence;
 	}
 
-	global.ASQ = createSandbox();
+	public_api = createSandbox();
 
-	global.ASQ.noConflict = function() {
-		var current_ASQ = global.ASQ;
-		global.ASQ = old_ASQ;
-		return current_ASQ;
+	public_api.noConflict = function() {
+		if (context) {
+			context[name] = old_public_api;
+		}
+		return public_api;
 	};
 
-})(this);
+	return public_api;
+});
