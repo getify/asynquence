@@ -1,5 +1,5 @@
 /*! asynquence
-    v0.1.0 (c) Kyle Simpson
+    v0.1.1-a (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -117,7 +117,7 @@
 				return done;
 			}
 
-			function createGate(stepCompletion,segments) {
+			function createGate(stepCompletion,segments,seqMessages) {
 
 				function resetGate() {
 					clearTimeout(gate_tick);
@@ -246,7 +246,7 @@
 				for (i=0; i<segments.length; i++) {
 					if (gate_error || gate_aborted) break;
 
-					args = sequence_messages.slice();
+					args = seqMessages.slice();
 					args.unshift(createSegmentCompletion());
 					try {
 						segments[i].apply(segments[i],args);
@@ -288,10 +288,12 @@
 			function gate() {
 				if (seq_error || seq_aborted || arguments.length === 0) return sequence_api;
 
-				var args = ARRAY_SLICE.apply(arguments);
+				var fns = ARRAY_SLICE.apply(arguments);
 
 				then(function(done){
-					createGate(done,args);
+					var args = ARRAY_SLICE.call(arguments);
+					args.shift();
+					createGate(done,fns,args);
 				});
 
 				return sequence_api;

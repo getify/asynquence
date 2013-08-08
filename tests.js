@@ -201,23 +201,31 @@
 			var label = "Test  #7", timeout;
 
 			ASQ()
-			.then(asyncDelayFn(100))
+			.then(function(done){
+				asyncDelayFn(100)(function(){
+					done("msg1","msg2");
+				});
+			})
 			.gate(
-				function(done){
+				function(done,msg1,msg2){
 					asyncDelayFn(200)(function(){
-						done("Hello");
+						done(msg1,msg2,"Hello");
 					});
 				},
-				function(done){
+				function(done,msg1,msg2){
 					asyncDelayFn(100)(function(){
-						done("World");
+						done(msg1+" "+msg2+" World");
 					});
 				}
 			)
 			.then(function(_,msg1,msg2){
 				clearTimeout(timeout);
 
-				if (msg1 === "Hello" && msg2 === "World") {
+				if (msg1[0] === "msg1" &&
+					msg1[1] === "msg2" &&
+					msg1[2] === "Hello" &&
+					msg2 === "msg1 msg2 World"
+				) {
 					PASS(testDone,label);
 				}
 				else {
