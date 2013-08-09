@@ -120,20 +120,23 @@ Create a step that's a parallel gate:
     })
     // parallel gate step (segments run in parallel)
     .gate(
-        function(done,msg1){ // gate segment
+        function(done,greeting){ // gate segment
             setTimeout(function(){
-                done(msg1,"world");
+                done(greeting,"world");             // <-- 2 gate messages
             },500);
         },
-        function(done,msg1){ // gate segment
+        function(done,greeting){ // gate segment
             setTimeout(function(){
-                done(msg1,"mikey");
+                done(greeting + " mikey");          // <-- only 1 gate message!
             },100); // segment finishes first, but message still kept "in order"
         }
     )
     .then(function(_,msg1,msg2){
+        // msg1 is an array of the 2 gate messages from the first segment
+        // msg2 is the single message (not an array) from the second segment
+        
         alert("Greeting: " + msg1[0] + " " + msg1[1]); // 'Greeting: hello world'
-        alert("Greeting: " + msg2[0] + " " + msg2[1]); // 'Greeting: hello mikey'
+        alert("Greeting: " + msg2); // 'Greeting: hello mikey'
     });
 
 Use `pipe(..)`, `seq(..)`, and `val(..)` helpers:
