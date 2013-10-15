@@ -4,7 +4,8 @@ A lightweight API for asynchronous sequences and gates. [Sequences & gates, at a
 
 ## Explanation
 
-Say you want do two or more asynchronous tasks one after the other (like animation delays, XHR calls, etc). You want to set up an ordered sequence of tasks and make sure the previous one finishes before the next one is processed. You need a sequence.
+### Sequences
+If you want to perform two or more asynchronous tasks one after the other (like animation delays, XHR calls, etc). You want to set up an ordered series of tasks and make sure the previous one finishes before the next one is processed. You need a **sequence**.
 
 You create a sequence by calling `ASQ(...)`. **Each time you call `ASQ()`, you create a new, separate sequence.**
 
@@ -18,10 +19,14 @@ You can register multiple steps, and multiple failure handlers. However, message
 
 To listen for any step failing, call `or(...)` on your sequence to register a failure callback. You can call `or()` as many times as you would like. If you call `or()` on a sequence that has already been flagged as failed, the callback you specify will just be executed at the next opportunity.
 
+### Gates
+If you have two or more tasks to perform at the same time, but want to wait for them all to complete before moving on. You need a **gate**.
+
 Calling `gate(..)` with two or more functions creates a step that is a parallel gate across those functions, such that the single step in question isn't complete until all segments of the parallel gate are complete.
 
 For parallel gate steps, each segment of that gate will receive a copy of the message(s) passed from the previous step. Also, all messages from the segments of this gate will be passed along to the next step (or the next failure handler, in the case of a gate segment indicating a failure).
 
+### Conveniences
 There are a few convenience methods on the API, as well:
 
 * `pipe(..)` takes one or more completion triggers from other sequences, treating each one as a separate step in the sequence in question. These completion triggers will, in turn, be piped both the success and failure streams from the sequence.
@@ -35,11 +40,9 @@ You can also `abort()` a sequence at any time, which will prevent any further ac
 `ASQ.noConflict()` rolls back the global `ASQ` identifier and returns the current API instance to you. This can be used to keep your global namespace clean, or it can be used to have multiple simultaneous libraries (including separate versions/copies of *asynquence*!) in the same program without conflicts over the `ASQ` global identifier.
 
 ### Multiple parameters
-
 API methods take one or more functions as their parameters. `gate(..)` treats multiple functions as segments in the same gate. The other API methods (`then(..)`, `or(..)`, `pipe(..)`, `seq(..)`, and `val(..)`) treat multiple parameters as just separate subsequent steps in the respective sequence. These methods don't accept arrays of functions (that you might build up programatically), but since they take multiple parameters, you can use `.apply(..)` to spread those out.
 
 ### A+ Promises
-
 **You should be able to use *asynquence* as your primary async flow control library, without the need for other Promises implementations.**
 
 This lib is intentionally designed to hide/abstract the idea of Promises, such that you can do quick and easy async flow control programming without using Promises directly. As such, *asynquence* is *not [Promises/A+](http://promisesaplus.com/) compliant*, nor *should* it be, because the "promises" used are hidden underneath *asynquence*'s API.
