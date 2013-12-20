@@ -1,6 +1,6 @@
 # asynquence
 
-A lightweight API for asynchronous sequences and gates. [Sequences & gates, at a glance](https://gist.github.com/getify/5959149). More advanced [example of "nested" composition of sequences](https://gist.github.com/getify/10273f3de07dda27ebce).
+A lightweight (1.1k minzipped) API for asynchronous flow control using sequences and gates. [Sequences & gates, at a glance](https://gist.github.com/getify/5959149). More advanced [example of "nested" composition of sequences](https://gist.github.com/getify/10273f3de07dda27ebce). [Example of promise & iteration styles](https://gist.github.com/jakearchibald/0e652d95c07442f205ce#comment-972613).
 
 ## Explanation
 
