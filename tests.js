@@ -279,7 +279,7 @@
 			.then(function(_,msg1,msg2){
 				clearTimeout(timeout);
 
-				if (msg1.__ASQ__ &&
+				if (ASQ.isMessageWrapper(msg1) &&
 					msg1[0] === "msg1" &&
 					msg1[1] === "msg2" &&
 					msg1[2] === "Hello" &&
@@ -556,6 +556,18 @@
 				return seq;
 			}
 
+			function doSeq2() {
+				var seq = ASQ();
+
+				seq
+				.then(asyncDelayFn(50))
+				.then(function(done){
+					done("Easy");
+				});
+
+				return seq;
+			}
+
 			var label = "Test #15", timeout;
 
 			ASQ()
@@ -565,10 +577,21 @@
 				});
 			})
 			.seq(doSeq)
+			.val(function(msg1){
+				// did messages fail to flow through seq()?
+				if (msg1 !== "World") {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+
+				return "Ignored message";
+			})
+			.seq(doSeq2()) // NOTE: executed doSeq2() so the ASQ instance itself is what's passed in
 			.then(function(done,msg1){
 				clearTimeout(timeout);
 
-				if (msg1 === "World") {
+				if (msg1 === "Easy") {
 					PASS(testDone,label);
 				}
 				else {
@@ -595,8 +618,18 @@
 
 				seq
 				.then(asyncDelayFn(100))
+				.seq(doSeq2(msg2)); // NOTE: called doSeq2() to pass in ASQ instance itself
+
+				return seq;
+			}
+
+			function doSeq2(msg1) {
+				var seq = ASQ();
+
+				seq
+				.then(asyncDelayFn(100))
 				.then(function(done){
-					done.fail(msg2);
+					done.fail(msg1);
 				});
 
 				return seq;

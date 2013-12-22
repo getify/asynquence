@@ -54,7 +54,7 @@
 							fn.apply(fn,sequence_errors);
 						}
 						catch (err) {
-							if (public_api.isMessageWrapper(err)) {
+							if (checkBranding(err)) {
 								sequence_errors = sequence_errors.concat(err);
 							}
 							else {
@@ -78,7 +78,7 @@
 						fn.apply(fn,args);
 					}
 					catch (err) {
-						if (public_api.isMessageWrapper(err)) {
+						if (checkBranding(err)) {
 							sequence_errors = sequence_errors.concat(err);
 						}
 						else {
@@ -269,7 +269,7 @@
 				});
 
 				if (err_msg) {
-					if (public_api.isMessageWrapper(err_msg)) {
+					if (checkBranding(err_msg)) {
 						stepCompletion.fail.apply(null,err_msg);
 					}
 					else {
@@ -332,8 +332,13 @@
 
 				ARRAY_SLICE.call(arguments).forEach(function(fn){
 					then(function(done){
-						fn.apply(fn,ARRAY_SLICE.call(arguments,1))
-						.pipe(done);
+						// check if this argument is not already an ASQ instance?
+						// if not, assume a function to invoke that will return an ASQ instance
+						if (!checkBranding(fn)) {
+							fn = fn.apply(fn,ARRAY_SLICE.call(arguments,1));
+						}
+						// now, pipe the ASQ instance into our current sequence
+						fn.pipe(done);
 					});
 				});
 
@@ -346,7 +351,7 @@
 				ARRAY_SLICE.call(arguments).forEach(function(fn){
 					then(function(done){
 						var msgs = fn.apply(fn,ARRAY_SLICE.call(arguments,1));
-						if (!public_api.isMessageWrapper(msgs)) {
+						if (!checkBranding(msgs)) {
 							msgs = public_api.messages.call(null,msgs);
 						}
 						done.apply(done,msgs);
@@ -395,6 +400,12 @@
 				sequence_api.then.apply(sequence_api,arguments);
 			}
 
+			// brand the sequence API so we can detect ASQ instances
+			Object.defineProperty(sequence_api,"__ASQ__",{
+				enumerable: false,
+				value: true
+			});
+
 			return sequence_api;
 		}
 
@@ -405,6 +416,7 @@
 
 	public_api.messages = function() {
 		var ret = ARRAY_SLICE.call(arguments);
+		// brand the message wrapper so we can detect
 		Object.defineProperty(ret,"__ASQ__",{
 			enumerable: false,
 			value: true
@@ -412,9 +424,11 @@
 		return ret;
 	};
 
-	public_api.isMessageWrapper = function(val) {
+	function checkBranding(val) {
 		return typeof val === "object" && val.__ASQ__;
-	};
+	}
+
+	public_api.isMessageWrapper = public_api.isSequence = checkBranding;
 
 	public_api.noConflict = function() {
 		if (context) {
