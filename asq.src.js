@@ -1,5 +1,5 @@
 /*! asynquence
-    v0.1.1-a (c) Kyle Simpson
+    v0.1.2-a (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -135,7 +135,7 @@
 				function gateTick() {
 					if (seq_error || seq_aborted || gate_completed) return;
 
-					var i, args = [];
+					var args = [];
 
 					gate_tick = null;
 
@@ -153,9 +153,9 @@
 						gate_completed = true;
 
 						// collect all the messages from the gate segments
-						for (i=0; i<segment_completion.length; i++) {
+						segment_completion.forEach(function(sc,i){
 							args.push(segment_messages["m" + i]);
-						}
+						});
 
 						stepCompletion.apply(stepCompletion,args);
 
@@ -166,14 +166,14 @@
 				function checkGate() {
 					if (seq_error || seq_aborted || gate_error || gate_aborted || gate_completed || segment_completion.length === 0) return;
 
-					var i, fulfilled = true;
+					var fulfilled = true;
 
-					for (i=0; i<segment_completion.length; i++) {
-						if (segment_completion[i] === null) {
+					segment_completion.some(function(segcom){
+						if (segcom === null) {
 							fulfilled = false;
-							break;
+							return true; // break
 						}
-					}
+					});
 
 					return fulfilled;
 				}
@@ -232,7 +232,6 @@
 					gate_aborted = false,
 					gate_completed = false,
 
-					i,
 					args,
 					err_msg,
 
@@ -243,20 +242,20 @@
 					gate_tick
 				;
 
-				for (i=0; i<segments.length; i++) {
-					if (gate_error || gate_aborted) break;
+				segments.some(function(seg){
+					if (gate_error || gate_aborted) return true; // break
 
 					args = seqMessages.slice();
 					args.unshift(createSegmentCompletion());
 					try {
-						segments[i].apply(segments[i],args);
+						seg.apply(seg,args);
 					}
 					catch (err) {
 						err_msg = err;
 						gate_error = true;
-						break;
+						return true; // break
 					}
-				}
+				});
 
 				if (err_msg) {
 					stepCompletion.fail(err_msg);
@@ -288,11 +287,10 @@
 			function gate() {
 				if (seq_error || seq_aborted || arguments.length === 0) return sequence_api;
 
-				var fns = ARRAY_SLICE.apply(arguments);
+				var fns = ARRAY_SLICE.call(arguments);
 
 				then(function(done){
-					var args = ARRAY_SLICE.call(arguments);
-					args.shift();
+					var args = ARRAY_SLICE.call(arguments,1);
 					createGate(done,fns,args);
 				});
 
@@ -302,18 +300,13 @@
 			function pipe() {
 				if (seq_error || seq_aborted || arguments.length === 0) return sequence_api;
 
-				var i, fns = ARRAY_SLICE.call(arguments);
-
-				for (i=0; i<fns.length; i++) {
-					(function(fn){
-						then(function(done){
-							var args = ARRAY_SLICE.call(arguments,1);
-							fn.apply(fn,args);
-							done();
-						})
-						.or(fn.fail);
-					})(fns[i]);
-				}
+				ARRAY_SLICE.call(arguments).forEach(function(fn){
+					then(function(done){
+						fn.apply(fn,ARRAY_SLICE.call(arguments,1));
+						done();
+					})
+					.or(fn.fail);
+				});
 
 				return sequence_api;
 			}
@@ -321,17 +314,12 @@
 			function seq() {
 				if (seq_error || seq_aborted || arguments.length === 0) return sequence_api;
 
-				var i, fns = ARRAY_SLICE.call(arguments);
-
-				for (i=0; i<fns.length; i++) {
-					(function(fn){
-						then(function(done){
-							var args = ARRAY_SLICE.call(arguments,1);
-							fn.apply(fn,args)
-							.pipe(done);
-						});
-					})(fns[i]);
-				}
+				ARRAY_SLICE.call(arguments).forEach(function(fn){
+					then(function(done){
+						fn.apply(fn,ARRAY_SLICE.call(arguments,1))
+						.pipe(done);
+					});
+				});
 
 				return sequence_api;
 			}
@@ -339,16 +327,11 @@
 			function val() {
 				if (seq_error || seq_aborted || arguments.length === 0) return sequence_api;
 
-				var i, fns = ARRAY_SLICE.call(arguments);
-
-				for (i=0; i<fns.length; i++) {
-					(function(fn){
-						then(function(done){
-							var args = ARRAY_SLICE.call(arguments,1);
-							done(fn.apply(fn,args));
-						});
-					})(fns[i]);
-				}
+				ARRAY_SLICE.call(arguments).forEach(function(fn){
+					then(function(done){
+						done(fn.apply(fn,ARRAY_SLICE.call(arguments,1)));
+					});
+				});
 
 				return sequence_api;
 			}
