@@ -1,5 +1,5 @@
 /*! asynquence
-    v0.1.2-a (c) Kyle Simpson
+    v0.2.0-a (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -54,8 +54,13 @@
 							fn.apply(fn,sequence_errors);
 						}
 						catch (err) {
-							sequence_errors.push(err);
-							if (err.stack) sequence_errors.push(err.stack);
+							if (public_api.isMessageWrapper(err)) {
+								sequence_errors = sequence_errors.concat(err);
+							}
+							else {
+								sequence_errors.push(err);
+								if (err.stack) sequence_errors.push(err.stack);
+							}
 							if (or_queue.length === 0) {
 								console.error.apply(console,sequence_errors);
 							}
@@ -73,7 +78,12 @@
 						fn.apply(fn,args);
 					}
 					catch (err) {
-						sequence_errors.push(err);
+						if (public_api.isMessageWrapper(err)) {
+							sequence_errors = sequence_errors.concat(err);
+						}
+						else {
+							sequence_errors.push(err);
+						}
 						seq_error = true;
 						scheduleSequenceTick();
 					}
@@ -154,7 +164,7 @@
 
 						// collect all the messages from the gate segments
 						segment_completion.forEach(function(sc,i){
-							args.push(segment_messages["m" + i]);
+							args.push(segment_messages["s" + i]);
 						});
 
 						stepCompletion.apply(stepCompletion,args);
@@ -189,9 +199,10 @@
 							return;
 						}
 
-						var args = ARRAY_SLICE.call(arguments);
+						// put gate-segment messages into `messages`-branded container
+						var args = public_api.messages.apply(null,arguments);
 
-						segment_messages["m" + segment_completion_idx] = args.length > 1 ? args : args[0];
+						segment_messages["s" + segment_completion_idx] = args.length > 1 ? args : args[0];
 						segment_completion[segment_completion_idx] = true;
 
 						scheduleGateTick();
@@ -258,7 +269,12 @@
 				});
 
 				if (err_msg) {
-					stepCompletion.fail(err_msg);
+					if (public_api.isMessageWrapper(err_msg)) {
+						stepCompletion.fail.apply(null,err_msg);
+					}
+					else {
+						stepCompletion.fail(err_msg);
+					}
 				}
 			}
 
@@ -329,7 +345,11 @@
 
 				ARRAY_SLICE.call(arguments).forEach(function(fn){
 					then(function(done){
-						done(fn.apply(fn,ARRAY_SLICE.call(arguments,1)));
+						var msgs = fn.apply(fn,ARRAY_SLICE.call(arguments,1));
+						if (!public_api.isMessageWrapper(msgs)) {
+							msgs = public_api.messages.call(null,msgs);
+						}
+						done.apply(done,msgs);
 					});
 				});
 
@@ -382,6 +402,19 @@
 	}
 
 	public_api = createSandbox();
+
+	public_api.messages = function() {
+		var ret = ARRAY_SLICE.call(arguments);
+		Object.defineProperty(ret,"__ASQ__",{
+			enumerable: false,
+			value: true
+		});
+		return ret;
+	};
+
+	public_api.isMessageWrapper = function(val) {
+		return typeof val === "object" && val.__ASQ__;
+	};
 
 	public_api.noConflict = function() {
 		if (context) {

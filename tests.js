@@ -173,6 +173,64 @@
 			},1000);
 		});
 		tests.push(function(testDone){
+			var label = "Test #5b";
+
+			ASQ()
+			.then(function(done){
+				// throwing JS error to make sure it's caught and propagated
+				throw ASQ.messages("Oops","I","did","it","again!");
+			})
+			.then(function(){
+				var args = ARRAY_SLICE.call(arguments);
+				args.unshift(testDone,label);
+				FAIL.apply(FAIL,args);
+			})
+			.or(function(msg1,msg2,msg3,msg4,msg5){
+				if (msg1 === "Oops" &&
+					msg2 === "I" &&
+					msg3 === "did" &&
+					msg4 === "it" &&
+					msg5 === "again!"
+				) {
+					PASS(testDone,label);
+				}
+				else {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			});
+		});
+		tests.push(function(testDone){
+			var label = "Test #5c";
+
+			ASQ()
+			.then(function(done){
+				// throwing JS error to make sure it's caught and propagated
+				throw ASQ.messages("Oops","I","did","it","again!");
+			})
+			.or(function(){
+				throw ASQ.messages("Oh","yeah!");
+			})
+			.or(function(msg1,msg2,msg3,msg4,msg5,msg6,msg7){
+				if (msg1 === "Oops" &&
+					msg2 === "I" &&
+					msg3 === "did" &&
+					msg4 === "it" &&
+					msg5 === "again!" &&
+					msg6 === "Oh" &&
+					msg7 === "yeah!"
+				) {
+					PASS(testDone,label);
+				}
+				else {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			});
+		});
+		tests.push(function(testDone){
 			var label = "Test  #6", timeout;
 
 			ASQ()
@@ -221,7 +279,8 @@
 			.then(function(_,msg1,msg2){
 				clearTimeout(timeout);
 
-				if (msg1[0] === "msg1" &&
+				if (msg1.__ASQ__ &&
+					msg1[0] === "msg1" &&
 					msg1[1] === "msg2" &&
 					msg1[2] === "Hello" &&
 					msg2 === "msg1 msg2 World"
@@ -610,6 +669,31 @@
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + "(from timeout)");
 			},1000);
+		});
+		tests.push(function(testDone){
+			var label = "Test #18";
+
+			ASQ()
+			.val(function(){
+				return ASQ.messages("Hello","World");
+			})
+			.then(function(_,msg1,msg2){
+				if (msg1 === "Hello" &&
+					msg2 === "World"
+				) {
+					PASS(testDone,label);
+				}
+				else {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			})
+			.or(function(){
+				var args = ARRAY_SLICE.call(arguments);
+				args.unshift(testDone,label);
+				FAIL.apply(FAIL,args);
+			});
 		});
 
 		return tests;
