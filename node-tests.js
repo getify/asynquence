@@ -4,7 +4,7 @@ function doneLogMsg(msg) {
 	};
 }
 
-var ASQ = require("./asq.js");
+var ASQ = require("./asq.src.js");
 var tests = require("./tests.js")(ASQ,doneLogMsg);
 
 console.log("asynquence test suite");
