@@ -11,7 +11,8 @@
 
 	var public_api,
 		old_public_api = (context || {})[name],
-		ARRAY_SLICE = Array.prototype.slice
+		ARRAY_SLICE = Array.prototype.slice,
+		brand = "__ASQ__"
 	;
 
 	function schedule(fn) {
@@ -382,7 +383,8 @@
 
 				seq_tick,
 
-				sequence_api = {
+				// brand the sequence API so we can detect ASQ instances
+				sequence_api = brandIt({
 					then: then,
 					or: or,
 					gate: gate,
@@ -390,19 +392,11 @@
 					seq: seq,
 					val: val,
 					abort: abort
-				}
+				})
 			;
 
-			// treat constructor parameters as having been passed to `then()`
-			if (arguments.length > 0) {
-				sequence_api.then.apply(sequence_api,arguments);
-			}
-
-			// brand the sequence API so we can detect ASQ instances
-			Object.defineProperty(sequence_api,"__ASQ__",{
-				enumerable: false,
-				value: true
-			});
+			// treat ASQ() constructor parameters as having been passed to `then()`
+			sequence_api.then.apply(sequence_api,arguments);
 
 			return sequence_api;
 		}
@@ -415,15 +409,21 @@
 	public_api.messages = function() {
 		var ret = ARRAY_SLICE.call(arguments);
 		// brand the message wrapper so we can detect
-		Object.defineProperty(ret,"__ASQ__",{
-			enumerable: false,
-			value: true
-		});
+		brandIt(ret);
 		return ret;
 	};
 
+	function brandIt(obj) {
+		Object.defineProperty(obj,brand,{
+			enumerable: false,
+			value: true
+		});
+
+		return obj;
+	}
+
 	function checkBranding(val) {
-		return typeof val === "object" && val.__ASQ__;
+		return typeof val === "object" && val[brand];
 	}
 
 	public_api.isMessageWrapper = public_api.isSequence = checkBranding;
