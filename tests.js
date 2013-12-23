@@ -543,6 +543,7 @@
 			},1000);
 		});
 		tests.push(function(testDone){
+			var label = "Test #15", timeout;
 
 			function doSeq(msg1,msg2) {
 				var seq = ASQ();
@@ -562,13 +563,11 @@
 				seq
 				.then(asyncDelayFn(50))
 				.then(function(done){
-					done("Easy");
+					done("Sweet");
 				});
 
 				return seq;
 			}
-
-			var label = "Test #15", timeout;
 
 			ASQ()
 			.then(function(done){
@@ -577,9 +576,9 @@
 				});
 			})
 			.seq(doSeq)
-			.val(function(msg1){
+			.val(function(msg){
 				// did messages fail to flow through seq()?
-				if (msg1 !== "World") {
+				if (msg !== "World") {
 					var args = ARRAY_SLICE.call(arguments);
 					args.unshift(testDone,label);
 					FAIL.apply(FAIL,args);
@@ -587,11 +586,12 @@
 
 				return "Ignored message";
 			})
-			.seq(doSeq2()) // NOTE: executed doSeq2() so the ASQ instance itself is what's passed in
-			.then(function(done,msg1){
+			// NOTE: calling doSeq2() to pass in ASQ instance itself
+			.seq(doSeq2())
+			.then(function(done,msg){
 				clearTimeout(timeout);
 
-				if (msg1 === "Easy") {
+				if (msg === "Sweet") {
 					PASS(testDone,label);
 				}
 				else {
@@ -612,30 +612,41 @@
 			},1000);
 		});
 		tests.push(function(testDone){
+			var label = "Test #16", timeout;
 
 			function doSeq(msg1,msg2) {
 				var seq = ASQ();
 
 				seq
-				.then(asyncDelayFn(100))
-				.seq(doSeq2(msg2)); // NOTE: called doSeq2() to pass in ASQ instance itself
+				.then(asyncDelayFn(250))
+				// NOTE: calling doSeq2() to pass in ASQ instance itself
+				.seq(doSeq2(msg2));
 
 				return seq;
 			}
 
-			function doSeq2(msg1) {
+			function doSeq2(msg) {
+				var seq = ASQ();
+
+				seq
+				.then(asyncDelayFn(50))
+				// NOTE: calling doSeq3() to pass in ASQ instance itself
+				.seq(doSeq3(msg + "!"));
+
+				return seq;
+			}
+
+			function doSeq3(msg) {
 				var seq = ASQ();
 
 				seq
 				.then(asyncDelayFn(100))
 				.then(function(done){
-					done.fail(msg1);
+					done.fail(msg.toUpperCase());
 				});
 
 				return seq;
 			}
-
-			var label = "Test #16", timeout;
 
 			ASQ()
 			.then(function(done){
@@ -650,10 +661,10 @@
 				args.unshift(testDone,label);
 				FAIL.apply(FAIL,args);
 			})
-			.or(function(msg1){
+			.or(function(msg){
 				clearTimeout(timeout);
 
-				if (msg1 === "World") {
+				if (msg === "WORLD!") {
 					PASS(testDone,label);
 				}
 				else {

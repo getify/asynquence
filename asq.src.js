@@ -279,11 +279,9 @@
 			}
 
 			function then() {
-				if (seq_error || seq_aborted) return sequence_api;
+				if (seq_error || seq_aborted || arguments.length === 0) return sequence_api;
 
-				if (arguments.length > 0) {
-					then_queue.push.apply(then_queue,arguments);
-				}
+				then_queue.push.apply(then_queue,arguments);
 
 				scheduleSequenceTick();
 
@@ -291,7 +289,7 @@
 			}
 
 			function or() {
-				if (seq_aborted) return sequence_api;
+				if (seq_aborted || arguments.length === 0) return sequence_api;
 
 				or_queue.push.apply(or_queue,arguments);
 
@@ -314,7 +312,7 @@
 			}
 
 			function pipe() {
-				if (seq_error || seq_aborted || arguments.length === 0) return sequence_api;
+				if (seq_aborted || arguments.length === 0) return sequence_api;
 
 				ARRAY_SLICE.call(arguments).forEach(function(fn){
 					then(function(done){
