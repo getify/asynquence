@@ -4,9 +4,9 @@
 */
 
 (function UMD(name,context,definition){
-	if (typeof module !== "undefined" && module.exports) module.exports = definition();
-	else if (typeof define === "function" && define.amd) define(definition);
-	else context[name] = definition(name,context);
+	if (typeof module !== "undefined" && module.exports) { module.exports = definition(); }
+	else if (typeof define === "function" && define.amd) { define(definition); }
+	else { context[name] = definition(name,context); }
 })("ASQ",this,function DEF(name,context){
 
 	var public_api,
@@ -16,7 +16,9 @@
 	;
 
 	function schedule(fn) {
-		return (typeof setImmediate !== "undefined") ? setImmediate(fn) : setTimeout(fn,0);
+		return (typeof setImmediate !== "undefined") ?
+			setImmediate(fn) : setTimeout(fn,0)
+		;
 	}
 
 	function createSequence() {
@@ -31,7 +33,9 @@
 		}
 
 		function scheduleSequenceTick() {
-			if (seq_aborted) return sequenceTick();
+			if (seq_aborted) {
+				return sequenceTick();
+			}
 
 			if (!seq_tick) {
 				seq_tick = schedule(sequenceTick);
@@ -58,7 +62,7 @@
 						}
 						else {
 							sequence_errors.push(err);
-							if (err.stack) sequence_errors.push(err.stack);
+							if (err.stack) { sequence_errors.push(err.stack); }
 						}
 						if (or_queue.length === 0) {
 							console.error.apply(console,sequence_errors);
@@ -92,7 +96,9 @@
 		function createStepCompletion() {
 			function done() {
 				// ignore this call?
-				if (seq_error || seq_aborted || then_ready) return;
+				if (seq_error || seq_aborted || then_ready) {
+					return;
+				}
 
 				then_ready = true;
 				sequence_messages.push.apply(sequence_messages,arguments);
@@ -103,7 +109,9 @@
 
 			done.fail = function __step_fail__(){
 				// ignore this call?
-				if (seq_error || seq_aborted || then_ready) return;
+				if (seq_error || seq_aborted || then_ready) {
+					return;
+				}
 
 				seq_error = true;
 				sequence_messages.length = 0;
@@ -113,7 +121,9 @@
 			};
 
 			done.abort = function __step_abort__(){
-				if (seq_error || seq_aborted) return;
+				if (seq_error || seq_aborted) {
+					return;
+				}
 
 				then_ready = false;
 				seq_aborted = true;
@@ -130,11 +140,14 @@
 
 			function resetGate() {
 				clearTimeout(gate_tick);
-				gate_tick = segment_completion = segment_messages = segment_error_message = null;
+				gate_tick = segment_completion =
+					segment_messages = segment_error_message = null;
 			}
 
 			function scheduleGateTick() {
-				if (gate_aborted) return gateTick();
+				if (gate_aborted) {
+					return gateTick();
+				}
 
 				if (!gate_tick) {
 					gate_tick = schedule(gateTick);
@@ -142,7 +155,9 @@
 			}
 
 			function gateTick() {
-				if (seq_error || seq_aborted || gate_completed) return;
+				if (seq_error || seq_aborted || gate_completed) {
+					return;
+				}
 
 				var args = [];
 
@@ -162,7 +177,8 @@
 					gate_completed = true;
 
 					// collect all the messages from the gate segments
-					segment_completion.forEach(function __foreach__(sc,i){
+					segment_completion
+					.forEach(function __foreach__(sc,i){
 						args.push(segment_messages["s" + i]);
 					});
 
@@ -173,7 +189,12 @@
 			}
 
 			function checkGate() {
-				if (seq_error || seq_aborted || gate_error || gate_aborted || gate_completed || segment_completion.length === 0) return;
+				if (seq_error || seq_aborted || gate_error ||
+					gate_aborted || gate_completed ||
+					segment_completion.length === 0
+				) {
+					return;
+				}
 
 				var fulfilled = true;
 
@@ -198,10 +219,12 @@
 						return;
 					}
 
-					// put gate-segment messages into `messages`-branded container
+					// put gate-segment messages into `messages`-branded
+					// container
 					var args = public_api.messages.apply(ø,arguments);
 
-					segment_messages["s" + segment_completion_idx] = args.length > 1 ? args : args[0];
+					segment_messages["s" + segment_completion_idx] =
+						args.length > 1 ? args : args[0];
 					segment_completion[segment_completion_idx] = true;
 
 					scheduleGateTick();
@@ -225,11 +248,16 @@
 				};
 
 				done.abort = function __segment_abort__(){
-					if (seq_error || seq_aborted || gate_error || gate_aborted || gate_completed) return;
+					if (seq_error || seq_aborted || gate_error ||
+						gate_aborted || gate_completed
+					) {
+						return;
+					}
 
 					gate_aborted = true;
 
-					gateTick(); // abort() is an immediate/synchronous action
+					// abort() is an immediate/synchronous action
+					gateTick();
 				};
 
 				// placeholder for when a gate-segment completes
@@ -253,7 +281,9 @@
 			;
 
 			segments.some(function __some__(seg){
-				if (gate_error || gate_aborted) return true; // break
+				if (gate_error || gate_aborted) {
+					return true; // break
+				}
 
 				args = seqMessages.slice();
 				args.unshift(createSegmentCompletion());
@@ -278,9 +308,14 @@
 		}
 
 		function then() {
-			if (seq_error || seq_aborted || arguments.length === 0) return sequence_api;
+			if (seq_error || seq_aborted ||	arguments.length === 0) {
+				return sequence_api;
+			}
 
-			then_queue.push.apply(then_queue,wrapValueMessages(arguments,thenWrapper));
+			then_queue.push.apply(
+				then_queue,
+				wrapValueMessages(arguments,thenWrapper)
+			);
 
 			scheduleSequenceTick();
 
@@ -288,7 +323,9 @@
 		}
 
 		function or() {
-			if (seq_aborted || arguments.length === 0) return sequence_api;
+			if (seq_aborted || arguments.length === 0) {
+				return sequence_api;
+			}
 
 			or_queue.push.apply(or_queue,arguments);
 
@@ -298,7 +335,9 @@
 		}
 
 		function gate() {
-			if (seq_error || seq_aborted || arguments.length === 0) return sequence_api;
+			if (seq_error || seq_aborted || arguments.length === 0) {
+				return sequence_api;
+			}
 
 			var fns = ARRAY_SLICE.call(arguments);
 
@@ -311,9 +350,12 @@
 		}
 
 		function pipe() {
-			if (seq_aborted || arguments.length === 0) return sequence_api;
+			if (seq_aborted || arguments.length === 0) {
+				return sequence_api;
+			}
 
-			ARRAY_SLICE.call(arguments).forEach(function __foreach__(fn){
+			ARRAY_SLICE.call(arguments)
+			.forEach(function __foreach__(fn){
 				then(function __then__(done){
 					fn.apply(ø,ARRAY_SLICE.call(arguments,1));
 					done();
@@ -325,12 +367,16 @@
 		}
 
 		function seq() {
-			if (seq_error || seq_aborted || arguments.length === 0) return sequence_api;
+			if (seq_error || seq_aborted || arguments.length === 0) {
+				return sequence_api;
+			}
 
-			ARRAY_SLICE.call(arguments).forEach(function __foreach__(fn){
+			ARRAY_SLICE.call(arguments)
+			.forEach(function __foreach__(fn){
 				then(function __then__(done){
 					// check if this argument is not already an ASQ instance?
-					// if not, assume a function to invoke that will return an ASQ instance
+					// if not, assume a function to invoke that will return
+					// an ASQ instance
 					if (!checkBranding(fn)) {
 						fn = fn.apply(ø,ARRAY_SLICE.call(arguments,1));
 					}
@@ -343,9 +389,13 @@
 		}
 
 		function val() {
-			if (seq_error || seq_aborted || arguments.length === 0) return sequence_api;
+			if (seq_error || seq_aborted || arguments.length === 0) {
+				return sequence_api;
+			}
 
-			ARRAY_SLICE.call(wrapValueMessages(arguments,valWrapper))
+			ARRAY_SLICE.call(
+				wrapValueMessages(arguments,valWrapper)
+			)
 			.forEach(function __foreach__(fn){
 				then(function __then__(done){
 					var msgs = fn.apply(ø,ARRAY_SLICE.call(arguments,1));
@@ -360,7 +410,9 @@
 		}
 
 		function abort() {
-			if (seq_error) return sequence_api;
+			if (seq_error) {
+				return sequence_api;
+			}
 
 			seq_aborted = true;
 
@@ -393,7 +445,8 @@
 			})
 		;
 
-		// treat ASQ() constructor parameters as having been passed to `then()`
+		// treat ASQ() constructor parameters as having been
+		// passed to `then()`
 		sequence_api.then.apply(ø,
 			wrapValueMessages(arguments,thenWrapper)
 		);
@@ -456,7 +509,8 @@
 			if (Array.isArray(args[i]) && checkBranding(args[i])) {
 				args[i] = wrapper.bind.apply(wrapper,
 					// partial-application of arguments
-					[/*this=*/null,/*numArgs=*/args[i].length].concat(
+					[/*this=*/null,/*numArgs=*/args[i].length]
+					.concat(
 						// pre-bound arguments
 						args[i]
 					)
@@ -464,7 +518,9 @@
 			}
 			else if (typeof args[i] !== "function") {
 				for (j=i+1; j<args.length; j++) {
-					if (typeof args[j] === "function" || checkBranding(args[j])) {
+					if (typeof args[j] === "function" ||
+						checkBranding(args[j])
+					) {
 						break;
 					}
 				}
@@ -473,7 +529,8 @@
 					/*howMany=*/j-i,
 					/*replace=*/wrapper.bind.apply(wrapper,
 						// partial-application of arguments
-						[/*this=*/null,/*numArgs=*/(j-i)].concat(
+						[/*this=*/null,/*numArgs=*/(j-i)]
+						.concat(
 							// pre-bound arguments
 							args.slice(i,j)
 						)
@@ -497,7 +554,8 @@
 		return ret;
 	};
 
-	public_api.isMessageWrapper = public_api.isSequence = checkBranding;
+	public_api.isMessageWrapper = public_api.isSequence =
+		checkBranding;
 
 	public_api.noConflict = function __noconflict__() {
 		if (context) {
