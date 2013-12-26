@@ -12,7 +12,7 @@
 	var public_api,
 		old_public_api = (context || {})[name],
 		ARRAY_SLICE = Array.prototype.slice,
-		brand = "__ASQ__"
+		brand = "__ASQ__", ø = Object.create(null)
 	;
 
 	function schedule(fn) {
@@ -50,7 +50,7 @@
 				while (or_queue.length) {
 					fn = or_queue.shift();
 					try {
-						fn.apply(fn,sequence_errors);
+						fn.apply(ø,sequence_errors);
 					}
 					catch (err) {
 						if (checkBranding(err)) {
@@ -74,7 +74,7 @@
 				args.unshift(createStepCompletion());
 
 				try {
-					fn.apply(fn,args);
+					fn.apply(ø,args);
 				}
 				catch (err) {
 					if (checkBranding(err)) {
@@ -149,7 +149,7 @@
 				gate_tick = null;
 
 				if (gate_error) {
-					stepCompletion.fail.apply(stepCompletion,segment_error_message);
+					stepCompletion.fail.apply(ø,segment_error_message);
 
 					resetGate();
 				}
@@ -166,7 +166,7 @@
 						args.push(segment_messages["s" + i]);
 					});
 
-					stepCompletion.apply(stepCompletion,args);
+					stepCompletion.apply(ø,args);
 
 					resetGate();
 				}
@@ -199,7 +199,7 @@
 					}
 
 					// put gate-segment messages into `messages`-branded container
-					var args = public_api.messages.apply(null,arguments);
+					var args = public_api.messages.apply(ø,arguments);
 
 					segment_messages["s" + segment_completion_idx] = args.length > 1 ? args : args[0];
 					segment_completion[segment_completion_idx] = true;
@@ -258,7 +258,7 @@
 				args = seqMessages.slice();
 				args.unshift(createSegmentCompletion());
 				try {
-					seg.apply(seg,args);
+					seg.apply(ø,args);
 				}
 				catch (err) {
 					err_msg = err;
@@ -269,7 +269,7 @@
 
 			if (err_msg) {
 				if (checkBranding(err_msg)) {
-					stepCompletion.fail.apply(null,err_msg);
+					stepCompletion.fail.apply(ø,err_msg);
 				}
 				else {
 					stepCompletion.fail(err_msg);
@@ -315,7 +315,7 @@
 
 			ARRAY_SLICE.call(arguments).forEach(function __foreach__(fn){
 				then(function __then__(done){
-					fn.apply(fn,ARRAY_SLICE.call(arguments,1));
+					fn.apply(ø,ARRAY_SLICE.call(arguments,1));
 					done();
 				})
 				.or(fn.fail);
@@ -332,7 +332,7 @@
 					// check if this argument is not already an ASQ instance?
 					// if not, assume a function to invoke that will return an ASQ instance
 					if (!checkBranding(fn)) {
-						fn = fn.apply(fn,ARRAY_SLICE.call(arguments,1));
+						fn = fn.apply(ø,ARRAY_SLICE.call(arguments,1));
 					}
 					// now, pipe the ASQ instance into our current sequence
 					fn.pipe(done);
@@ -348,11 +348,11 @@
 			ARRAY_SLICE.call(wrapValueMessages(arguments,valWrapper))
 			.forEach(function __foreach__(fn){
 				then(function __then__(done){
-					var msgs = fn.apply(fn,ARRAY_SLICE.call(arguments,1));
+					var msgs = fn.apply(ø,ARRAY_SLICE.call(arguments,1));
 					if (!checkBranding(msgs)) {
 						msgs = public_api.messages(msgs);
 					}
-					done.apply(done,msgs);
+					done.apply(ø,msgs);
 				});
 			});
 
@@ -394,7 +394,7 @@
 		;
 
 		// treat ASQ() constructor parameters as having been passed to `then()`
-		sequence_api.then.apply(sequence_api,
+		sequence_api.then.apply(ø,
 			wrapValueMessages(arguments,thenWrapper)
 		);
 
@@ -430,7 +430,7 @@
 	function valWrapper(numArgs) {
 		// `numArgs` indicates how many pre-bound arguments
 		// will be sent in.
-		return public_api.messages.apply(null,
+		return public_api.messages.apply(ø,
 			// pass along only the pre-bound arguments
 			preboundArgs(numArgs,arguments)
 		);
@@ -443,7 +443,7 @@
 		// `numArgs` indicates how many pre-bound arguments
 		// will be sent in.
 		arguments[numArgs+1] // the `done()`
-		.apply(null,
+		.apply(ø,
 			// pass along only the pre-bound arguments
 			preboundArgs(numArgs,arguments)
 		);
