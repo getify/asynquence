@@ -3,11 +3,11 @@
     MIT License: http://getify.mit-license.org
 */
 
-(function(name,context,definition){
+(function UMD(name,context,definition){
 	if (typeof module !== "undefined" && module.exports) module.exports = definition();
 	else if (typeof define === "function" && define.amd) define(definition);
 	else context[name] = definition(name,context);
-})("ASQ",this,function(name,context){
+})("ASQ",this,function DEF(name,context){
 
 	var public_api,
 		old_public_api = (context || {})[name],
@@ -101,7 +101,7 @@
 				scheduleSequenceTick();
 			}
 
-			done.fail = function(){
+			done.fail = function __step_fail__(){
 				// ignore this call?
 				if (seq_error || seq_aborted || then_ready) return;
 
@@ -112,7 +112,7 @@
 				scheduleSequenceTick();
 			};
 
-			done.abort = function(){
+			done.abort = function __step_abort__(){
 				if (seq_error || seq_aborted) return;
 
 				then_ready = false;
@@ -162,7 +162,7 @@
 					gate_completed = true;
 
 					// collect all the messages from the gate segments
-					segment_completion.forEach(function(sc,i){
+					segment_completion.forEach(function __foreach__(sc,i){
 						args.push(segment_messages["s" + i]);
 					});
 
@@ -177,7 +177,7 @@
 
 				var fulfilled = true;
 
-				segment_completion.some(function(segcom){
+				segment_completion.some(function __some__(segcom){
 					if (segcom === null) {
 						fulfilled = false;
 						return true; // break
@@ -209,7 +209,7 @@
 
 				var segment_completion_idx = segment_completion.length;
 
-				done.fail = function(){
+				done.fail = function __segment_fail__(){
 					// ignore this call?
 					if (seq_error || seq_aborted || gate_error ||
 						gate_aborted || gate_completed ||
@@ -224,7 +224,7 @@
 					scheduleGateTick();
 				};
 
-				done.abort = function(){
+				done.abort = function __segment_abort__(){
 					if (seq_error || seq_aborted || gate_error || gate_aborted || gate_completed) return;
 
 					gate_aborted = true;
@@ -252,7 +252,7 @@
 				gate_tick
 			;
 
-			segments.some(function(seg){
+			segments.some(function __some__(seg){
 				if (gate_error || gate_aborted) return true; // break
 
 				args = seqMessages.slice();
@@ -280,7 +280,7 @@
 		function then() {
 			if (seq_error || seq_aborted || arguments.length === 0) return sequence_api;
 
-			then_queue.push.apply(then_queue,arguments);
+			then_queue.push.apply(then_queue,wrapValueMessages(arguments,thenWrapper));
 
 			scheduleSequenceTick();
 
@@ -302,7 +302,7 @@
 
 			var fns = ARRAY_SLICE.call(arguments);
 
-			then(function(done){
+			then(function __then__(done){
 				var args = ARRAY_SLICE.call(arguments,1);
 				createGate(done,fns,args);
 			});
@@ -313,8 +313,8 @@
 		function pipe() {
 			if (seq_aborted || arguments.length === 0) return sequence_api;
 
-			ARRAY_SLICE.call(arguments).forEach(function(fn){
-				then(function(done){
+			ARRAY_SLICE.call(arguments).forEach(function __foreach__(fn){
+				then(function __then__(done){
 					fn.apply(fn,ARRAY_SLICE.call(arguments,1));
 					done();
 				})
@@ -327,8 +327,8 @@
 		function seq() {
 			if (seq_error || seq_aborted || arguments.length === 0) return sequence_api;
 
-			ARRAY_SLICE.call(arguments).forEach(function(fn){
-				then(function(done){
+			ARRAY_SLICE.call(arguments).forEach(function __foreach__(fn){
+				then(function __then__(done){
 					// check if this argument is not already an ASQ instance?
 					// if not, assume a function to invoke that will return an ASQ instance
 					if (!checkBranding(fn)) {
@@ -345,11 +345,12 @@
 		function val() {
 			if (seq_error || seq_aborted || arguments.length === 0) return sequence_api;
 
-			ARRAY_SLICE.call(arguments).forEach(function(fn){
-				then(function(done){
+			ARRAY_SLICE.call(wrapValueMessages(arguments,valWrapper))
+			.forEach(function __foreach__(fn){
+				then(function __then__(done){
 					var msgs = fn.apply(fn,ARRAY_SLICE.call(arguments,1));
 					if (!checkBranding(msgs)) {
-						msgs = public_api.messages.call(null,msgs);
+						msgs = public_api.messages(msgs);
 					}
 					done.apply(done,msgs);
 				});
@@ -367,7 +368,6 @@
 
 			return sequence_api;
 		}
-
 
 		var seq_error = false,
 			seq_aborted = false,
@@ -394,20 +394,17 @@
 		;
 
 		// treat ASQ() constructor parameters as having been passed to `then()`
-		sequence_api.then.apply(sequence_api,arguments);
+		sequence_api.then.apply(sequence_api,
+			wrapValueMessages(arguments,thenWrapper)
+		);
 
 		return sequence_api;
 	}
 
-	public_api = createSequence();
 
-	public_api.messages = function() {
-		var ret = ARRAY_SLICE.call(arguments);
-		// brand the message wrapper so we can detect
-		brandIt(ret);
-		return ret;
-	};
-
+	// ***********************************************
+	// Object branding utilities
+	// ***********************************************
 	function brandIt(obj) {
 		Object.defineProperty(obj,brand,{
 			enumerable: false,
@@ -418,12 +415,91 @@
 	}
 
 	function checkBranding(val) {
-		return typeof val === "object" && val[brand];
+		return val != null && typeof val === "object" && val[brand];
 	}
+
+
+	// ***********************************************
+	// Value messages utilities
+	// ***********************************************
+	function preboundArgs(numArgs,args) {
+		return ARRAY_SLICE.call(args).slice(1,numArgs+1);
+	}
+
+	// wrapper helpers
+	function valWrapper(numArgs) {
+		// `numArgs` indicates how many pre-bound arguments
+		// will be sent in.
+		return public_api.messages.apply(null,
+			// pass along only the pre-bound arguments
+			preboundArgs(numArgs,arguments)
+		);
+	}
+
+	function thenWrapper(numArgs) {
+		// Because of bind() partial-application, will
+		// receive pre-bound arguments before the `done()`,
+		// rather than it being first as usual.
+		// `numArgs` indicates how many pre-bound arguments
+		// will be sent in.
+		arguments[numArgs+1] // the `done()`
+		.apply(null,
+			// pass along only the pre-bound arguments
+			preboundArgs(numArgs,arguments)
+		);
+	}
+
+	function wrapValueMessages(args,wrapper) {
+		var i, j;
+		args = ARRAY_SLICE.call(args);
+		for (i=0; i<args.length; i++) {
+			if (Array.isArray(args[i]) && checkBranding(args[i])) {
+				args[i] = wrapper.bind.apply(wrapper,
+					// partial-application of arguments
+					[/*this=*/null,/*numArgs=*/args[i].length].concat(
+						// pre-bound arguments
+						args[i]
+					)
+				);
+			}
+			else if (typeof args[i] !== "function") {
+				for (j=i+1; j<args.length; j++) {
+					if (typeof args[j] === "function" || checkBranding(args[j])) {
+						break;
+					}
+				}
+				args.splice(
+					/*start=*/i,
+					/*howMany=*/j-i,
+					/*replace=*/wrapper.bind.apply(wrapper,
+						// partial-application of arguments
+						[/*this=*/null,/*numArgs=*/(j-i)].concat(
+							// pre-bound arguments
+							args.slice(i,j)
+						)
+					)
+				);
+			}
+		}
+		return args;
+	}
+
+
+	// ***********************************************
+	// Setup the ASQ public API
+	// ***********************************************
+	public_api = createSequence;
+
+	public_api.messages = function __messages__() {
+		var ret = ARRAY_SLICE.call(arguments);
+		// brand the message wrapper so we can detect
+		brandIt(ret);
+		return ret;
+	};
 
 	public_api.isMessageWrapper = public_api.isSequence = checkBranding;
 
-	public_api.noConflict = function() {
+	public_api.noConflict = function __noconflict__() {
 		if (context) {
 			context[name] = old_public_api;
 		}

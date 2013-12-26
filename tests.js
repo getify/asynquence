@@ -715,13 +715,15 @@
 			},1000);
 		});
 		tests.push(function(testDone){
-			var label = "Test #18";
+			var label = "Test #18", timeout;
 
 			ASQ()
 			.val(function(){
 				return ASQ.messages("Hello","World");
 			})
 			.then(function(_,msg1,msg2){
+				clearTimeout(timeout);
+
 				if (msg1 === "Hello" &&
 					msg2 === "World"
 				) {
@@ -734,10 +736,108 @@
 				}
 			})
 			.or(function(){
+				clearTimeout(timeout);
 				var args = ARRAY_SLICE.call(arguments);
 				args.unshift(testDone,label);
 				FAIL.apply(FAIL,args);
 			});
+
+			timeout = setTimeout(function(){
+				FAIL(testDone,label + "(from timeout)");
+			},1000);
+		});
+		tests.push(function(testDone){
+			var label = "Test #19", timeout;
+
+			ASQ(
+				"Hello",
+				"World",
+				function(done,msg1,msg2){
+					if (
+						arguments.length === 3 &&
+						msg1 === "Hello" &&
+						msg2 === "World"
+					) {
+						done("So far so good");
+					}
+					else {
+						var args = ARRAY_SLICE.call(arguments);
+						args.unshift(testDone,label);
+						FAIL.apply(FAIL,args);
+					}
+				},
+				ASQ.messages("Yay","Nay"),
+				function(done,msg1,msg2) {
+					if (
+						arguments.length === 3 &&
+						msg1 === "Yay" &&
+						msg2 === "Nay"
+					) {
+						done("Keep up the good work!");
+					}
+					else {
+						var args = ARRAY_SLICE.call(arguments);
+						args.unshift(testDone,label);
+						FAIL.apply(FAIL,args);
+					}
+				},
+				"Oh yeah"
+			)
+			.val(
+				function(msg){
+					if (!(
+						arguments.length === 1 &&
+						msg === "Oh yeah"
+					)) {
+						var args = ARRAY_SLICE.call(arguments);
+						args.unshift(testDone,label);
+						FAIL.apply(FAIL,args);
+					}
+				},
+				"Ignored",
+				"Also Ignored",
+				ASQ.messages("Cool","Bro"),
+				function(msg1,msg2){
+					if (!(
+						arguments.length === 2 &&
+						msg1 === "Cool" &&
+						msg2 === "Bro"
+					)) {
+						var args = ARRAY_SLICE.call(arguments);
+						args.unshift(testDone,label);
+						FAIL.apply(FAIL,args);
+					}
+				}
+			)
+			.val(
+				"Nice",
+				"Job",
+				function(msg1,msg2){
+					clearTimeout(timeout);
+
+					if (arguments.length === 2 &&
+						msg1 === "Nice" &&
+						msg2 === "Job"
+					) {
+						PASS(testDone,label);
+					}
+					else {
+						var args = ARRAY_SLICE.call(arguments);
+						args.unshift(testDone,label);
+						FAIL.apply(FAIL,args);
+					}
+				}
+			)
+			.or(function(){
+				clearTimeout(timeout);
+				var args = ARRAY_SLICE.call(arguments);
+				args.unshift(testDone,label);
+				FAIL.apply(FAIL,args);
+			});
+
+			timeout = setTimeout(function(){
+				FAIL(testDone,label + "(from timeout)");
+			},1000);
 		});
 
 		return tests;
