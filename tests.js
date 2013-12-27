@@ -839,6 +839,61 @@
 				FAIL(testDone,label + "(from timeout)");
 			},1000);
 		});
+		tests.push(function(testDone){
+			var label = "Test #20", timeout;
+
+			// testing a custom plugin which will pass along
+			// any messages received to it, but will inject
+			// the message "foo" at the beginning, and append
+			// the message "bar" after the last
+			ASQ.extend("foobar",function(api,internals){
+				return function __foobar__() {
+					api.then(function(done){
+						// cheat and manually inject a message into
+						// the stream
+						internals("sequence_messages").push("foo");
+
+						// pass messages the proper way
+						done.apply(null,
+							Array.prototype.slice.call(arguments,1)
+							.concat(["bar"])
+						);
+					});
+					return api;
+				};
+			});
+
+			ASQ("Hello","World")
+			.foobar() // a custom plugin
+			.val(function(msg1,msg2,msg3,msg4){
+				clearTimeout(timeout);
+
+				if (
+					arguments.length === 4 &&
+					msg1 === "foo" &&
+					msg2 === "Hello" &&
+					msg3 === "World" &&
+					msg4 === "bar"
+				) {
+					PASS(testDone,label);
+				}
+				else {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			})
+			.or(function(){
+				clearTimeout(timeout);
+				var args = ARRAY_SLICE.call(arguments);
+				args.unshift(testDone,label);
+				FAIL.apply(FAIL,args);
+			});
+
+			timeout = setTimeout(function(){
+				FAIL(testDone,label + "(from timeout)");
+			},1000);
+		});
 
 		return tests;
 	}

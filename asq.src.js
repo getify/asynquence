@@ -9,7 +9,7 @@
 	else { context[name] = definition(name,context); }
 })("ASQ",this,function DEF(name,context){
 
-	var public_api,
+	var public_api, extensions = {},
 		old_public_api = (context || {})[name],
 		ARRAY_SLICE = Array.prototype.slice,
 		brand = "__ASQ__", ø = Object.create(null)
@@ -421,6 +421,40 @@
 			return sequence_api;
 		}
 
+		function internals(name,value) {
+			var set = (arguments.length > 1);
+			switch (name) {
+				case "seq_error":
+					if (set) { seq_error = value; }
+					else { return seq_error; }
+					break;
+				case "seq_aborted":
+					if (set) { seq_aborted = value; }
+					else { return seq_aborted; }
+					break;
+				case "then_ready":
+					if (set) { then_ready = value; }
+					else { return then_ready; }
+					break;
+				case "then_queue":
+					return then_queue;
+				case "or_queue":
+					return or_queue;
+				case "sequence_messages":
+					return sequence_messages;
+				case "sequence_errors":
+					return sequence_errors;
+			}
+		}
+
+		function includeExtensions() {
+			Object.keys(extensions)
+			.forEach(function __foreach__(name){
+				sequence_api[name] =
+					extensions[name](sequence_api,internals);
+			});
+		}
+
 		var seq_error = false,
 			seq_aborted = false,
 			then_ready = true,
@@ -444,6 +478,9 @@
 				abort: abort
 			})
 		;
+
+		// include extensions, if any
+		includeExtensions();
 
 		// treat ASQ() constructor parameters as having been
 		// passed to `then()`
@@ -546,6 +583,17 @@
 	// Setup the ASQ public API
 	// ***********************************************
 	public_api = createSequence;
+
+	public_api.extend = function __extend__(name,build) {
+		// reserved API override not allowed
+		if (!~["then","or","gate","pipe","seq","val","abort"]
+			.indexOf(name)
+		) {
+			extensions[name] = build;
+		}
+
+		return public_api;
+	};
 
 	public_api.messages = function __messages__() {
 		var ret = ARRAY_SLICE.call(arguments);
