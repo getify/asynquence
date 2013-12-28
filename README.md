@@ -1,6 +1,6 @@
 # asynquence
 
-A lightweight (1.1k minzipped) API for asynchronous flow control using sequences and gates. [Sequences & gates, at a glance](https://gist.github.com/getify/5959149). More advanced [example of "nested" composition of sequences](https://gist.github.com/getify/10273f3de07dda27ebce). [Example of promise & iteration styles](https://gist.github.com/jakearchibald/0e652d95c07442f205ce#comment-972613).
+A lightweight (1.6k minzipped) API for asynchronous flow control using sequences and gates. [Sequences & gates, at a glance](https://gist.github.com/getify/5959149). More advanced [example of "nested" composition of sequences](https://gist.github.com/getify/10273f3de07dda27ebce). [Example of promise & iteration styles](https://gist.github.com/jakearchibald/0e652d95c07442f205ce#comment-972613).
 
 ## Explanation
 
@@ -33,11 +33,46 @@ There are a few convenience methods on the API, as well:
 
 * `seq(..)` takes one or more functions, treating each one as a separate step in the sequence in question. These functions are expected to return new sequences, from which, in turn, both the success and failure streams will be piped back to the sequence in question.
 
+    This method will also accept *asynquence* sequence instances directly.
+
 * `val(..)` takes one or more functions, treating each one as a separate step in the sequence in question. These functions can each optionally return a value, each value of which will, in turn, be passed as the completion value for that sequence step.
+
+    This method will also accept non-function values as sequence messages.
 
 You can also `abort()` a sequence at any time, which will prevent any further actions from occurring on that sequence (all callbacks will be ignored). The call to `abort()` can happen on the sequence API itself, or using the `abort` flag on a completion trigger in any step (see example below).
 
+`ASQ.messages(..)` wraps a set of values as a ASQ-branded array, making it easier to pass multiple messages at once, and also to make it easier to distinguish a normal array (a value) from a value-messages container array, using `ASQ.isMessageWrapper(..)`.
+
 `ASQ.noConflict()` rolls back the global `ASQ` identifier and returns the current API instance to you. This can be used to keep your global namespace clean, or it can be used to have multiple simultaneous libraries (including separate versions/copies of *asynquence*!) in the same program without conflicts over the `ASQ` global identifier.
+
+### Plugin Extensions
+`ASQ.extend( {name}, {build} )` allows you to specify an API extension, giving it a `name` and a `build` function callback that should return the implementation of your API extension. The `build` callback is provided two parameters, the sequence `api` instance, and an `internals(..)` method, which lets you get or set values of various internal properties (generally, don't use this if you can avoid it).
+
+Example:
+
+```js
+// "foobar" plugin, which injects message "foobar!"
+// into the sequence stream
+ASQ.extend("foobar",function __build__(api,internals){
+    return function __foobar__() {
+        api.val(function __val__(){
+            return "foobar!";
+        });
+
+        return api;
+    };
+});
+
+ASQ()
+.foobar() // our custom plugin!
+.val(function(msg){
+    console.log(msg); // foobar!
+});
+```
+
+See the `/contrib/*` plugins for more complex examples of how to extend the *asynquence* API.
+
+The `/contrib/*` plugins provide a variety of [optional plugins](/getify/asynquence/blob/master/contrib/README.md) as helpers for async flow controls.
 
 ### Multiple parameters
 API methods take one or more functions as their parameters. `gate(..)` treats multiple functions as segments in the same gate. The other API methods (`then(..)`, `or(..)`, `pipe(..)`, `seq(..)`, and `val(..)`) treat multiple parameters as just separate subsequent steps in the respective sequence. These methods don't accept arrays of functions (that you might build up programatically), but since they take multiple parameters, you can use `.apply(..)` to spread those out.
@@ -55,7 +90,7 @@ If you are already using other Promises implementations, you *can* quite easily 
 
 The *asynquence* library is packaged with a light variation of the [UMD (universal module definition)](https://github.com/umdjs/umd) pattern, which means the same file is suitable for inclusion either as a normal browser .js file, as a node.js module, or as an AMD module. Can't get any simpler than that, can it?
 
-**Note:** The `ASQ.noConflict()` method really only makes sense when used in a normal browser global namespace environment. It **should not** be used when the node.js or AMD style modules are your method of inclusion. 
+**Note:** The `ASQ.noConflict()` method really only makes sense when used in a normal browser global namespace environment. It **should not** be used when the node.js or AMD style modules are your method of inclusion.
 
 ## Usage Examples
 
@@ -65,12 +100,12 @@ Using the following example setup:
        alert("Step 1");
        setTimeout(done,1000);
     }
-    
+
     function fn2(done) {
        alert("Step 2");
        setTimeout(done,1000);
     }
-    
+
     function yay() {
        alert("Done!");
     }
@@ -141,7 +176,7 @@ Create a step that's a parallel gate:
     .then(function(_,msg1,msg2){
         // msg1 is an array of the 2 gate messages from the first segment
         // msg2 is the single message (not an array) from the second segment
-        
+
         alert("Greeting: " + msg1[0] + " " + msg1[1]); // 'Greeting: hello world'
         alert("Greeting: " + msg2); // 'Greeting: hello mikey'
     });
@@ -187,7 +222,7 @@ Abort a sequence in progress:
     setTimeout(function(){
         seq.abort(); // will stop the sequence before running steps `fn2` and `yay`
     },100);
-    
+
     // same as above
     ASQ()
     .then(fn1)
@@ -199,7 +234,7 @@ Abort a sequence in progress:
     .then(fn2)
     .then(yay);
 
-## License 
+## License
 
 The code and all the documentation are released under the MIT license.
 
