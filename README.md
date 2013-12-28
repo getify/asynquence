@@ -72,7 +72,7 @@ ASQ()
 
 See the `/contrib/*` plugins for more complex examples of how to extend the *asynquence* API.
 
-The `/contrib/*` plugins provide a variety of [optional plugins](/getify/asynquence/blob/master/contrib/README.md) as helpers for async flow controls.
+The `/contrib/*` plugins provide a variety of [optional plugins](https://github.com/getify/asynquence/blob/master/contrib/README.md) as helpers for async flow controls.
 
 ### Multiple parameters
 API methods take one or more functions as their parameters. `gate(..)` treats multiple functions as segments in the same gate. The other API methods (`then(..)`, `or(..)`, `pipe(..)`, `seq(..)`, and `val(..)`) treat multiple parameters as just separate subsequent steps in the respective sequence. These methods don't accept arrays of functions (that you might build up programatically), but since they take multiple parameters, you can use `.apply(..)` to spread those out.
