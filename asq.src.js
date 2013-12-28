@@ -160,7 +160,7 @@
 					return;
 				}
 
-				var args = [];
+				var msgs = [];
 
 				gate_tick = null;
 
@@ -180,10 +180,10 @@
 					// collect all the messages from the gate segments
 					segment_completion
 					.forEach(function __foreach__(sc,i){
-						args.push(segment_messages["s" + i]);
+						msgs.push(segment_messages["s" + i]);
 					});
 
-					stepCompletion.apply(ø,args);
+					stepCompletion.apply(ø,msgs);
 
 					resetGate();
 				}
