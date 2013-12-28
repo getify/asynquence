@@ -1,11 +1,11 @@
-(function(name,context,definition){
-	if (typeof module !== "undefined" && module.exports) module.exports = definition();
-	else if (typeof define === "function" && define.amd) define(definition);
-	else context[name] = definition(name,context);
-})("ASQ_tests",this,function(name,context){
+(function(name,context,dependency,definition){
+	if (typeof module !== "undefined" && module.exports) module.exports = definition(require(dependency));
+	else if (typeof define === "function" && define.amd) define([dependency],definition);
+	else context[name] = definition(dependency);
+})("ASQ_tests",this,this.ASQ || "./asq.src.js",function(ASQ){
 	"use strict";
 
-	function defineTests(ASQ,doneLogMsg) {
+	function defineTests(doneLogMsg) {
 
 		function asyncDelayFn(delay) {
 			return function(done) {

@@ -20,7 +20,7 @@ function doneLogMsg(msg) {
 	};
 }
 
-var tests = ASQ_tests(ASQ,doneLogMsg);
+var tests = ASQ_tests(doneLogMsg);
 
 ASQ.apply(ASQ,tests)
 .then(doneLogMsg("ALL TESTS PASSED!"))
