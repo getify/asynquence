@@ -7,10 +7,13 @@
 </head>
 <body>
 <h1>asynquence test suite</h1>
-<textarea id="logmsgs" cols="40" rows="25"></textarea>
+<textarea id="logmsgs" cols="40" rows="35"></textarea>
 
 <script src="asq.src.js"></script>
+<script src="contrib.src.js"></script>
+
 <script src="tests.js"></script>
+<script src="contrib/tests.js"></script>
 <script>
 
 function doneLogMsg(msg) {
@@ -21,9 +24,14 @@ function doneLogMsg(msg) {
 }
 
 var tests = ASQ_tests(doneLogMsg);
+var contrib_tests = ASQ_contrib_tests(doneLogMsg);
+
 
 ASQ.apply(ASQ,tests)
-.then(doneLogMsg("ALL TESTS PASSED!"))
+.val(doneLogMsg("ALL CORE TESTS PASSED!"))
+.then.apply(ASQ,contrib_tests)
+.val(doneLogMsg("ALL CONTRIB TESTS PASSED!"))
+.val(doneLogMsg("ALL TESTS PASSED!"))
 .or(function(){
 	doneLogMsg("*** TEST SUITE FAILURE ***")();
 	for (var i=0; i<arguments.length; i++) {

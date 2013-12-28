@@ -1,10 +1,14 @@
 {
   "name": "asynquence",
-  "version": "0.1.1-a",
+  "version": "0.2.0-a",
   "description": "asynquence: async sequences & gates for flow-control",
   "main": "./asq.js",
   "scripts": {
-    "test": "node node-tests.js"
+    "test": "./node-tests.js",
+    "bundle-plugins": "./contrib/bundle.js"
+  },
+  "devDependencies": {
+    "uglify-js": "~2.4.8"
   },
   "repository": {
     "type": "git",
