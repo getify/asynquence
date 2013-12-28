@@ -48,7 +48,7 @@
 			});
 
 			timeout = setTimeout(function(){
-				FAIL(testDone,label + "(from timeout)");
+				FAIL(testDone,label + " (from timeout)");
 			},1000);
 		});
 		tests.push(function(testDone){
@@ -124,7 +124,7 @@
 			});
 
 			timeout = setTimeout(function(){
-				FAIL(testDone,label + "(from timeout)");
+				FAIL(testDone,label + " (from timeout)");
 			},1000);
 		});
 		tests.push(function(testDone){
@@ -199,7 +199,7 @@
 			});
 
 			timeout = setTimeout(function(){
-				FAIL(testDone,label + "(from timeout)");
+				FAIL(testDone,label + " (from timeout)");
 			},1000);
 		});
 		tests.push(function(testDone){
@@ -274,7 +274,7 @@
 			});
 
 			timeout = setTimeout(function(){
-				FAIL(testDone,label + "(from timeout)");
+				FAIL(testDone,label + " (from timeout)");
 			},1000);
 		});
 		tests.push(function(testDone){
@@ -350,7 +350,7 @@
 			});
 
 			timeout = setTimeout(function(){
-				FAIL(testDone,label + "(from timeout)");
+				FAIL(testDone,label + " (from timeout)");
 			},1000);
 		});
 		tests.push(function(testDone){
@@ -436,7 +436,7 @@
 			});
 
 			timeout = setTimeout(function(){
-				FAIL(testDone,label + "(from timeout)");
+				FAIL(testDone,label + " (from timeout)");
 			},1000);
 		});
 		tests.push(function(testDone){
@@ -488,7 +488,7 @@
 			});
 
 			timeout = setTimeout(function(){
-				FAIL(testDone,label + "(from timeout)");
+				FAIL(testDone,label + " (from timeout)");
 			},1000);
 		});
 

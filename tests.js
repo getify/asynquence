@@ -27,7 +27,7 @@
 		var tests = [];
 
 		tests.push(function(testDone){
-			var label = "Test  #1", timeout;
+			var label = "Core Test  #1", timeout;
 
 			ASQ()
 			.then(asyncDelayFn(100))
@@ -43,11 +43,11 @@
 			});
 
 			timeout = setTimeout(function(){
-				FAIL(testDone,label + "(from timeout)");
+				FAIL(testDone,label + " (from timeout)");
 			},1000);
 		});
 		tests.push(function(testDone){
-			var label = "Test  #2", timeout;
+			var label = "Core Test  #2", timeout;
 
 			ASQ()
 			.then(function(done){
@@ -74,11 +74,11 @@
 			});
 
 			timeout = setTimeout(function(){
-				FAIL(testDone,label + "(from timeout)");
+				FAIL(testDone,label + " (from timeout)");
 			},1000);
 		});
 		tests.push(function(testDone){
-			var label = "Test  #3", timeout;
+			var label = "Core Test  #3", timeout;
 
 			ASQ()
 			.then(function(done){
@@ -110,11 +110,11 @@
 			});
 
 			timeout = setTimeout(function(){
-				FAIL(testDone,label + "(from timeout)");
+				FAIL(testDone,label + " (from timeout)");
 			},1000);
 		});
 		tests.push(function(testDone){
-			var label = "Test  #4", timeout;
+			var label = "Core Test  #4", timeout;
 
 			ASQ()
 			.then(function(done){
@@ -141,11 +141,11 @@
 			});
 
 			timeout = setTimeout(function(){
-				FAIL(testDone,label + "(from timeout)");
+				FAIL(testDone,label + " (from timeout)");
 			},1000);
 		});
 		tests.push(function(testDone){
-			var label = "Test  #5", timeout;
+			var label = "Core Test  #5", timeout;
 
 			ASQ()
 			.then(function(done){
@@ -170,11 +170,11 @@
 			});
 
 			timeout = setTimeout(function(){
-				FAIL(testDone,label + "(from timeout)");
+				FAIL(testDone,label + " (from timeout)");
 			},1000);
 		});
 		tests.push(function(testDone){
-			var label = "Test #5b";
+			var label = "Core Test #5b";
 
 			ASQ()
 			.then(function(done){
@@ -203,7 +203,7 @@
 			});
 		});
 		tests.push(function(testDone){
-			var label = "Test #5c";
+			var label = "Core Test #5c";
 
 			ASQ()
 			.then(function(done){
@@ -232,7 +232,7 @@
 			});
 		});
 		tests.push(function(testDone){
-			var label = "Test  #6", timeout;
+			var label = "Core Test  #6", timeout;
 
 			ASQ()
 			.then(asyncDelayFn(100))
@@ -253,11 +253,11 @@
 			});
 
 			timeout = setTimeout(function(){
-				FAIL(testDone,label + "(from timeout)");
+				FAIL(testDone,label + " (from timeout)");
 			},1000);
 		});
 		tests.push(function(testDone){
-			var label = "Test  #7", timeout;
+			var label = "Core Test  #7", timeout;
 
 			ASQ()
 			.then(function(done){
@@ -302,11 +302,11 @@
 			});
 
 			timeout = setTimeout(function(){
-				FAIL(testDone,label + "(from timeout)");
+				FAIL(testDone,label + " (from timeout)");
 			},1000);
 		});
 		tests.push(function(testDone){
-			var label = "Test  #8", timeout;
+			var label = "Core Test  #8", timeout;
 
 			ASQ()
 			.then(asyncDelayFn(100))
@@ -342,11 +342,11 @@
 			});
 
 			timeout = setTimeout(function(){
-				FAIL(testDone,label + "(from timeout)");
+				FAIL(testDone,label + " (from timeout)");
 			},1000);
 		});
 		tests.push(function(testDone){
-			var label = "Test  #9", timeout;
+			var label = "Core Test  #9", timeout;
 
 			ASQ()
 			.then(asyncDelayFn(100))
@@ -380,11 +380,11 @@
 			});
 
 			timeout = setTimeout(function(){
-				FAIL(testDone,label + "(from timeout)");
+				FAIL(testDone,label + " (from timeout)");
 			},1000);
 		});
 		tests.push(function(testDone){
-			var label = "Test #10", timeout;
+			var label = "Core Test #10", timeout;
 
 			ASQ()
 			.then(asyncDelayFn(100))
@@ -418,11 +418,11 @@
 			});
 
 			timeout = setTimeout(function(){
-				FAIL(testDone,label + "(from timeout)");
+				FAIL(testDone,label + " (from timeout)");
 			},1000);
 		});
 		tests.push(function(testDone){
-			var label = "Test #11", timeout;
+			var label = "Core Test #11", timeout;
 
 			ASQ()
 			.then(function(done){
@@ -448,11 +448,11 @@
 			});
 
 			timeout = setTimeout(function(){
-				FAIL(testDone,label + "(from timeout)");
+				FAIL(testDone,label + " (from timeout)");
 			},1000);
 		});
 		tests.push(function(testDone){
-			var label = "Test #12", timeout;
+			var label = "Core Test #12", timeout;
 
 			ASQ()
 			.then(function(done){
@@ -478,11 +478,11 @@
 			});
 
 			timeout = setTimeout(function(){
-				FAIL(testDone,label + "(from timeout)");
+				FAIL(testDone,label + " (from timeout)");
 			},1000);
 		});
 		tests.push(function(testDone){
-			var label = "Test #13", timeout;
+			var label = "Core Test #13", timeout;
 
 			ASQ()
 			.then(function(done){
@@ -509,11 +509,11 @@
 			});
 
 			timeout = setTimeout(function(){
-				FAIL(testDone,label + "(from timeout)");
+				FAIL(testDone,label + " (from timeout)");
 			},1000);
 		});
 		tests.push(function(testDone){
-			var label = "Test #14", timeout;
+			var label = "Core Test #14", timeout;
 
 			ASQ()
 			.then(function(done){
@@ -540,11 +540,11 @@
 			});
 
 			timeout = setTimeout(function(){
-				FAIL(testDone,label + "(from timeout)");
+				FAIL(testDone,label + " (from timeout)");
 			},1000);
 		});
 		tests.push(function(testDone){
-			var label = "Test #15", timeout;
+			var label = "Core Test #15", timeout;
 
 			function doSeq(msg1,msg2) {
 				var seq = ASQ();
@@ -609,11 +609,11 @@
 			});
 
 			timeout = setTimeout(function(){
-				FAIL(testDone,label + "(from timeout)");
+				FAIL(testDone,label + " (from timeout)");
 			},1000);
 		});
 		tests.push(function(testDone){
-			var label = "Test #16", timeout;
+			var label = "Core Test #16", timeout;
 
 			function doSeq(msg1,msg2) {
 				var seq = ASQ();
@@ -676,11 +676,11 @@
 			});
 
 			timeout = setTimeout(function(){
-				FAIL(testDone,label + "(from timeout)");
+				FAIL(testDone,label + " (from timeout)");
 			},1000);
 		});
 		tests.push(function(testDone){
-			var label = "Test #17", timeout;
+			var label = "Core Test #17", timeout;
 
 			ASQ()
 			.then(asyncDelayFn(100))
@@ -712,11 +712,11 @@
 			});
 
 			timeout = setTimeout(function(){
-				FAIL(testDone,label + "(from timeout)");
+				FAIL(testDone,label + " (from timeout)");
 			},1000);
 		});
 		tests.push(function(testDone){
-			var label = "Test #18", timeout;
+			var label = "Core Test #18", timeout;
 
 			ASQ()
 			.val(function(){
@@ -744,11 +744,11 @@
 			});
 
 			timeout = setTimeout(function(){
-				FAIL(testDone,label + "(from timeout)");
+				FAIL(testDone,label + " (from timeout)");
 			},1000);
 		});
 		tests.push(function(testDone){
-			var label = "Test #19", timeout;
+			var label = "Core Test #19", timeout;
 
 			ASQ(
 				"Hello",
@@ -837,11 +837,11 @@
 			});
 
 			timeout = setTimeout(function(){
-				FAIL(testDone,label + "(from timeout)");
+				FAIL(testDone,label + " (from timeout)");
 			},1000);
 		});
 		tests.push(function(testDone){
-			var label = "Test #20", timeout;
+			var label = "Core Test #20", timeout;
 
 			// testing a custom plugin which will pass along
 			// any messages received to it, but will inject
@@ -892,7 +892,7 @@
 			});
 
 			timeout = setTimeout(function(){
-				FAIL(testDone,label + "(from timeout)");
+				FAIL(testDone,label + " (from timeout)");
 			},1000);
 		});
 
