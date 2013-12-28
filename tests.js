@@ -3,6 +3,7 @@
 	else if (typeof define === "function" && define.amd) define(definition);
 	else context[name] = definition(name,context);
 })("ASQ_tests",this,function(name,context){
+	"use strict";
 
 	function defineTests(ASQ,doneLogMsg) {
 

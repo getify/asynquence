@@ -8,6 +8,7 @@
 	else if (typeof define === "function" && define.amd) { define(definition); }
 	else { context[name] = definition(name,context); }
 })("ASQ",this,function DEF(name,context){
+	"use strict";
 
 	var public_api, extensions = {},
 		old_public_api = (context || {})[name],
