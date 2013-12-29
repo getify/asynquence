@@ -6,12 +6,18 @@ function bundlePlugins(dir) {
 
 	files.forEach(function(file){
 		var st = fs.statSync(path.join(dir,file)),
-			contents, collection_id
+			contents, collection_id,
+			plugin_name = file.replace(/plugin\.(.*)\.js/,"$1").toLowerCase()
 		;
 
 		// template file to read contents and compile?
-		if (st.isFile() && /^plugin\..*\.js$/.test(file)) {
-			console.log("Bundling plugin: " + file);
+		if (st.isFile() && /^plugin\..*\.js$/.test(file) &&
+			(
+				!which_plugins ||
+				~which_plugins.indexOf(plugin_name)
+			)
+		) {
+			console.log("Bundling plugin: " + plugin_name);
 
 			bundle_str += fs.readFileSync(path.join(dir,file),{ encoding: "utf8" });
 		}
@@ -23,11 +29,22 @@ function bundlePlugins(dir) {
 
 var path = require("path"),
 	fs = require("fs"),
+	exec = require("child_process").exec,
 
 	bundle_str = "",
 
-	bundle_wrapper = fs.readFileSync(path.join(__dirname,"contrib-wrapper.js"),{ encoding: "utf8" })
+	bundle_wrapper = fs.readFileSync(path.join(__dirname,"contrib-wrapper.js"),{ encoding: "utf8" }),
+
+	which_plugins = process.argv.length > 2 ?
+		process.argv.slice(2) :
+		null
 ;
+
+if (which_plugins) {
+	which_plugins = which_plugins.map(function(plugin){
+		return plugin.toLowerCase();
+	});
+}
 
 console.log("*** Bundling contrib plugins ***");
 
@@ -43,11 +60,12 @@ fs.writeFileSync(
 	{ encoding: "utf8" }
 );
 
-console.log("Built contrib.src.js bundle.")
+console.log("Built contrib.src.js.");
 console.log("Minifying to contrib.js.");
 
-var exec = require("child_process").exec;
+exec("node_modules/.bin/uglifyjs contrib.src.js --comments '/^\!/' --mangle --compress --output contrib.js",function(){
+	// ensure trailing new-line
+	fs.appendFileSync(path.join(__dirname,"..","contrib.js"),"\n");
 
-exec("node_modules/.bin/uglifyjs contrib.src.js --comments '/^\!/' --mangle --compress --output contrib.js");
-
-console.log("Complete.");
+	console.log("Complete.");
+});
