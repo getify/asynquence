@@ -27,3 +27,17 @@ ASQ()
 .until(bar)
 .then(baz);
 ```
+
+## Building Contrib Bundle
+
+There is a utility provided to bundle the contrib plugins and build the un-minified and minified files from the bundle.
+
+`contrib/bundle.js` builds `contrib.src.js` (in the package root), and then builds (minifies) `contrib.js` (in the package root). The recommended way to invoke this utility is via npm:
+
+`npm run-script bundle-contrib`
+
+By default, the build includes all the `contrib/plugin.*` plugins. You can manually specify which plugins you want, like this:
+
+`contrib/bundle.js any none try` (which would bundle only `any`, `none`, and `try` plugins)
+
+**Note:** `npm run-script ..` [doesn't *currently*](https://github.com/isaacs/npm/issues/3494) support passing the extra command line params, so you must use `contrib/bundle.js` instead of `npm run-script bundle-contrib` if you want to pick which plugins to bundle.

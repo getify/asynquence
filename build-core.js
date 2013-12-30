@@ -2,15 +2,33 @@
 
 var fs = require("fs"),
 	path = require("path"),
-	exec = require("child_process").exec
+	exec = require("child_process").exec,
+	ugly = require("uglify-js"),
+
+	result
 ;
 
 console.log("*** Building Core ***");
 console.log("Minifying to asq.js.");
 
-exec("node_modules/.bin/uglifyjs asq.src.js --comments '/^\!/' --mangle --compress --output asq.js",function(){
-	// ensure trailing new-line
-	fs.appendFileSync(path.join(__dirname,"asq.js"),"\n");
+try {
+	result = ugly.minify(path.join(__dirname,"asq.src.js"),{
+		mangle: true,
+		compress: true,
+		output: {
+			comments: /^!/
+		}
+	});
+
+	fs.writeFileSync(
+		path.join(__dirname,"asq.js"),
+		result.code + "\n",
+		{ encoding: "utf8" }
+	);
 
 	console.log("Complete.");
-});
+}
+catch (err) {
+	console.error(err);
+	process.exit(1);
+}

@@ -30,6 +30,7 @@ function bundlePlugins(dir) {
 var path = require("path"),
 	fs = require("fs"),
 	exec = require("child_process").exec,
+	ugly = require("uglify-js"),
 
 	bundle_str = "",
 
@@ -63,9 +64,24 @@ fs.writeFileSync(
 console.log("Built contrib.src.js.");
 console.log("Minifying to contrib.js.");
 
-exec("node_modules/.bin/uglifyjs contrib.src.js --comments '/^\!/' --mangle --compress --output contrib.js",function(){
-	// ensure trailing new-line
-	fs.appendFileSync(path.join(__dirname,"..","contrib.js"),"\n");
+try {
+	result = ugly.minify(path.join(__dirname,"..","contrib.src.js"),{
+		mangle: true,
+		compress: true,
+		output: {
+			comments: /^!/
+		}
+	});
+
+	fs.writeFileSync(
+		path.join(__dirname,"..","contrib.js"),
+		result.code + "\n",
+		{ encoding: "utf8" }
+	);
 
 	console.log("Complete.");
-});
+}
+catch (err) {
+	console.error(err);
+	process.exit(1);
+}
