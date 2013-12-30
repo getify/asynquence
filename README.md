@@ -1,8 +1,14 @@
 # asynquence
 
-A lightweight (1.6k minzipped) API for asynchronous flow control using sequences and gates. [Sequences & gates, at a glance](https://gist.github.com/getify/5959149). More advanced [example of "nested" composition of sequences](https://gist.github.com/getify/10273f3de07dda27ebce). [Example of promise & iteration styles](https://gist.github.com/jakearchibald/0e652d95c07442f205ce#comment-972613).
+A lightweight (1.6k minzipped) API for asynchronous flow control using sequences and gates.
 
 ## Explanation
+
+### By Example
+
+* [Sequences & gates](https://gist.github.com/getify/5959149), at a glance.
+* Example/explanation of [promise-style sequences](https://gist.github.com/jakearchibald/0e652d95c07442f205ce#comment-977119).
+* More advanced example of ["nested" composition of sequences](https://gist.github.com/getify/10273f3de07dda27ebce).
 
 ### Sequences
 If you want to perform two or more asynchronous tasks one after the other (like animation delays, XHR calls, etc). You want to set up an ordered series of tasks and make sure the previous one finishes before the next one is processed. You need a **sequence**.
