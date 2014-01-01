@@ -526,7 +526,7 @@
 
 			// synchronously iterate the sequence
 			for (seed = 3;
-			    !(ret && ret.done) && (ret = sq.next(seed));
+				!(ret && ret.done) && (ret = sq.next(seed));
 			) {
 				seed = ret.value;
 			}

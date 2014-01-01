@@ -9,7 +9,7 @@ A lightweight (**~1.6k** minzipped) micro-lib for asynchronous flow-control usin
 * [Sequences & gates](https://gist.github.com/getify/5959149), at a glance.
 * Example/explanation of [promise-style sequences](https://gist.github.com/jakearchibald/0e652d95c07442f205ce#comment-977119).
 * More advanced example of ["nested" composition of sequences](https://gist.github.com/getify/10273f3de07dda27ebce).
-* Iterable sequences: [sync loop](http://) and [async loop](http://)
+* Iterable sequences: [sync loop](https://gist.github.com/getify/8211148#file-ex1-sync-iteration-js) and [async loop](https://gist.github.com/getify/8211148#file-ex2-async-iteration-js)
 * API [Usage Examples](#usage-examples)
 
 ### Sequences
@@ -143,7 +143,7 @@ for (var i=0, ret;
 // Step 3
 ```
 
-This example shows sync iteration with a `for` loop, but of course, `next(..)` can be called in various async fashions to iterate the sequence over time.
+This example shows sync iteration with a `for` loop, but of course, `next(..)` can be called in various [async fashions to iterate](https://gist.github.com/getify/8211148#file-ex2-async-iteration-js) the sequence over time.
 
 ### Multiple parameters
 API methods take one or more functions as their parameters. `gate(..)` treats multiple functions as segments in the same gate. The other API methods (`then(..)`, `or(..)`, `pipe(..)`, `seq(..)`, and `val(..)`) treat multiple parameters as just separate subsequent steps in the respective sequence. These methods don't accept arrays of functions (that you might build up programatically), but since they take multiple parameters, you can use `.apply(..)` to spread those out.
