@@ -21,7 +21,7 @@ function bundlePlugins(dir) {
 
 			bundle_str += fs.readFileSync(path.join(dir,file),{ encoding: "utf8" });
 		}
-		else if (st.isDirectory()) {
+		else if (st.isDirectory() && !/node_modules/.test(file)) {
 			bundlePlugins(path.join(dir,file));
 		}
 	});
@@ -56,7 +56,7 @@ bundlePlugins(
 bundle_wrapper = bundle_wrapper.replace(/\/\*PLUGINS\*\//,function(){ return bundle_str; });
 
 fs.writeFileSync(
-	path.join(__dirname,"..","contrib.src.js"),
+	path.join(__dirname,"contrib.src.js"),
 	bundle_wrapper,
 	{ encoding: "utf8" }
 );
@@ -65,7 +65,7 @@ console.log("Built contrib.src.js.");
 console.log("Minifying to contrib.js.");
 
 try {
-	result = ugly.minify(path.join(__dirname,"..","contrib.src.js"),{
+	result = ugly.minify(path.join(__dirname,"contrib.src.js"),{
 		mangle: true,
 		compress: true,
 		output: {
@@ -74,7 +74,7 @@ try {
 	});
 
 	fs.writeFileSync(
-		path.join(__dirname,"..","contrib.js"),
+		path.join(__dirname,"contrib.js"),
 		result.code + "\n",
 		{ encoding: "utf8" }
 	);

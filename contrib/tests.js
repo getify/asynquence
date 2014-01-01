@@ -2,7 +2,7 @@
 	if (typeof module !== "undefined" && module.exports) module.exports = definition(require(dependency));
 	else if (typeof define === "function" && define.amd) define([dependency],definition);
 	else context[name] = definition(dependency);
-})("ASQ_contrib_tests",this,this.ASQ || "../asq.src.js",function(ASQ){
+})("ASQ_contrib_tests",this,this.ASQ || "asynquence",function(ASQ){
 	"use strict";
 
 	function defineTests(doneLogMsg) {
@@ -490,6 +490,108 @@
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
 			},1000);
+		});
+		tests.push(function(testDone){
+			var label = "Contrib Test  #8", timeout, sq,
+				loop, seed, ret;
+
+			function step(num) {
+				return num * 2;
+			}
+
+			function delay(done,msg) {
+				setTimeout(done,50);
+			}
+
+			function iterate(msg) {
+				var ret;
+				if ((ret = sq.next(msg)) && !ret.done) {
+					return ret.value;
+				}
+				else {
+					// break the iteration loop
+					throw "Iteration complete.";
+				}
+			}
+
+			timeout = setTimeout(function(){
+				FAIL(testDone,label + " (from timeout)");
+			},1000);
+
+			// set up an iterable sequence
+			sq = ASQ.iterable()
+				.then(step)
+				.then(step)
+				.then(step);
+
+			// synchronously iterate the sequence
+			for (seed = 3;
+			    !(ret && ret.done) && (ret = sq.next(seed));
+			) {
+				seed = ret.value;
+			}
+
+			if (seed !== 24) {
+				FAIL(testDone,label,"WTF",seed);
+			}
+
+			// reset for next test
+			seed = 0;
+
+			// set up an iterable sequence
+			sq = ASQ.iterable()
+				.then(step)
+				.then(step)
+				.then(step)
+				.then(function(){
+					throw "Should not get here!";
+				})
+				.or(function(msg){
+					if (!(
+						arguments.length === 1 &&
+						msg === "Too big!"
+					)) {
+						clearTimeout(timeout);
+						var args = ARRAY_SLICE.call(arguments);
+						args.unshift(testDone,label);
+						FAIL.apply(FAIL,args);
+					}
+				});
+
+			// set up an async loop sequence controller
+			loop = ASQ()
+			.or(function(msg){
+				clearTimeout(timeout);
+
+				if (
+					arguments.length === 1 &&
+					msg === "Iteration complete." &&
+					seed === 24
+				) {
+					PASS(testDone,label);
+				}
+				else {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			});
+
+			// asynchronously iterate the sequence
+			(function next(msg){
+				if (msg > 15) {
+					// throw an error into the iterable
+					// sequence
+					sq.throw("Too big!");
+				}
+
+				// store seed so we can check it at the end
+				seed = msg;
+
+				loop
+				.then(delay)
+				.val(msg,iterate,next);
+			})(3);
 		});
 
 		return tests;

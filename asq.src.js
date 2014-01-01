@@ -1,5 +1,5 @@
 /*! asynquence
-    v0.2.0-c (c) Kyle Simpson
+    v0.3.0-a (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -410,6 +410,28 @@
 			return sequence_api;
 		}
 
+		function promise() {
+			if (seq_error || seq_aborted || arguments.length === 0) {
+				return sequence_api;
+			}
+
+			ARRAY_SLICE.call(arguments)
+			.forEach(function __foreach__(pr){
+				then(function __then__(done){
+					// check if this argument is a non-thennable function, and
+					// if so, assume we shold invoke it to return a promise
+					// NOTE: `then` duck-typing of promises is stupid.
+					if (typeof pr === "function" && !("then" in pr)) {
+						pr = pr.apply(ø,ARRAY_SLICE.call(arguments,1));
+					}
+					// now, hook up the promise to the sequence
+					pr.then(done,done.fail);
+				});
+			});
+
+			return sequence_api;
+		}
+
 		function abort() {
 			if (seq_error) {
 				return sequence_api;
@@ -476,6 +498,7 @@
 				pipe: pipe,
 				seq: seq,
 				val: val,
+				promise: promise,
 				abort: abort
 			})
 		;

@@ -1,15 +1,15 @@
 {
-  "name": "asynquence",
-  "version": "0.3.0-a",
-  "description": "asynquence: async sequences & gates for flow-control",
-  "main": "./asq.js",
+  "name": "asynquence-contrib",
+  "version": "0.1.0-a",
+  "description": "contrib plugins for asynquence",
+  "main": "./contrib.js",
   "scripts": {
     "test": "./node-tests.js",
-    "build-core": "./build-core.js"
+    "bundle": "./bundle.js"
   },
   "devDependencies": {
-    "uglify-js": "~2.4.8",
-    "q": "~0.9.7"
+    "asynquence": "latest",
+    "uglify-js": "~2.4.8"
   },
   "repository": {
     "type": "git",
@@ -27,7 +27,7 @@
     "url": "https://github.com/getify/asynquence/issues",
     "email": "getify@gmail.com"
   },
-  "homepage": "http://github.com/getify/asynquence",
+  "homepage": "https://github.com/getify/asynquence/blob/master/contrib",
   "author": "Kyle Simpson <getify@gmail.com>",
   "license": "MIT"
 }

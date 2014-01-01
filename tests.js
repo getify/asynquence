@@ -841,7 +841,84 @@
 			},1000);
 		});
 		tests.push(function(testDone){
-			var label = "Core Test #20", timeout;
+			var label = "Core Test #20", timeout, Q = tests.Q;
+
+			function Pr(){
+				var args = ARRAY_SLICE.call(arguments);
+				var def = Q.defer();
+				setTimeout(function(){
+					def.resolve(args.length > 1 ? args : args[0]);
+				},50);
+				return def.promise;
+			}
+
+			function Br(){
+				var args = ARRAY_SLICE.call(arguments);
+				var def = Q.defer();
+				setTimeout(function(){
+					def.reject(args.length > 1 ? args : args[0]);
+				},50);
+				return def.promise;
+			}
+
+			ASQ("Hello")
+			// generate 3 promises in succession,
+			// using asynquence to chain them
+			.promise(Pr,Pr,Pr)
+			.val(function(msg){
+				if (!(
+					arguments.length === 1 &&
+					msg === "Hello"
+				)) {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			})
+			.promise(Pr("Hello","World"),Pr)
+			.val(function(msg){
+				if (!(
+					arguments.length === 1 &&
+					Array.isArray(msg) &&
+					msg.length === 2 &&
+					msg[0] === "Hello" &&
+					msg[1] === "World"
+				)) {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+
+				return msg[1].toUpperCase();
+			})
+			.promise(Br) // Note: a broken promise!
+			.val(function(msg1,msg2){
+				clearTimeout(timeout);
+				var args = ARRAY_SLICE.call(arguments);
+				args.unshift(testDone,label);
+				FAIL.apply(FAIL,args);
+			})
+			.or(function(msg){
+				clearTimeout(timeout);
+
+				if (arguments.length === 1 &&
+					msg === "WORLD"
+				) {
+					PASS(testDone,label);
+				}
+				else {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			});
+
+			timeout = setTimeout(function(){
+				FAIL(testDone,label + " (from timeout)");
+			},1000);
+		});
+		tests.push(function(testDone){
+			var label = "Core Test #21", timeout;
 
 			// testing a custom plugin which will pass along
 			// any messages received to it, but will inject
@@ -856,7 +933,7 @@
 
 						// pass messages the proper way
 						done.apply(null,
-							Array.prototype.slice.call(arguments,1)
+							ARRAY_SLICE.call(arguments,1)
 							.concat(["bar"])
 						);
 					});

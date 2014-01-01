@@ -1,0 +1,157 @@
+// "ASQ.iterable()"
+ASQ.iterable = function __iterable__() {
+	var sequence_api,
+		ARRAY_SLICE = Array.prototype.slice,
+		brand = "__ASQ__", ø = Object.create(null),
+
+		seq_error = false,
+		seq_aborted = false,
+
+		seq_tick,
+
+		val_queue = [],
+		or_queue = [],
+
+		sequence_errors = []
+	;
+
+	function schedule(fn) {
+		return (typeof setImmediate !== "undefined") ?
+			setImmediate(fn) : setTimeout(fn,0)
+		;
+	}
+
+	function notifyErrors() {
+		var fn;
+
+		seq_tick = null;
+
+		while (or_queue.length > 0) {
+			fn = or_queue.shift();
+			try {
+				fn.apply(ø,sequence_errors);
+			}
+			catch (err) {
+				if (checkBranding(err)) {
+					sequence_errors = sequence_errors.concat(err);
+				}
+				else {
+					sequence_errors.push(err);
+					if (err.stack) { sequence_errors.push(err.stack); }
+				}
+				if (or_queue.length === 0) {
+					console.error.apply(console,sequence_errors);
+				}
+			}
+		}
+	}
+
+	function val() {
+		if (seq_error || seq_aborted ||	arguments.length === 0) {
+			return sequence_api;
+		}
+
+		val_queue.push.apply(val_queue,arguments);
+
+		return sequence_api;
+	}
+
+	function or() {
+		if (seq_aborted || arguments.length === 0) {
+			return sequence_api;
+		}
+
+		or_queue.push.apply(or_queue,arguments);
+
+		return sequence_api;
+	}
+
+	function next() {
+		var ret = { value: undefined, done: true };
+
+		if (seq_error || seq_aborted) {
+			throwErr("Sequence cannot be iterated");
+			return ret;
+		}
+
+		if (val_queue.length > 0) {
+			try {
+				ret.value = val_queue.shift().apply(ø,arguments);
+			}
+			catch (err) {
+				if (ASQ.isMessageWrapper(err)) {
+					throwErr.apply(ø,err);
+				}
+				else if (err.stack) {
+					throwErr(err,err.stack);
+				}
+				else {
+					throwErr(err);
+				}
+			}
+			ret.done = (val_queue.length === 0);
+		}
+
+		return ret;
+	}
+
+	function throwErr() {
+		if (seq_error || seq_aborted) {
+			return sequence_api;
+		}
+
+		sequence_errors.push.apply(sequence_errors,arguments);
+		seq_error = true;
+		if (!seq_tick) {
+			seq_tick = schedule(notifyErrors);
+		}
+
+		return sequence_api;
+	}
+
+	function abort() {
+		if (seq_error || seq_aborted) {
+			return;
+		}
+
+		seq_aborted = true;
+
+		clearTimeout(seq_tick);
+		seq_tick = null;
+		val_queue.length = 0;
+		or_queue.length = 0;
+		sequence_errors.length = 0;
+	}
+
+
+	// ***********************************************
+	// Object branding utilities
+	// ***********************************************
+	function brandIt(obj) {
+		Object.defineProperty(obj,brand,{
+			enumerable: false,
+			value: true
+		});
+
+		return obj;
+	}
+
+
+	// ***********************************************
+	// Setup the ASQ.iterable() public API
+	// ***********************************************
+	sequence_api = brandIt({
+		val: val,
+		then: val,
+		or: or,
+		next: next,
+		"throw": throwErr,
+		abort: abort
+	});
+
+	// treat ASQ.iterable() constructor parameters as having been
+	// passed to `val()`
+	sequence_api.val.apply(ø,arguments);
+
+	return sequence_api;
+};

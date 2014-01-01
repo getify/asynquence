@@ -1,6 +1,6 @@
 # asynquence Contrib
 
-Optional plugin helpers are provided (`contrib.js` is *just* **846 bytes** minzipped) in `/contrib/*`.
+Optional plugin helpers are provided in `/contrib/*`. The full bundle of plugins (`contrib.js`) is **~1.3k** minzipped.
 
 Gate variations:
 
@@ -15,9 +15,21 @@ Sequence-step variations:
 * `until(..)` is like `then(..)`, except it **keeps re-trying until success** or `break()` (for loop semantics) before the main sequence proceeds.
 * `try(..)` is like `then(..)`, except it proceeds as success on the main sequence **regardless of success/failure signal**. If an error is caught, it's transposed as a special-format success message: `{ catch: ... }`.
 
+### `iterable-sequence` Plugin
+`iterable-sequence` plugin provides `ASQ.iterable()` for creating iterable sequences. See [Iterable Sequences](https://github.com/getify/asynquence/blob/master/README.md#iterable-sequences) for more information.
+
 ## Using Contrib Plugins
 
-Include the `contrib.js` (or `contrib.src.js`) file along with the *asynquence* library file. This automatically extends the API with the plugins.
+In the browser, include the `contrib.js` file along with the *asynquence* library file (`asq.js`). Doing so automatically extends the API with the plugins.
+
+In node.js, you install the `asynquence-contrib` package alongside the `asynquence` package, and `require(..)` both of them, in order:
+
+```js
+var ASQ = require("asynquence");
+require("asynquence-contrib");
+```
+
+**Note:** The `asynquence-contrib` module has no API (it only attaches itself to the `asynquence` package), so just calling `require(..)` without storing its return value is sufficient and recommended.
 
 They can then be used directly, like this:
 
@@ -30,14 +42,24 @@ ASQ()
 
 ## Building Contrib Bundle
 
-There is a utility provided to bundle the contrib plugins and build the un-minified and minified files from the bundle.
+There is a utility provided to bundle the contrib plugins.
 
-`contrib/bundle.js` builds `contrib.src.js` (in the package root), and then builds (minifies) `contrib.js` (in the package root). The recommended way to invoke this utility is via npm:
+`bundle.js` builds the unminified bundle `contrib.src.js`, and then builds (minifies) `contrib.js`. The recommended way to invoke this utility is via npm:
 
-`npm run-script bundle-contrib`
+`npm run-script bundle`
 
-By default, the build includes all the `contrib/plugin.*` plugins. You can manually specify which plugins you want, like this:
+By default, the build includes all the `contrib/plugin.*` plugins. But, you can manually specify which plugins you want, by name, like this:
 
-`contrib/bundle.js any none try` (which would bundle only `any`, `none`, and `try` plugins)
+```
+./bundle.js any none try
+```
 
-**Note:** `npm run-script ..` [doesn't *currently*](https://github.com/isaacs/npm/issues/3494) support passing the extra command line params, so you must use `contrib/bundle.js` instead of `npm run-script bundle-contrib` if you want to pick which plugins to bundle.
+This would bundle only the `any`, `none`, and `try` plugins.
+
+**Note:** `npm run-script ..` [doesn't *currently*](https://github.com/isaacs/npm/issues/3494) support passing the extra command line parameters, so you must use `./bundle.js` **instead of** `npm run-script bundle` if you want to pick which specific plugins to bundle.
+
+## License
+
+The code and all the documentation, unless otherwise noted, are released under the MIT license.
+
+http://getify.mit-license.org/
