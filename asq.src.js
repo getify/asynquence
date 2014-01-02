@@ -1,5 +1,5 @@
 /*! asynquence
-    v0.3.0-a (c) Kyle Simpson
+    v0.3.1-a (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -374,6 +374,44 @@
 
 			ARRAY_SLICE.call(arguments)
 			.forEach(function __foreach__(fn){
+				var trigger;
+
+				// is `fn` an iterable-sequence?
+				if (checkBranding(fn) && "next" in fn) {
+					// listen for signals from the iterable sequence
+					fn
+					// note: cannot use `fn.pipe(trigger)` because we
+					// need to be able to update the shared closure
+					// to change `trigger`
+					.then(function __then__(){
+						trigger.apply(ø,arguments);
+					})
+					.or(function __or__(){
+						trigger.fail.apply(ø,arguments);
+					});
+
+					// wrap a normal sequence around the iterable sequence,
+					// which when called  replaces the temporary `trigger`
+					// (defined below) with a real sequence trigger
+					fn = createSequence(function __create_sequence__(done){
+						trigger = done;
+					});
+
+					// temporary version of `trigger`, which if called
+					// (right away), by the iterable sequence's `next` being
+					// called synchronously, will simply create a normal
+					// sequence with the success/error message(s) pre-injected
+					trigger = function __trigger__() {
+						fn = createSequence.apply(ø,arguments);
+					};
+					trigger.fail = function __trigger_fail__() {
+						var args = ARRAY_SLICE.call(arguments);
+						fn = createSequence(function __create_sequence__(done){
+							done.fail.apply(ø,args);
+						});
+					};
+				}
+
 				then(function __then__(done){
 					// check if this argument is not already an ASQ instance?
 					// if not, assume a function to invoke that will return
@@ -381,7 +419,7 @@
 					if (!checkBranding(fn)) {
 						fn = fn.apply(ø,ARRAY_SLICE.call(arguments,1));
 					}
-					// now, pipe the ASQ instance into our current sequence
+					// pipe the ASQ instance into our current sequence
 					fn.pipe(done);
 				});
 			});

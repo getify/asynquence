@@ -492,7 +492,182 @@
 			},1000);
 		});
 		tests.push(function(testDone){
-			var label = "Contrib Test  #8", timeout, sq,
+			var label = "Contrib Test  #8", timeout, isq,
+				seed, ret
+			;
+
+			function step(num) {
+				return num * 2;
+			}
+
+			// set up an iterable-sequence
+			isq = ASQ.iterable()
+				.then(step)
+				.then(step)
+				.then(step);
+
+			// synchronously iterate the sequence
+			for (seed = 3;
+				!(ret && ret.done) && (ret = isq.next(seed));
+			) {
+				seed = ret.value;
+			}
+
+			if (seed !== 24) {
+				FAIL(testDone,label,"WTF",seed);
+				return;
+			}
+
+			// now, wire the iterable-sequence into
+			// a normal sequence
+			ASQ()
+			.seq(isq)
+			.val(function(msg1,msg2){
+				if (!(
+					arguments.length === 2 &&
+					msg1 === "Awesome" &&
+					msg2 === "sauce!"
+				)) {
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+				else {
+					isq.next();
+					setTimeout(function(){
+						// advance the iterable-sequence 2 steps, which
+						// should keep the main sequence going
+						isq.next("Hello","world");
+					},100);
+				}
+			})
+			.seq(isq,isq) // listen for two iterations
+			.val(function(msg1,msg2){
+				if (!(
+					arguments.length === 2 &&
+					msg1 === "Hello" &&
+					msg2 === "world"
+				)) {
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+				else {
+					setTimeout(function(){
+						// throw an error into the iterable-sequence,
+						// which should throw the main sequence into
+						// error
+						isq.throw("Cool","beans");
+					},100);
+				}
+			})
+			.seq(isq)
+			.val(function(){
+				clearTimeout(timeout);
+				var args = ARRAY_SLICE.call(arguments);
+				args.unshift(testDone,label);
+				FAIL.apply(FAIL,args);
+			})
+			.or(function(msg1,msg2){
+				clearTimeout(timeout);
+
+				if (
+					arguments.length === 2 &&
+					msg1 === "Cool" &&
+					msg2 === "beans"
+				) {
+					PASS(testDone,label);
+				}
+				else {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			});
+
+			// advance the iterable-sequence a step, which should
+			// restart the waiting sequence
+			isq.next("Awesome","sauce!");
+
+			timeout = setTimeout(function(){
+				FAIL(testDone,label + " (from timeout)");
+			},1000);
+		});
+		tests.push(function(testDone){
+			var label = "Contrib Test  #9", timeout, isq;
+
+			// set up an iterable-sequence
+			isq = ASQ.iterable();
+
+			// now, wire the iterable-sequence into
+			// a normal sequence
+			ASQ(function(done){
+				// wait for the iterable-sequence to advance
+				// before the main sequence can proceed
+				isq.pipe(done);
+
+				setTimeout(function(){
+					// advance the iterable-sequence a step, which should
+					// keep the main sequence going
+					isq.next("Hello","world");
+				},100);
+			})
+			.val(function(msg1,msg2){
+				if (!(
+					arguments.length === 2 &&
+					msg1 === "Hello" &&
+					msg2 === "world"
+				)) {
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			})
+			.then(function(done){
+				// throw an error into the iterable-sequence, which
+				// should throw the main sequence into error
+				isq.throw("Awesome","sauce!");
+
+				// wait to listen for errors on the iterable-sequence
+				// until well after it's been error'd
+				setTimeout(function(){
+					// wait for the iterable-sequence to advance
+					// before the main sequence can proceed
+					isq.pipe(done);
+				},100);
+			})
+			.val(function(){
+				clearTimeout(timeout);
+				var args = ARRAY_SLICE.call(arguments);
+				args.unshift(testDone,label);
+				FAIL.apply(FAIL,args);
+			})
+			.or(function(msg1,msg2){
+				clearTimeout(timeout);
+
+				if (
+					arguments.length === 2 &&
+					msg1 === "Awesome" &&
+					msg2 === "sauce!"
+				) {
+					PASS(testDone,label);
+				}
+				else {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			});
+
+			timeout = setTimeout(function(){
+				FAIL(testDone,label + " (from timeout)");
+			},1000);
+		});
+		tests.push(function(testDone){
+			var label = "Contrib Test #10", timeout, sq, isq,
 				loop, seed, ret;
 
 			function step(num) {
@@ -505,7 +680,7 @@
 
 			function iterate(msg) {
 				var ret;
-				if ((ret = sq.next(msg)) && !ret.done) {
+				if ((ret = isq.next(msg)) && !ret.done) {
 					return ret.value;
 				}
 				else {
@@ -514,32 +689,8 @@
 				}
 			}
 
-			timeout = setTimeout(function(){
-				FAIL(testDone,label + " (from timeout)");
-			},1000);
-
-			// set up an iterable sequence
-			sq = ASQ.iterable()
-				.then(step)
-				.then(step)
-				.then(step);
-
-			// synchronously iterate the sequence
-			for (seed = 3;
-				!(ret && ret.done) && (ret = sq.next(seed));
-			) {
-				seed = ret.value;
-			}
-
-			if (seed !== 24) {
-				FAIL(testDone,label,"WTF",seed);
-			}
-
-			// reset for next test
-			seed = 0;
-
-			// set up an iterable sequence
-			sq = ASQ.iterable()
+			// set up an iterable-sequence
+			isq = ASQ.iterable()
 				.then(step)
 				.then(step)
 				.then(step)
@@ -582,7 +733,7 @@
 				if (msg > 15) {
 					// throw an error into the iterable
 					// sequence
-					sq.throw("Too big!");
+					isq.throw("Too big!");
 				}
 
 				// store seed so we can check it at the end
@@ -592,6 +743,10 @@
 				.then(delay)
 				.val(msg,iterate,next);
 			})(3);
+
+			timeout = setTimeout(function(){
+				FAIL(testDone,label + " (from timeout)");
+			},1000);
 		});
 
 		return tests;

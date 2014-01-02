@@ -1,6 +1,6 @@
 # asynquence
 
-A lightweight (**~1.6k** minzipped) micro-lib for asynchronous flow-control using sequences and gates.
+A lightweight (**~1.7k** minzipped) micro-lib for asynchronous flow-control using sequences and gates.
 
 ## Explanation
 
@@ -9,7 +9,7 @@ A lightweight (**~1.6k** minzipped) micro-lib for asynchronous flow-control usin
 * [Sequences & gates](https://gist.github.com/getify/5959149), at a glance.
 * Example/explanation of [promise-style sequences](https://gist.github.com/jakearchibald/0e652d95c07442f205ce#comment-977119).
 * More advanced example of ["nested" composition of sequences](https://gist.github.com/getify/10273f3de07dda27ebce).
-* Iterable sequences: [sync loop](https://gist.github.com/getify/8211148#file-ex1-sync-iteration-js) and [async loop](https://gist.github.com/getify/8211148#file-ex2-async-iteration-js)
+* [Iterable sequences](#iterable-sequences): [sync loop](https://gist.github.com/getify/8211148#file-ex1-sync-iteration-js) and [async loop](https://gist.github.com/getify/8211148#file-ex2-async-iteration-js)
 * API [Usage Examples](#usage-examples)
 
 ### Sequences
@@ -46,6 +46,8 @@ There are a few convenience methods on the API, as well:
     `seq(Fn)` is sugar short-hand for `then(function(done){ Fn.apply(null,[].slice.call(arguments,1)).pipe(done); })`.
 
     This method will also accept *asynquence* sequence instances directly. `seq(Sq)` is sugar short-hand for `then(function(done){ Sq.pipe(done); })`.
+
+    Additionally, this method can accept, either directly or through function-call, an [Iterable Sequence](#iterable-sequences). `seq(iSq)` is (sort-of) sugar short-hand for `then(function(done){ iSq.then(done).or(done.fail); })`.
 
 * `val(..)` takes one or more functions, treating each one as a separate step in the sequence in question. These functions can each optionally return a value, each value of which will, in turn, be passed as the completion value for that sequence step.
 
@@ -120,7 +122,7 @@ Just like with normal *asynquence* sequences, register one or more error listene
 
 Also, just like `next(..)` externally controls the normal iteration flow of the sequence, `throw(..)` externally "throws" an error into the iterable sequence, triggering the `or(..)` flow as above. Iterable sequences can be `abort()`d just as normal *asynquence* sequences.
 
-Iterable sequences are a special subset of sequences, and as such, many of the normal *asynquence* API variations do not exist, such as `gate(..)`, `seq(..)`, `promise(..)`, and `pipe(..)`.
+Iterable sequences are a special subset of sequences, and as such, some of the normal *asynquence* API variations do not exist, such as `gate(..)`, `seq(..)`, and `promise(..)`.
 
 ```js
 function step(num) {

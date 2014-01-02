@@ -26,21 +26,23 @@ ASQ.iterable = function __iterable__() {
 
 		seq_tick = null;
 
-		while (or_queue.length > 0) {
-			fn = or_queue.shift();
-			try {
-				fn.apply(ø,sequence_errors);
-			}
-			catch (err) {
-				if (checkBranding(err)) {
-					sequence_errors = sequence_errors.concat(err);
+		if (sequence_errors.length > 0) {
+			while (or_queue.length > 0) {
+				fn = or_queue.shift();
+				try {
+					fn.apply(ø,sequence_errors);
 				}
-				else {
-					sequence_errors.push(err);
-					if (err.stack) { sequence_errors.push(err.stack); }
-				}
-				if (or_queue.length === 0) {
-					console.error.apply(console,sequence_errors);
+				catch (err) {
+					if (checkBranding(err)) {
+						sequence_errors = sequence_errors.concat(err);
+					}
+					else {
+						sequence_errors.push(err);
+						if (err.stack) { sequence_errors.push(err.stack); }
+					}
+					if (or_queue.length === 0) {
+						console.error.apply(console,sequence_errors);
+					}
 				}
 			}
 		}
@@ -63,34 +65,49 @@ ASQ.iterable = function __iterable__() {
 
 		or_queue.push.apply(or_queue,arguments);
 
+		if (!seq_tick) {
+			seq_tick = schedule(notifyErrors);
+		}
+
+		return sequence_api;
+	}
+
+	function pipe() {
+		if (seq_aborted || arguments.length === 0) {
+			return sequence_api;
+		}
+
+		ARRAY_SLICE.call(arguments)
+		.forEach(function __foreach__(fn){
+			val(fn).or(fn.fail);
+		});
+
 		return sequence_api;
 	}
 
 	function next() {
 		var ret = { value: undefined, done: true };
 
-		if (seq_error || seq_aborted) {
+		if (seq_error || seq_aborted || val_queue.length === 0) {
 			throwErr("Sequence cannot be iterated");
 			return ret;
 		}
 
-		if (val_queue.length > 0) {
-			try {
-				ret.value = val_queue.shift().apply(ø,arguments);
-			}
-			catch (err) {
-				if (ASQ.isMessageWrapper(err)) {
-					throwErr.apply(ø,err);
-				}
-				else if (err.stack) {
-					throwErr(err,err.stack);
-				}
-				else {
-					throwErr(err);
-				}
-			}
-			ret.done = (val_queue.length === 0);
+		try {
+			ret.value = val_queue.shift().apply(ø,arguments);
 		}
+		catch (err) {
+			if (ASQ.isMessageWrapper(err)) {
+				throwErr.apply(ø,err);
+			}
+			else if (err.stack) {
+				throwErr(err,err.stack);
+			}
+			else {
+				throwErr(err);
+			}
+		}
+		ret.done = (val_queue.length === 0);
 
 		return ret;
 	}
@@ -144,6 +161,7 @@ ASQ.iterable = function __iterable__() {
 		val: val,
 		then: val,
 		or: or,
+		pipe: pipe,
 		next: next,
 		"throw": throwErr,
 		abort: abort
