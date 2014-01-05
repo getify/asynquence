@@ -30,7 +30,7 @@
 			var label = "Contrib Test  #1", timeout;
 
 			ASQ()
-			.then(asyncDelayFn(100))
+			.then(asyncDelayFn(200))
 			.all(
 				asyncDelayFn(400),
 				asyncDelayFn(300),
@@ -743,6 +743,103 @@
 				.then(delay)
 				.val(msg,iterate,next);
 			})(3);
+
+			timeout = setTimeout(function(){
+				FAIL(testDone,label + " (from timeout)");
+			},1000);
+		});
+		tests.push(function(testDone){
+			var label = "Contrib Test #11", timeout;
+
+			function step(done) {
+				var args = ARRAY_SLICE.call(arguments,1);
+				setTimeout(function(){
+					var sum = 0;
+					args.forEach(function(arg){
+						sum += (typeof arg === "number") ? arg : arg[1];
+					});
+
+					if (sum % 2 === 1) done(sum,sum*2);
+					else done(sum*2+1);
+				},100);
+			}
+
+			function broken(done) {
+				var args = ARRAY_SLICE.call(arguments,1);
+				setTimeout(function(){
+					done.fail.apply(done,args);
+				},100);
+			}
+
+			ASQ(3)
+			.waterfall(
+				step,
+				step,
+				step,
+				step
+			)
+			.val(function(msg1,msg2,msg3,msg4){
+				if (!(
+					arguments.length === 4 &&
+					Array.isArray(msg1) &&
+					msg1.length === 2 &&
+					msg1[0] === 3 &&
+					msg1[1] === 6 &&
+					msg2 === 13 &&
+					Array.isArray(msg3) &&
+					msg3.length === 2 &&
+					msg3[0] === 19 &&
+					msg3[1] === 38 &&
+					Array.isArray(msg4) &&
+					msg4.length === 2 &&
+					msg4[0] === 57 &&
+					msg4[1] === 114
+				)) {
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+				else {
+					return 5;
+				}
+			})
+			.waterfall(
+				step,
+				step,
+				broken,
+				function(){
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			)
+			.val(function(){
+				clearTimeout(timeout);
+				var args = ARRAY_SLICE.call(arguments);
+				args.unshift(testDone,label);
+				FAIL.apply(FAIL,args);
+			})
+			.or(function(msg1,msg2){
+				clearTimeout(timeout);
+
+				if (
+					arguments.length === 2 &&
+					Array.isArray(msg1) &&
+					msg1.length === 2 &&
+					msg1[0] === 5 &&
+					msg1[1] === 10 &&
+					msg2 === 21
+				) {
+					PASS(testDone,label);
+				}
+				else {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			});
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
