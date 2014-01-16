@@ -51,7 +51,7 @@ There are a few convenience methods on the API, as well:
 
 * `val(..)` takes one or more functions, treating each one as a separate step in the sequence in question. These functions can each optionally return a value, each value of which will, in turn, be passed as the completion value for that sequence step.
 
-    `val(Fn)` is sugar short-hand for `then(function(done){ done(Fn.apply(null,[].slice.call(arguments,1))); })
+    `val(Fn)` is sugar short-hand for `then(function(done){ done(Fn.apply(null,[].slice.call(arguments,1))); })`.
 
     This method will also accept non-function values as sequence value-messages. `val(Va)` is sugar short-hand for `then(function(done){ done(Va); })`.
 
