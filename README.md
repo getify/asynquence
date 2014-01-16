@@ -7,6 +7,7 @@ A lightweight (**~1.7k** minzipped) micro-lib for asynchronous flow-control usin
 ### TL;DR: By Example
 
 * [Sequences & gates](https://gist.github.com/getify/5959149), at a glance.
+* Refactoring ["callback hell"-style to asynquence](https://gist.github.com/getify/8459026).
 * Example/explanation of [promise-style sequences](https://gist.github.com/jakearchibald/0e652d95c07442f205ce#comment-977119).
 * More advanced example of ["nested" composition of sequences](https://gist.github.com/getify/10273f3de07dda27ebce).
 * [Iterable sequences](#iterable-sequences): [sync loop](https://gist.github.com/getify/8211148#file-ex1-sync-iteration-js) and [async loop](https://gist.github.com/getify/8211148#file-ex2-async-iteration-js)
