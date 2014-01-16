@@ -13,7 +13,7 @@ A lightweight (**~1.7k** minzipped) micro-lib for asynchronous flow-control usin
 * API [Usage Examples](#usage-examples)
 
 ### Sequences
-If you want to perform two or more asynchronous tasks one after the other (like animation delays, XHR calls, etc). You want to set up an ordered series of tasks and make sure the previous one finishes before the next one is processed. You need a **sequence**.
+Say you want to perform two or more asynchronous tasks one after the other (like animation delays, XHR calls, file I/O, etc). You need to set up an ordered series of tasks and make sure the previous one finishes before the next one is processed. You need a **sequence**.
 
 You create a sequence by calling `ASQ(...)`. **Each time you call `ASQ()`, you create a new, separate sequence.**
 
