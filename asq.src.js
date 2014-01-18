@@ -134,6 +134,16 @@
 				scheduleSequenceTick();
 			};
 
+			// handles "error-first" (aka "node-style") callbacks
+			done.efcall = function __errorfirst_callback__(err){
+				if (err) {
+					done.fail(err);
+				}
+				else {
+					done.apply(ø,ARRAY_SLICE.call(arguments,1));
+				}
+			};
+
 			return done;
 		}
 
@@ -259,6 +269,16 @@
 
 					// abort() is an immediate/synchronous action
 					gateTick();
+				};
+
+				// handles "error-first" (aka "node-style") callbacks
+				done.efcall = function __errorfirst_callback__(err){
+					if (err) {
+						done.fail(err);
+					}
+					else {
+						done.apply(ø,ARRAY_SLICE.call(arguments,1));
+					}
 				};
 
 				// placeholder for when a gate-segment completes
@@ -391,7 +411,7 @@
 					});
 
 					// wrap a normal sequence around the iterable sequence,
-					// which when called  replaces the temporary `trigger`
+					// which when called replaces the temporary `trigger`
 					// (defined below) with a real sequence trigger
 					fn = createSequence(function __create_sequence__(done){
 						trigger = done;
