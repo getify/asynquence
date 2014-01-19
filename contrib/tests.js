@@ -24,6 +24,7 @@
 		}
 
 		var ARRAY_SLICE = Array.prototype.slice;
+		var ø = Object.create(null);
 		var tests = [];
 
 		tests.push(function(testDone){
@@ -840,6 +841,55 @@
 					FAIL.apply(FAIL,args);
 				}
 			});
+
+			timeout = setTimeout(function(){
+				FAIL(testDone,label + " (from timeout)");
+			},1000);
+		});
+		tests.push(function(testDone){
+			var label = "Contrib Test #12", timeout;
+
+			function Ef(err,msg,delay,cb) {
+				setTimeout(function(){
+					if (!Array.isArray(err)) err = [err];
+					if (!Array.isArray(msg)) msg = [msg];
+					msg = err.concat(msg);
+					cb.apply(ø,msg);
+				},delay);
+			}
+
+			var sq = ASQ("Hello");
+
+			Ef(void 0,["World","!"],100,sq.errfcb());
+
+			sq.val(function(msg1,msg2){
+				if (!(
+					arguments.length === 2 &&
+					msg1 === "World" &&
+					msg2 === "!"
+				)) {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			})
+			.or(function(msg){
+				clearTimeout(timeout);
+
+				if (
+					arguments.length === 1 &&
+					msg === "All done"
+				) {
+					PASS(testDone,label);
+				}
+				else {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			});
+
+			Ef("All done","Ignored",200,sq.errfcb());
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");

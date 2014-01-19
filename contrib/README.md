@@ -1,6 +1,6 @@
 # asynquence Contrib
 
-Optional plugin helpers are provided in `/contrib/*`. The full bundle of plugins (`contrib.js`) is **~1.3k** minzipped.
+Optional plugin helpers are provided in `/contrib/*`. The full bundle of plugins (`contrib.js`) is **~1.4k** minzipped.
 
 Gate variations:
 
@@ -20,6 +20,11 @@ Sequence-step variations:
 
 ### `iterable-sequence` Plugin
 `iterable-sequence` plugin provides `ASQ.iterable()` for creating iterable sequences. See [Iterable Sequences](https://github.com/getify/asynquence/blob/master/README.md#iterable-sequences) for more information, and examples: [sync loop](https://gist.github.com/getify/8211148#file-ex1-sync-iteration-js) and [async loop](https://gist.github.com/getify/8211148#file-ex2-async-iteration-js).
+
+### `errfcb` Plugin
+`errfcb` plugin provides `errfcb()` on the main sequence instance API. Unlike other API methods, `errfcb()` **does not return** the main sequence instance (for chaining). Instead, it returns an "error-first" style (aka "node-style") callback that can be used with any method that expects such a callback.
+
+If the "error-first" callback is then invoked with the first ("error") parameter set, the main sequence is flagged for error as usual. Otherwise, the main sequence proceeds as success. Messages sent to the callback are passed through to the main sequence as success/error as expected.
 
 ## Using Contrib Plugins
 
