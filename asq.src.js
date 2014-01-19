@@ -1,5 +1,5 @@
 /*! asynquence
-    v0.3.1-a (c) Kyle Simpson
+    v0.3.2-a (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -135,7 +135,7 @@
 			};
 
 			// handles "error-first" (aka "node-style") callbacks
-			done.efcall = function __errorfirst_callback__(err){
+			done.errfcb = function __errorfirst_callback__(err){
 				if (err) {
 					done.fail(err);
 				}
@@ -272,7 +272,7 @@
 				};
 
 				// handles "error-first" (aka "node-style") callbacks
-				done.efcall = function __errorfirst_callback__(err){
+				done.errfcb = function __errorfirst_callback__(err){
 					if (err) {
 						done.fail(err);
 					}

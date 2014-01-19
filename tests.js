@@ -24,6 +24,7 @@
 		}
 
 		var ARRAY_SLICE = Array.prototype.slice;
+		var ø = Object.create(null);
 		var tests = [];
 
 		tests.push(function(testDone){
@@ -844,7 +845,7 @@
 			var label = "Core Test #20", timeout, Q = tests.Q;
 
 			function Pr(){
-				var args = ARRAY_SLICE.call(arguments);
+				var args = ASQ.messages.apply(ø,arguments);
 				var def = Q.defer();
 				setTimeout(function(){
 					def.resolve(args.length > 1 ? args : args[0]);
@@ -852,8 +853,8 @@
 				return def.promise;
 			}
 
-			function Br(){
-				var args = ARRAY_SLICE.call(arguments);
+			function bPr(){
+				var args = ASQ.messages.apply(ø,arguments);
 				var def = Q.defer();
 				setTimeout(function(){
 					def.reject(args.length > 1 ? args : args[0]);
@@ -880,6 +881,7 @@
 				if (!(
 					arguments.length === 1 &&
 					Array.isArray(msg) &&
+					ASQ.isMessageWrapper(msg) &&
 					msg.length === 2 &&
 					msg[0] === "Hello" &&
 					msg[1] === "World"
@@ -891,7 +893,7 @@
 
 				return msg[1].toUpperCase();
 			})
-			.promise(Br) // Note: a broken promise!
+			.promise(bPr) // Note: a broken promise!
 			.val(function(msg1,msg2){
 				clearTimeout(timeout);
 				var args = ARRAY_SLICE.call(arguments);
@@ -919,6 +921,116 @@
 		});
 		tests.push(function(testDone){
 			var label = "Core Test #21", timeout;
+
+			function Ef(err,msg,delay,cb) {
+				setTimeout(function(){
+					if (!Array.isArray(err)) err = [err];
+					if (!Array.isArray(msg)) msg = [msg];
+					msg = err.concat(msg);
+					cb.apply(ø,msg);
+				},delay);
+			}
+
+			ASQ(function(done){
+				Ef(/*err=*/void 0,/*success=*/["Yay","Man"],100,done.errfcb);
+			})
+			.val(function(msg1,msg2){
+				if (!(
+					arguments.length === 2 &&
+					msg1 === "Yay" &&
+					msg2 === "Man"
+				)) {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			})
+			.gate(
+				function(done){
+					Ef(/*err=*/void 0,/*success=*/void 0,100,done.errfcb);
+				},
+				function(done){
+					Ef(/*err=*/void 0,/*success=*/"Hello",200,done.errfcb);
+				},
+				function(done){
+					done.errfcb(/*err=*/void 0,/*success=*/"World","!");
+				}
+			)
+			.val(function(msg1,msg2,msg3){
+				if (!(
+					arguments.length === 3 &&
+					msg1 === undefined &&
+					msg2 === "Hello" &&
+					Array.isArray(msg3) &&
+					ASQ.isMessageWrapper(msg3) &&
+					msg3.length === 2 &&
+					msg3[0] === "World" &&
+					msg3[1] === "!"
+				)) {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			})
+			.then(function(mainDone){
+				ASQ(function(done){
+					// force an "error" on this inner sequence
+					Ef(/*err=*/"Boo",/*success=*/"Ignored",100,done.errfcb);
+				})
+				.then(function(){
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				})
+				.or(function(){
+					mainDone.apply(ø,arguments);
+				});
+			})
+			.val(function(msg){
+				if (!(
+					arguments.length === 1 &&
+					msg === "Boo"
+				)) {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			})
+			.gate(
+				function(done){
+					done("Ignored");
+				},
+				function(done){
+					Ef(/*err=*/"All done",/*success=*/"Ignored 2",100,done.errfcb);
+				}
+			)
+			.val(function(){
+				var args = ARRAY_SLICE.call(arguments);
+				args.unshift(testDone,label);
+				FAIL.apply(FAIL,args);
+			})
+			.or(function(msg){
+				clearTimeout(timeout);
+
+				if (
+					arguments.length === 1 &&
+					msg === "All done"
+				) {
+					PASS(testDone,label);
+				}
+				else {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			});
+
+			timeout = setTimeout(function(){
+				FAIL(testDone,label + " (from timeout)");
+			},1000);
+		});
+		tests.push(function(testDone){
+			var label = "Core Test #22", timeout;
 
 			// testing a custom plugin which will pass along
 			// any messages received to it, but will inject
