@@ -62,11 +62,11 @@ There are a few convenience methods on the API, as well:
 
     This method will also accept function(s) which return promises. `promise(Fn)` is sugar short-hand for `then(function(done){ Fn.apply(null,[].slice.call(arguments,1)).then(done,done.fail); })`.
 
-* `errfcb` is a flag on the triggers that are passed into `then(..)` steps and `gate(..)` segments. If you're using methods which expect an "error-first" style (aka, "node-style") callback, `{trigger}.errcb` provides a properly formatted callback for the occasion.
+* `errfcb` is a flag on the triggers that are passed into `then(..)` steps and `gate(..)` segments. If you're using methods which expect an "error-first" style (aka, "node-style") callback, `{trigger}.errfcb` provides a properly formatted callback for the occasion.
 
     If the "error-first" callback is then invoked with the first ("error") parameter set, the main sequence is flagged for error as usual. Otherwise, the main sequence proceeds as success. Messages sent to the callback are passed through to the main sequence as success/error as expected.
 
-    `ASQ(function(done){ somethingAsync(done.errcb); })` is sugar short-hand for `ASQ(function(done){ somethingAsync(function(err){ if (err) done.fail(err); else done.apply(null,[].slice.call(arguments,1))}); })`.
+    `ASQ(function(done){ somethingAsync(done.errfcb); })` is sugar short-hand for `ASQ(function(done){ somethingAsync(function(err){ if (err) done.fail(err); else done.apply(null,[].slice.call(arguments,1))}); })`.
 
 You can also `abort()` a sequence at any time, which will prevent any further actions from occurring on that sequence (all callbacks will be ignored). The call to `abort()` can happen on the sequence API itself, or using the `abort` flag on a completion trigger in any step (see example below).
 
