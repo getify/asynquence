@@ -9,6 +9,13 @@ Gate variations:
 * `first(..)` is like `any(..)`, except **as soon as any segment succeeds**, the main sequence proceeds (ignoring subsequent results from other segments).
 * `last(..)` is like `any(..)`, except only **the latest segment to complete successfully** sends message(s) along to the main sequence.
 * `none(..)` is the inverse of `gate(..)`: the main sequence proceeds only **if all the segments fail** (with all segment error message(s) transposed as success message(s) and vice versa).
+* `map(arr, eachFn)` allows an asynchronous mapping of an array's values to another set of values. `map(..)` constructs a gate of segments, one for each item in `arr`. Each segment invokes `eachFn(..)` for the respective item in the array.
+
+    `eachFn(item, doneTrigger, ..)` receives the respective `item` in the array and a `doneTrigger` to invoke with the new value to map back to that array position. **Note:** If multiple values are passed, that item's value will be an array (*asynquence* message wrapper) collection of the values passed.
+
+    Just like with normal gates, `eachFn(..)` also receives any sequence messages passed forward from the previous main sequence step, such as `eachFn(item, doneTrigger, msg1, msg2, ..)`. And, if any segment causes an error, the rest of the `map(..)` fails and the main sequence is flagged as error'd.
+
+    The final success message from a `map(..)` sequence step is the newly constructed array of mapped values.
 
 Sequence-step variations:
 

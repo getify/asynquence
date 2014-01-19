@@ -895,6 +895,66 @@
 				FAIL(testDone,label + " (from timeout)");
 			},1000);
 		});
+		tests.push(function(testDone){
+			var label = "Contrib Test #13", timeout;
+
+			ASQ("*","@")
+			.map(["Hello","World","!"],function(item,done,pre,post){
+				setTimeout(function(){
+					done(pre + item.toUpperCase() + post);
+				},200);
+			})
+			.val(function(msg){
+				if (!(
+					arguments.length === 1 &&
+					msg.length === 3 &&
+					// `msg` should just be a normal array!
+					!ASQ.isMessageWrapper(msg) &&
+					msg[0] === "*HELLO@" &&
+					msg[1] === "*WORLD@" &&
+					msg[2] === "*!@"
+				)) {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			})
+			.map([1,2,3],function(item,done){
+				setTimeout(function(){
+					// we hate even numbers! :)
+					if (item % 2 === 0) {
+						done.fail("Evil Even");
+					}
+					else {
+						done(item / 2);
+					}
+				},100);
+			})
+			.val(function(){
+				var args = ARRAY_SLICE.call(arguments);
+				args.unshift(testDone,label);
+				FAIL.apply(FAIL,args);
+			})
+			.or(function(msg){
+				clearTimeout(timeout);
+
+				if (
+					arguments.length === 1 &&
+					msg === "Evil Even"
+				) {
+					PASS(testDone,label);
+				}
+				else {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			});
+
+			timeout = setTimeout(function(){
+				FAIL(testDone,label + " (from timeout)");
+			},1000);
+		});
 
 		return tests;
 	}
