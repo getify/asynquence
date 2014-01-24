@@ -1,6 +1,6 @@
 # asynquence Contrib
 
-Optional plugin helpers are provided in `/contrib/*`. The full bundle of plugins (`contrib.js`) is **~1.4k** minzipped.
+Optional plugin helpers are provided in `/contrib/*`. The full bundle of plugins (`contrib.js`) is **~1.5k** minzipped.
 
 Gate variations:
 
@@ -14,6 +14,8 @@ Gate variations:
     `eachFn(item, doneTrigger, ..)` receives the respective `item` in the array and a `doneTrigger` to invoke with the new value to map back to that array position. **Note:** If multiple values are passed, that item's value will be an array (*asynquence* message wrapper) collection of the values passed.
 
     Just like with normal gates, `eachFn(..)` also receives any sequence messages passed forward from the previous main sequence step, such as `eachFn(item, doneTrigger, msg1, msg2, ..)`. And, if any segment causes an error, the rest of the `map(..)` fails and the main sequence is flagged as error'd.
+
+    If either `arr`, `eachFn` or both are not passed to `map(..)`, it will attempt to pull them from the value-message stream it received from the previous step. Even if it does so, any subsequent messages in the stream will still pass on to the `eachFn` callback.
 
     The final success message from a `map(..)` sequence step is the newly constructed array of mapped values.
 

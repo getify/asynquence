@@ -918,8 +918,58 @@
 					args.unshift(testDone,label);
 					FAIL.apply(FAIL,args);
 				}
+
+				// push the array as value-message onto
+				// stream, for subsequent `map(..)` to use
+				return ["foo","bar","baz"];
 			})
-			.map([1,2,3],function(item,done){
+			.map(function(item,done){
+				done(item.toUpperCase());
+			})
+			.val(function(msg){
+				if (!(
+					arguments.length === 1 &&
+					msg.length === 3 &&
+					// `msg` should just be a normal array!
+					!ASQ.isMessageWrapper(msg) &&
+					msg[0] === "FOO" &&
+					msg[1] === "BAR" &&
+					msg[2] === "BAZ"
+				)) {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+
+				// push the array AND iterator as value-messages
+				// onto stream, for subsequent `map()` to use,
+				// and also push another value-message which
+				// should pass to the iterator itself
+				return ASQ.messages(
+					/*arr=*/["Hello","World"],
+					/*each=*/function(item,done,msg){
+						done(item + msg);
+					},
+					/*msg=*/"!"
+				);
+			})
+			// gets both array and iterator from value messages
+			.map()
+			.val(function(msg){
+				if (!(
+					arguments.length === 1 &&
+					msg.length === 2 &&
+					// `msg` should just be a normal array!
+					!ASQ.isMessageWrapper(msg) &&
+					msg[0] === "Hello!" &&
+					msg[1] === "World!"
+				)) {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			})
+			.map(function(item,done){
 				setTimeout(function(){
 					// we hate even numbers! :)
 					if (item % 2 === 0) {
@@ -929,7 +979,7 @@
 						done(item / 2);
 					}
 				},100);
-			})
+			},[1,2,3])
 			.val(function(){
 				var args = ARRAY_SLICE.call(arguments);
 				args.unshift(testDone,label);

@@ -6,11 +6,27 @@ ASQ.extend("map",function __extend__(api,internals){
 		}
 
 		api
-		.gate.apply(ø,arr.map(function __map__(item){
-			return function __segment__(){
-				each.apply(ø,[item].concat(ARRAY_SLICE.call(arguments)));
-			};
-		}))
+		.seq(function(){
+			var tmp, args = ARRAY_SLICE.call(arguments);
+
+			// if missing `map(..)` args, use value-messages (if any)
+			if (!each) each = args.shift();
+			if (!arr) arr = args.shift();
+
+			// if arg types in reverse order (each,arr), swap
+			if (typeof arr === "function" && Array.isArray(each)) {
+				tmp = arr;
+				arr = each;
+				each = tmp;
+			}
+
+			return ASQ.apply(ø,args)
+			.gate.apply(ø,arr.map(function __map__(item){
+				return function __segment__(){
+					each.apply(ø,[item].concat(ARRAY_SLICE.call(arguments)));
+				};
+			}));
+		})
 		.val(function(){
 			// collect all gate segment output into one value-message
 			// Note: return a normal array here, not a message wrapper!
