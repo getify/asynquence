@@ -1030,7 +1030,125 @@
 			},1000);
 		});
 		tests.push(function(testDone){
-			var label = "Core Test #22", timeout;
+			var label = "Core Test #22", timeout, sq, sq2, sq3, sq4, sq5;
+
+			sq = ASQ(function(done){
+				setTimeout(function(){
+					done("Hello");
+				},100);
+			});
+
+			// first fork-listener
+			sq2 = sq.fork().val(function(msg){
+				if (!(
+					arguments.length === 1 &&
+					msg === "Hello"
+				)) {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			});
+
+			// second fork-listener
+			sq3 = sq.fork().val(function(msg){
+				if (!(
+					arguments.length === 1 &&
+					msg === "Hello"
+				)) {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			});
+
+			// main sequence-listener
+			sq.val(function(msg){
+				if (!(
+					arguments.length === 1 &&
+					msg === "Hello"
+				)) {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			});
+
+			// test sending an error into the forks
+			sq.then(function(done){
+				setTimeout(function(){
+					done.fail("World");
+				},100);
+			});
+
+			// second fork-listener
+			sq4 = sq.fork()
+			.val(function(){
+				var args = ARRAY_SLICE.call(arguments);
+				args.unshift(testDone,label);
+				FAIL.apply(FAIL,args);
+			})
+			.or(function(msg){
+				if (!(
+					arguments.length === 1 &&
+					msg === "World"
+				)) {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			});
+
+			// third fork-listener
+			sq5 = sq.fork()
+			.val(function(){
+				var args = ARRAY_SLICE.call(arguments);
+				args.unshift(testDone,label);
+				FAIL.apply(FAIL,args);
+			})
+			.or(function(msg){
+				if (!(
+					arguments.length === 1 &&
+					msg === "World"
+				)) {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			});
+
+			// main sequence listener
+			sq.val(function(){
+				var args = ARRAY_SLICE.call(arguments);
+				args.unshift(testDone,label);
+				FAIL.apply(FAIL,args);
+			})
+			.or(function(msg){
+				var args = ARRAY_SLICE.call(arguments);
+
+				// defer this error handling while the other
+				// forks are error-notified
+				setTimeout(function(){
+					clearTimeout(timeout);
+
+					if (args.length === 1 &&
+						msg === "World"
+					) {
+						PASS(testDone,label);
+					}
+					else {
+						args.unshift(testDone,label);
+						FAIL.apply(FAIL,args);
+					}
+				},0);
+			});
+
+			timeout = setTimeout(function(){
+				FAIL(testDone,label + " (from timeout)");
+			},1000);
+		});
+		tests.push(function(testDone){
+			var label = "Core Test #23", timeout;
 
 			// testing a custom plugin which will pass along
 			// any messages received to it, but will inject

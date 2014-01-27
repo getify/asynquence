@@ -1,5 +1,5 @@
 /*! asynquence
-    v0.3.2-b (c) Kyle Simpson
+    v0.3.3-a (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -490,6 +490,45 @@
 			return sequence_api;
 		}
 
+		function fork() {
+			var trigger;
+
+			// listen for success at this point in the sequence
+			val(function __val__(){
+				if (trigger) {
+					trigger.apply(ø,arguments);
+				}
+				else {
+					trigger = createSequence.apply(ø,arguments);
+				}
+				return public_api.messages.apply(ø,arguments);
+			});
+			// listen for error at this point in the sequence
+			or(function __or__(){
+				if (trigger) {
+					trigger.fail.apply(ø,arguments);
+				}
+				else {
+					var args = ARRAY_SLICE.call(arguments);
+					trigger = createSequence().then(function __then__(done){
+						done.fail.apply(ø,args);
+					});
+				}
+			});
+
+			// create the forked sequence which will receive
+			// the success/error stream from the main sequence
+			return createSequence()
+			.then(function __then__(done){
+				if (!trigger) {
+					trigger = done;
+				}
+				else {
+					trigger.pipe(done);
+				}
+			});
+		}
+
 		function abort() {
 			if (seq_error) {
 				return sequence_api;
@@ -557,6 +596,7 @@
 				seq: seq,
 				val: val,
 				promise: promise,
+				fork: fork,
 				abort: abort
 			})
 		;

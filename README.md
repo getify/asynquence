@@ -1,6 +1,6 @@
 # asynquence
 
-A lightweight (**~1.7k** minzipped) micro-lib for asynchronous flow-control using sequences and gates.
+A lightweight (**~1.8k** minzipped) micro-lib for asynchronous flow-control using sequences and gates.
 
 ## Explanation
 
@@ -61,6 +61,14 @@ There are a few convenience methods on the API, as well:
     `promise(Pr)` is sugar short-hand for `then(function(done){ Pr.then(done,done.fail); })`.
 
     This method will also accept function(s) which return promises. `promise(Fn)` is sugar short-hand for `then(function(done){ Fn.apply(null,[].slice.call(arguments,1)).then(done,done.fail); })`.
+
+* `fork()` creates a new sequence that forks off of the main sequence. Success or Error message(s) stream along to the forked sequence as expected, but the main sequence continues as its own sequence beyond the fork point, and neither sequence will have any further effect on the other.
+
+    This API method is primarily useful to create multiple "listeners" at the same point of a sequence. For example: `sq = ASQ()...; sq2 = sq.fork().then(..); sq3 = sq.fork().then(..); sq.then(..)`. In that snippet, there'd be 3 `then(..)` listeners that would be equally and simultaneously triggered when the main `sq` sequence reached that point.
+
+    **Note:** Unlike most other API methods, `fork()` returns a new sequence instance, so chaining after `fork()` would not be chaining off of the main sequence but off of the forked sequence.
+
+    `sq.fork()` is (sort-of) sugar short-hand for `ASQ().seq(sq)`.
 
 * `errfcb` is a flag on the triggers that are passed into `then(..)` steps and `gate(..)` segments. If you're using methods which expect an "error-first" style (aka, "node-style") callback, `{trigger}.errfcb` provides a properly formatted callback for the occasion.
 
