@@ -1,6 +1,6 @@
 # asynquence Contrib
 
-Optional plugin helpers are provided in `/contrib/*`. The full bundle of plugins (`contrib.js`) is **~1.5k** minzipped.
+Optional plugin helpers are provided in `/contrib/*`. The full bundle of plugins (`contrib.js`) is **~1.7k** minzipped.
 
 Gate variations:
 
@@ -28,12 +28,64 @@ Sequence-step variations:
     An error anywhere along the waterfall behaves like an error in any sequence, immediately jumping to error state and aborting any further success progression.
 
 ### `iterable-sequence` Plugin
+
 `iterable-sequence` plugin provides `ASQ.iterable()` for creating iterable sequences. See [Iterable Sequences](https://github.com/getify/asynquence/blob/master/README.md#iterable-sequences) for more information, and examples: [sync loop](https://gist.github.com/getify/8211148#file-ex1-sync-iteration-js) and [async loop](https://gist.github.com/getify/8211148#file-ex2-async-iteration-js).
 
 ### `errfcb` Plugin
+
 `errfcb` plugin provides `errfcb()` on the main sequence instance API. Unlike other API methods, `errfcb()` **does not return** the main sequence instance (for chaining). Instead, it returns an "error-first" style (aka "node-style") callback that can be used with any method that expects such a callback.
 
 If the "error-first" callback is then invoked with the first ("error") parameter set, the main sequence is flagged for error as usual. Otherwise, the main sequence proceeds as success. Messages sent to the callback are passed through to the main sequence as success/error as expected.
+
+### `runner` Plugin
+
+`runner(..)` takes either an **iterable-sequence** or an ES6 generator function, which will be iterated through step-by-step. `runner(..)` will handle either asynquence sequences, standard promises, or immediate values as the yielded/returned values from the generator or iterable-sequence steps.
+
+The generator/iterable-sequence will receive any value-messages from the previous sequence step, and the final yielded/returned value will be passed along as the success message(s) to the next main sequence step. Error(s) if any will flag the main sequence as error, with error messages passed along as expected.
+
+Examples:
+
+```js
+function double(x) {
+	return ASQ(function(done){
+		setTimeout(function(){
+			done(x * 2);
+		},500);
+	});
+}
+
+ASQ(2)
+.runner(function*(x){
+	while (x < 100) {
+		x = yield double(x);
+	}
+})
+.then(function(num){
+	console.log(num); // 128
+});
+```
+
+```js
+function double(x) {
+	// standard native Promise
+	return new Promise(function(resolve,reject){
+		setTimeout(function(){
+			resolve(x * 2);
+		},500);
+	});
+}
+
+ASQ(2)
+.runner(
+	ASQ.iterable()
+	.then(double)
+	.then(double)
+	.then(double)
+)
+.then(function(num){
+	console.log(num); // 16
+});
+```
 
 ## Using Contrib Plugins
 

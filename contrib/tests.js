@@ -1005,6 +1005,122 @@
 				FAIL(testDone,label + " (from timeout)");
 			},1000);
 		});
+		tests.push(function(testDone){
+			var label = "Contrib Test #14", timeout,
+				isq, Q = tests.Q
+			;
+
+			function doubleSeq(x) {
+				return ASQ(function(done){
+					setTimeout(function(){
+						if (x < 100) {
+							done(x * 2);
+						}
+						else {
+							done.fail("Too big!");
+						}
+					},50);
+				});
+			}
+
+			function doublePromise(x) {
+				var def = Q.defer();
+				setTimeout(function(){
+					if (x < 100) {
+						def.resolve(x * 2);
+					}
+					else {
+						def.reject("Too big!");
+					}
+				},50);
+				return def.promise;
+			}
+
+			function justValue(x) {
+				return x;
+			}
+
+			ASQ(2)
+			.runner(
+				ASQ.iterable()
+				.then(doubleSeq)
+				.then(doublePromise)
+				.then(doubleSeq)
+				.then(doublePromise)
+			)
+			.val(function(msg){
+				if (!(
+					arguments.length === 1 &&
+					msg === 32
+				)) {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			})
+			.then(function(done){
+				ASQ(42)
+				.runner(
+					ASQ.iterable()
+					.then(justValue) // just returns the value directly
+					.then(doubleSeq)
+					.then(doubleSeq)
+					.then(doubleSeq)
+				)
+				.val(function(){
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				})
+				.or(function(msg){
+					if (
+						arguments.length === 1 &&
+						msg === "Too big!"
+					) {
+						done();
+					}
+					else {
+						var args = ARRAY_SLICE.call(arguments);
+						args.unshift(testDone,label);
+						FAIL.apply(FAIL,args);
+					}
+				});
+			})
+			.then(function(done){
+				ASQ(42)
+				.runner(
+					ASQ.iterable()
+					.then(doublePromise)
+					.then(doublePromise)
+					.then(doublePromise)
+				)
+				.pipe(done);
+			})
+			.val(function(){
+				var args = ARRAY_SLICE.call(arguments);
+				args.unshift(testDone,label);
+				FAIL.apply(FAIL,args);
+			})
+			.or(function(msg){
+				clearTimeout(timeout);
+
+				if (
+					arguments.length === 1 &&
+					msg === "Too big!"
+				) {
+					PASS(testDone,label);
+				}
+				else {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			});
+
+			timeout = setTimeout(function(){
+				FAIL(testDone,label + " (from timeout)");
+			},1000);
+		});
 
 		return tests;
 	}
