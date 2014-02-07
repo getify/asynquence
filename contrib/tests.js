@@ -1040,6 +1040,10 @@
 				return x;
 			}
 
+			function twiceValues(x) {
+				return ASQ.messages(x,x);
+			}
+
 			ASQ(2)
 			.runner(
 				ASQ.iterable()
@@ -1047,11 +1051,13 @@
 				.then(doublePromise)
 				.then(doubleSeq)
 				.then(doublePromise)
+				.then(twiceValues) // return the value itself, twice
 			)
-			.val(function(msg){
+			.val(function(msg1,msg2){
 				if (!(
-					arguments.length === 1 &&
-					msg === 32
+					arguments.length === 2 &&
+					msg1 === 32 &&
+					msg2 === 32
 				)) {
 					var args = ARRAY_SLICE.call(arguments);
 					args.unshift(testDone,label);
