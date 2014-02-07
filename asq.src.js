@@ -1,5 +1,5 @@
 /*! asynquence
-    v0.3.3-a (c) Kyle Simpson
+    v0.3.3-b (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -724,8 +724,13 @@
 		return ret;
 	};
 
-	public_api.isMessageWrapper = public_api.isSequence =
-		checkBranding;
+	public_api.isSequence =	function __is_seq__(val) {
+		return checkBranding(val) && !Array.isArray(val);
+	};
+
+	public_api.isMessageWrapper = function __is_msg_wrapper(val) {
+		return checkBranding(val) && Array.isArray(val);
+	};
 
 	public_api.noConflict = function __noconflict__() {
 		if (context) {

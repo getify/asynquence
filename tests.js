@@ -32,6 +32,24 @@
 
 			ASQ()
 			.then(asyncDelayFn(100))
+			.gate(function(done){
+				done(1,2);
+			})
+			.val(function(msg){
+				if (!(
+					ASQ.isMessageWrapper( msg ) &&
+					!ASQ.isMessageWrapper( ASQ() ) &&
+					!ASQ.isMessageWrapper( [3,4] ) &&
+					ASQ.isSequence( ASQ() ) &&
+					!ASQ.isSequence( msg ) &&
+					!ASQ.isSequence( {} )
+				)) {
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			})
 			.then(function(){
 				clearTimeout(timeout);
 				PASS(testDone,label);
@@ -880,7 +898,6 @@
 			.val(function(msg){
 				if (!(
 					arguments.length === 1 &&
-					Array.isArray(msg) &&
 					ASQ.isMessageWrapper(msg) &&
 					msg.length === 2 &&
 					msg[0] === "Hello" &&
@@ -961,7 +978,6 @@
 					arguments.length === 3 &&
 					msg1 === undefined &&
 					msg2 === "Hello" &&
-					Array.isArray(msg3) &&
 					ASQ.isMessageWrapper(msg3) &&
 					msg3.length === 2 &&
 					msg3[0] === "World" &&
