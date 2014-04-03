@@ -1,5 +1,5 @@
 /*! asynquence
-    v0.3.3-b (c) Kyle Simpson
+    v0.3.4-d (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -9,12 +9,6 @@
 	else { context[name] = definition(name,context); }
 })("ASQ",this,function DEF(name,context){
 	"use strict";
-
-	var public_api, extensions = {},
-		old_public_api = (context || {})[name],
-		ARRAY_SLICE = Array.prototype.slice,
-		brand = "__ASQ__", ø = Object.create(null)
-	;
 
 	function schedule(fn) {
 		return (typeof setImmediate !== "undefined") ?
@@ -47,6 +41,8 @@
 			var fn, args;
 
 			seq_tick = null;
+			// remove the temporary `unpause()` hook, if any
+			delete sequence_api.unpause;
 
 			if (seq_aborted) {
 				resetSequence();
@@ -541,6 +537,19 @@
 			return sequence_api;
 		}
 
+		function duplicate() {
+			var sq;
+
+			template = {
+				then_queue: then_queue.slice(0),
+				or_queue: or_queue.slice(0)
+			};
+			sq = createSequence();
+			template = null;
+
+			return sq;
+		}
+
 		function internals(name,value) {
 			var set = (arguments.length > 1);
 			switch (name) {
@@ -597,12 +606,23 @@
 				val: val,
 				promise: promise,
 				fork: fork,
-				abort: abort
+				abort: abort,
+				duplicate: duplicate
 			})
 		;
 
 		// include extensions, if any
 		includeExtensions();
+
+		// templating the sequence setup?
+		if (template) {
+			then_queue = template.then_queue.slice(0);
+			or_queue = template.or_queue.slice(0);
+
+			// templating a sequence starts it out paused
+			// add temporary `unpause()` API hook
+			sequence_api.unpause = scheduleSequenceTick;
+		}
 
 		// treat ASQ() constructor parameters as having been
 		// passed to `then()`
@@ -701,6 +721,12 @@
 	}
 
 
+	var public_api, extensions = {}, template,
+		old_public_api = (context || {})[name],
+		ARRAY_SLICE = Array.prototype.slice,
+		brand = "__ASQ__", ø = Object.create(null)
+	;
+
 	// ***********************************************
 	// Setup the ASQ public API
 	// ***********************************************
@@ -730,6 +756,11 @@
 
 	public_api.isMessageWrapper = function __is_msg_wrapper(val) {
 		return checkBranding(val) && Array.isArray(val);
+	};
+
+	public_api.unpause = function __unpause__(sq) {
+		if (sq.unpause) sq.unpause();
+		return sq;
 	};
 
 	public_api.noConflict = function __noconflict__() {

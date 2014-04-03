@@ -1164,7 +1164,90 @@
 			},1000);
 		});
 		tests.push(function(testDone){
-			var label = "Core Test #23", timeout;
+			var label = "Core Test #23", timeout,
+				sq1, sq2, seed = 10
+			;
+
+			sq1 = ASQ()
+			.then(asyncDelayFn(100))
+			.then(function(done){
+				done(++seed);
+			})
+			.gate(
+				function(done){
+					done(++seed);
+				},
+				function(done){
+					done(++seed);
+				}
+			);
+
+			// duplicate a template of the sequence
+			sq2 = sq1.duplicate();
+
+			sq1.val(function(msg1,msg2){
+				if (!(
+					msg1 === 12 &&
+					msg2 === 13
+				)) {
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			})
+			.then(function(){
+				seed = 20;
+
+				// unpause the duplicated sequence
+				sq2 = ASQ.unpause(sq2);
+
+				// later, check to see if the sequence
+				// was indeed restarted and ran properly
+				setTimeout(function(){
+					if (seed !== 23) {
+						clearTimeout(timeout);
+						var args = [testDone,label,"seed: " + seed];
+						FAIL.apply(FAIL,args);
+						return;
+					}
+
+					sq2.val(function(msg1,msg2){
+						if (!(
+							msg1 === 22 &&
+							msg2 === 23
+						)) {
+							clearTimeout(timeout);
+							var args = ARRAY_SLICE.call(arguments);
+							args.unshift(testDone,label);
+							FAIL.apply(FAIL,args);
+						}
+					})
+					.then(function(){
+						clearTimeout(timeout);
+						PASS(testDone,label);
+					})
+					.or(function(){
+						clearTimeout(timeout);
+						var args = ARRAY_SLICE.call(arguments);
+						args.unshift(testDone,label);
+						FAIL.apply(FAIL,args);
+					});
+				},500);
+			})
+			.or(function(){
+				clearTimeout(timeout);
+				var args = ARRAY_SLICE.call(arguments);
+				args.unshift(testDone,label);
+				FAIL.apply(FAIL,args);
+			});
+
+			timeout = setTimeout(function(){
+				FAIL(testDone,label + " (from timeout)");
+			},1000);
+		});
+		tests.push(function(testDone){
+			var label = "Core Test #24", timeout;
 
 			// testing a custom plugin which will pass along
 			// any messages received to it, but will inject

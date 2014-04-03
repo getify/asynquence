@@ -1,4 +1,7 @@
 // "ASQ.iterable()"
+(function(){
+	var template;
+
 ASQ.iterable = function __iterable__() {
 	var sequence_api,
 		ARRAY_SLICE = Array.prototype.slice,
@@ -140,6 +143,19 @@ ASQ.iterable = function __iterable__() {
 		sequence_errors.length = 0;
 	}
 
+	function duplicate() {
+		var isq;
+
+		template = {
+			val_queue: val_queue.slice(0),
+			or_queue: or_queue.slice(0)
+		};
+		isq = ASQ.iterable();
+		template = null;
+
+		return isq;
+	}
+
 
 	// ***********************************************
 	// Object branding utilities
@@ -164,8 +180,15 @@ ASQ.iterable = function __iterable__() {
 		pipe: pipe,
 		next: next,
 		"throw": throwErr,
-		abort: abort
+		abort: abort,
+		duplicate: duplicate
 	});
+
+	// templating the iterable-sequence setup?
+	if (template) {
+		val_queue = template.val_queue.slice(0);
+		or_queue = template.or_queue.slice(0);
+	}
 
 	// treat ASQ.iterable() constructor parameters as having been
 	// passed to `val()`
@@ -173,3 +196,5 @@ ASQ.iterable = function __iterable__() {
 
 	return sequence_api;
 };
+
+})();

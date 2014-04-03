@@ -1,6 +1,6 @@
 # asynquence
 
-A lightweight (**~1.8k** minzipped) micro-lib for asynchronous flow-control using sequences and gates.
+A lightweight (**~1.9k** minzipped) micro-lib for asynchronous flow-control using sequences and gates.
 
 ## Explanation
 
@@ -70,6 +70,14 @@ There are a few convenience methods on the API, as well:
 
     `sq.fork()` is (sort-of) sugar short-hand for `ASQ().seq(sq)`.
 
+* `duplicate()` creates a separate copy of the current sequence (as it is at that moment). The duplicated sequence is "paused", meaning it won't automatically run, even if the original sequence is already running.
+
+    To unpause the paused sequence-copy, call `unpause()` on it. The other option is to call the helper `ASQ.unpause(..)` and pass in a sequence. If the sequence is paused, it will be unpaused (and if not, just passes through safely).
+
+    **Note:** Technically, `unpause()` schedules the sequence to be unpaused as the next "tick", so it doesn't really unpause *immediately* (synchronously). This is consistent with all other calls to the API (`ASQ()`, `then()`, `gate()`, etc), which all schedule procession of the sequence on the next "tick".
+
+    `unpause()` is only present on a sequence API in this initial paused state after it was duplicated from another sequence. It is removed as soon as that next "tick" actually unpauses the sequence. It is safe to call multiple times until that next "tick", though that's not recommended. The `ASQ.unpause(..)` helper is always present, and it first checks for an `unpause()` on the specified sequence instance before calling it, so that's safer.
+
 * `errfcb` is a flag on the triggers that are passed into `then(..)` steps and `gate(..)` segments. If you're using methods which expect an "error-first" style (aka, "node-style") callback, `{trigger}.errfcb` provides a properly formatted callback for the occasion.
 
     If the "error-first" callback is then invoked with the first ("error") parameter set, the main sequence is flagged for error as usual. Otherwise, the main sequence proceeds as success. Messages sent to the callback are passed through to the main sequence as success/error as expected.
@@ -83,6 +91,8 @@ You can also `abort()` a sequence at any time, which will prevent any further ac
 If you want to test if any arbitrary object is an *asynquence* sequence instance, use `ASQ.isSequence(..)`.
 
 `ASQ.iterable(..)` is added by the `iterable-sequence` contrib plugin. See [Iterable Sequences](#iterable-sequences) below for more information.
+
+`ASQ.unpause(..)` is a helper for dealing with "paused" (aka, *just* duplicated) sequences (see `duplicate()` above).
 
 `ASQ.noConflict()` rolls back the global `ASQ` identifier and returns the current API instance to you. This can be used to keep your global namespace clean, or it can be used to have multiple simultaneous libraries (including separate versions/copies of *asynquence*!) in the same program without conflicts over the `ASQ` global identifier.
 
@@ -161,6 +171,8 @@ for (var i=0, ret;
 ```
 
 This example shows sync iteration with a `for` loop, but of course, `next(..)` can be called in various [async fashions to iterate](https://gist.github.com/getify/8211148#file-ex2-async-iteration-js) the sequence over time.
+
+Just like regular sequences, iterable sequences have a `duplicate()` method (see ASQ's instance API above) which makes a copy of the sequence *at that moment*. However, iterable sequences are already "paused" at each step anyway, so unlike regular sequences, there's no `unpause()` (nor is there any reason to use the `ASQ.unpause(..)` helper!), because it's unnecessary. You just call `next()` on an iterable sequence (even if it's a copy of another) when you want to advance it one step.
 
 ### Multiple parameters
 API methods take one or more functions as their parameters. `gate(..)` treats multiple functions as segments in the same gate. The other API methods (`then(..)`, `or(..)`, `pipe(..)`, `seq(..)`, and `val(..)`) treat multiple parameters as just separate subsequent steps in the respective sequence. These methods don't accept arrays of functions (that you might build up programatically), but since they take multiple parameters, you can use `.apply(..)` to spread those out.
