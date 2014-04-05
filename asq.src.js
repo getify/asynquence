@@ -1,5 +1,5 @@
 /*! asynquence
-    v0.3.4-d (c) Kyle Simpson
+    v0.3.4-f (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -550,6 +550,12 @@
 			return sq;
 		}
 
+		function unpause() {
+			sequence_messages.push.apply(sequence_messages,arguments);
+			if (seq_tick === true) seq_tick = null;
+			scheduleSequenceTick();
+		}
+
 		function internals(name,value) {
 			var set = (arguments.length > 1);
 			switch (name) {
@@ -621,7 +627,8 @@
 
 			// templating a sequence starts it out paused
 			// add temporary `unpause()` API hook
-			sequence_api.unpause = scheduleSequenceTick;
+			sequence_api.unpause = unpause;
+			seq_tick = true;
 		}
 
 		// treat ASQ() constructor parameters as having been

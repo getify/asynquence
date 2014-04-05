@@ -87,6 +87,52 @@ ASQ(2)
 });
 ```
 
+### `react` Plugin
+
+Consider this code:
+
+```js
+$("#button").click(function(evt){
+   ASQ(this.id)
+   .then(..)
+   .seq(..)
+   .then(..)
+   .val(..)
+});
+```
+
+Each time the button is clicked, a new sequence is defined and executed to "react" to the event. But it's a little awkward and backward that the sequence must be (re)defined each time, *inside* the event listener.
+
+The `react` plugin provides first-class syntactic support for *asynquence* "reactive sequence" pattern, inspired by [Reactive Observables](http://rxjs.codeplex.com/). It essentially combines *asynquence*'s promise-based sequence control with repeatable event handling.
+
+1. `react(..)` accepts a listener setup handler, which will receive a trigger (called `proceed` in the snippet below) that  event listener(s) "react" by invoking.
+
+2. The rest of the chain after `react(..)...` sets up a templated sequence, which will then be executed each time the `proceed()` trigger is fired.
+
+The `react` plugin simply reverses the paradigm of the previous snippet, providing a way to specify the sequence externally and once, and have it be reinvoked each time an event triggers it.
+
+```js
+ASQ.react(
+   // this listener setup handler will be called only once
+   function(proceed){
+      // we can call `proceed(..)` (or whatever you want to call the param!)
+      // every time our stream/event fires, instead of just once, like
+      // normal promise triggers
+      $("#button").click(function(evt){
+         // fire off a new sequence for each click
+         proceed(this.id);
+      });
+   }
+)
+// each time our reactive event fires, process the rest of this sequence
+.then(..)
+.seq(..)
+.then(..)
+.val(..);
+```
+
+Inside the `react(..)` listener setup function, you can set up as many listeners for any kind of events (ajax, timers, click handlers, etc) as you want, and all you need to do to fire off the sequence is call the `proceed()` (or whatever you want to name it!) callback. Whatever messages you pass to `proceed(..)` will pass along to the first step of the sequence.
+
 ## Using Contrib Plugins
 
 In the browser, include the `contrib.js` file along with the *asynquence* library file (`asq.js`). Doing so automatically extends the API with the plugins.

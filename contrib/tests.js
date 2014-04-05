@@ -1227,6 +1227,77 @@
 				FAIL(testDone,label + " (from timeout)");
 			},1000);
 		});
+		tests.push(function(testDone){
+			var label = "Contrib Test #16", timeout;
+
+			ASQ.react(function(proceed){
+				var sq1, sq2, sq3;
+
+				setTimeout(function(){
+					sq1 = proceed();
+				},10);
+				setTimeout(function(){
+					sq2 = proceed(3,4);
+				},10);
+				setTimeout(function(){
+					sq3 = proceed(5,10);
+
+					ASQ()
+					.gate(
+						function(done){
+							sq1.pipe(done);
+						},
+						function(done){
+							sq2.pipe(done);
+						},
+						function(done){
+							sq3.pipe(done);
+						}
+					)
+					.val(function(msg1,msg2,msg3){
+						clearTimeout(timeout);
+
+						if (
+							arguments.length === 3 &&
+							msg1 === 20 &&
+							msg2 === 14 &&
+							msg3 === 30
+						) {
+							PASS(testDone,label);
+						}
+						else {
+							var args = ARRAY_SLICE.call(arguments);
+							args.unshift(testDone,label);
+							FAIL.apply(FAIL,args);
+						}
+					})
+					.or(function(){
+						clearTimeout(timeout);
+						var args = ARRAY_SLICE.call(arguments);
+						args.unshift(testDone,label);
+						FAIL.apply(FAIL,args);
+					});
+				},30);
+			})
+			.val(function(msg1,msg2){
+				return ((msg1 + msg2) || 10);
+			})
+			.then(function(done,msg){
+				setTimeout(function(){
+					done(msg * 2);
+				},100);
+			})
+			.or(function(){
+				clearTimeout(timeout);
+				var args = ARRAY_SLICE.call(arguments);
+				args.unshift(testDone,label);
+				FAIL.apply(FAIL,args);
+			});
+
+			timeout = setTimeout(function(){
+				FAIL(testDone,label + " (from timeout)");
+			},1000);
+		});
 
 		return tests;
 	}

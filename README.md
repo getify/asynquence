@@ -76,6 +76,8 @@ There are a few convenience methods on the API, as well:
 
     **Note:** Technically, `unpause()` schedules the sequence to be unpaused as the next "tick", so it doesn't really unpause *immediately* (synchronously). This is consistent with all other calls to the API (`ASQ()`, `then()`, `gate()`, etc), which all schedule procession of the sequence on the next "tick".
 
+    The instance form of `unpause(..)` (not `ASQ.unpause(..)`) will accept any arguments sent to it and pass them along as messages to the first step of the sequence, each time it's invoked. This allows you to setup different templated (duplicated) sequences with distinct initial message states, if necessary.
+
     `unpause()` is only present on a sequence API in this initial paused state after it was duplicated from another sequence. It is removed as soon as that next "tick" actually unpauses the sequence. It is safe to call multiple times until that next "tick", though that's not recommended. The `ASQ.unpause(..)` helper is always present, and it first checks for an `unpause()` on the specified sequence instance before calling it, so that's safer.
 
 * `errfcb` is a flag on the triggers that are passed into `then(..)` steps and `gate(..)` segments. If you're using methods which expect an "error-first" style (aka, "node-style") callback, `{trigger}.errfcb` provides a properly formatted callback for the occasion.

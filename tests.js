@@ -1169,6 +1169,10 @@
 			;
 
 			sq1 = ASQ()
+			.val(function(s1,s2,s3){
+				// if any messages received, use them
+				seed += ((s1 + s2 + s3) || 0);
+			})
 			.then(asyncDelayFn(100))
 			.then(function(done){
 				done(++seed);
@@ -1201,11 +1205,15 @@
 
 				// unpause the duplicated sequence
 				sq2 = ASQ.unpause(sq2);
+				// inject some messages into the unpausing sequence
+				//   hint: not a great idea, but supported
+				sq2.unpause(1,2);
+				sq2.unpause(3);
 
 				// later, check to see if the sequence
 				// was indeed restarted and ran properly
 				setTimeout(function(){
-					if (seed !== 23) {
+					if (seed !== 29) {
 						clearTimeout(timeout);
 						var args = [testDone,label,"seed: " + seed];
 						FAIL.apply(FAIL,args);
@@ -1214,8 +1222,8 @@
 
 					sq2.val(function(msg1,msg2){
 						if (!(
-							msg1 === 22 &&
-							msg2 === 23
+							msg1 === 28 &&
+							msg2 === 29
 						)) {
 							clearTimeout(timeout);
 							var args = ARRAY_SLICE.call(arguments);
