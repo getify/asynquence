@@ -84,8 +84,11 @@ ASQ.extend("runner",function __extend__(api,internals){
 							iterate();
 						}
 						else {
-							// signal iteration-complete
-							mainDone.apply(ø,arguments);
+							// signal iteration-complete.
+							// note: use most recent `msgs` value now that
+							// iteration is complete, since `ret.value`
+							// will be empty
+							mainDone.apply(ø,msgs);
 						}
 					})
 					.or(function(){

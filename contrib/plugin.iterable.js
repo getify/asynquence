@@ -89,15 +89,15 @@ ASQ.iterable = function __iterable__() {
 	}
 
 	function next() {
-		var ret = { value: undefined, done: true };
-
 		if (seq_error || seq_aborted || val_queue.length === 0) {
-			throwErr("Sequence cannot be iterated");
-			return ret;
+			if (val_queue.length > 0) {
+				throwErr("Sequence cannot be iterated");
+			}
+			return { done: true };
 		}
 
 		try {
-			ret.value = val_queue.shift().apply(ø,arguments);
+			return { value: val_queue.shift().apply(ø,arguments) };
 		}
 		catch (err) {
 			if (ASQ.isMessageWrapper(err)) {
@@ -109,10 +109,9 @@ ASQ.iterable = function __iterable__() {
 			else {
 				throwErr(err);
 			}
-		}
-		ret.done = (val_queue.length === 0);
 
-		return ret;
+			return {};
+		}
 	}
 
 	function throwErr() {
@@ -183,6 +182,13 @@ ASQ.iterable = function __iterable__() {
 		abort: abort,
 		duplicate: duplicate
 	});
+
+	// useful for ES6 `for..of` loops,
+	// add `@@iterator` to simply hand back
+	// our iterable sequence itself!
+	sequence_api[(typeof Symbol === "object" && Symbol != null && Symbol.iterator) || "@@iterator"] = function __iter__() {
+		return sequence_api;
+	};
 
 	// templating the iterable-sequence setup?
 	if (template) {

@@ -509,13 +509,13 @@
 
 			// synchronously iterate the sequence
 			for (seed = 3;
-				!(ret && ret.done) && (ret = isq.next(seed));
+				(ret = isq.next(seed)) && !ret.done;
 			) {
 				seed = ret.value;
 			}
 
 			if (seed !== 24) {
-				FAIL(testDone,label,"WTF",seed);
+				FAIL(testDone,label,seed);
 				return;
 			}
 
@@ -777,7 +777,7 @@
 							},10);
 						}
 						else {
-							done(ret.value);
+							done(seed);
 						}
 					})(seed);
 				});

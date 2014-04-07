@@ -1,6 +1,6 @@
 # asynquence Contrib
 
-Optional plugin helpers are provided in `/contrib/*`. The full bundle of plugins (`contrib.js`) is **~1.8k** minzipped.
+Optional plugin helpers are provided in `/contrib/*`. The full bundle of plugins (`contrib.js`) is **~1.9k** minzipped.
 
 Gate variations:
 
