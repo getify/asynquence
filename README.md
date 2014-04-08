@@ -143,6 +143,8 @@ Instead, an iterable sequence instance API has a `next(..)` method on it, which 
 }
 ```
 
+**Note:** The return value will strictly either have a `value` property or a `done` property, but not both at the same time.
+
 `value` is any return message(s) from the `next(..)` invocation (`undefined` otherwise). `done` is `true` if the previously iterated step was (so far) the last registered step in the iterable sequence, or `false` if there's still more sequence steps queued up.
 
 Just like with normal *asynquence* sequences, register one or more error listeners on the iterable sequence by calling `or(..)`. If a step results in some error (either accidentally or manually via `throw ..`), the iterable sequence is flagged in the error state, and any error messages are passed to the registered `or(..)` listeners.
@@ -162,7 +164,7 @@ var sq = ASQ.iterable()
     .then(step);
 
 for (var i=0, ret;
-    !(ret && ret.done) && (ret = sq.next(i+1));
+    (ret = sq.next(i+1)) && !ret.done;
     i++
 ) {
     console.log(ret.value);
