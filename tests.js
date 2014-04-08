@@ -895,23 +895,21 @@
 				}
 			})
 			.promise(Pr("Hello","World"),Pr)
-			.val(function(msg){
+			.val(function(msg1,msg2){
 				if (!(
-					arguments.length === 1 &&
-					ASQ.isMessageWrapper(msg) &&
-					msg.length === 2 &&
-					msg[0] === "Hello" &&
-					msg[1] === "World"
+					arguments.length === 2 &&
+					msg1 === "Hello" &&
+					msg2 === "World"
 				)) {
 					var args = ARRAY_SLICE.call(arguments);
 					args.unshift(testDone,label);
 					FAIL.apply(FAIL,args);
 				}
 
-				return msg[1].toUpperCase();
+				return msg2.toUpperCase();
 			})
 			.promise(bPr) // Note: a broken promise!
-			.val(function(msg1,msg2){
+			.val(function(){
 				clearTimeout(timeout);
 				var args = ARRAY_SLICE.call(arguments);
 				args.unshift(testDone,label);

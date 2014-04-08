@@ -1,5 +1,5 @@
 /*! asynquence
-    v0.3.4-f (c) Kyle Simpson
+    v0.3.4-g (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -465,6 +465,12 @@
 		}
 
 		function promise() {
+			function wrap(fn) {
+				return function __fn__(){
+					fn.apply(ø,public_api.isMessageWrapper(arguments[0]) ? arguments[0] : arguments);
+				};
+			}
+
 			if (seq_error || seq_aborted || arguments.length === 0) {
 				return sequence_api;
 			}
@@ -479,7 +485,10 @@
 						pr = pr.apply(ø,ARRAY_SLICE.call(arguments,1));
 					}
 					// now, hook up the promise to the sequence
-					pr.then(done,done.fail);
+					pr.then(
+						wrap(done),
+						wrap(done.fail)
+					);
 				});
 			});
 

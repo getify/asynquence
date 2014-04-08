@@ -1,6 +1,6 @@
 # asynquence
 
-A lightweight (**~1.9k** minzipped) micro-lib for asynchronous flow-control using sequences and gates.
+A lightweight (**~2.0k** minzipped) micro-lib for asynchronous flow-control using sequences and gates.
 
 ## Explanation
 
