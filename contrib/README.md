@@ -87,6 +87,10 @@ ASQ(2)
 });
 ```
 
+`runner(..)` can accept 2+ iterators (iterable-sequences or generator functions), and it will interleave the execution of them. When one iterator returns/yields a value, it will be passed, in round-robbin order, to the next iterator, and so on.
+
+To get a better sense of how this advanced functionality works, here's an [example of two generators paired as CSP-style co-routines](https://gist.github.com/getify/10172207).
+
 ### `react` Plugin
 
 Consider this code:
