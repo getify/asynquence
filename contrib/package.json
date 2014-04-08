@@ -1,34 +1,34 @@
 {
-  "name": "asynquence-contrib",
-  "version": "0.1.9-a",
-  "description": "contrib plugins for asynquence",
-  "main": "./contrib.js",
-  "scripts": {
-    "test": "./node-tests.js",
-    "bundle": "./bundle.js"
-  },
-  "devDependencies": {
-    "asynquence": "latest",
-    "uglify-js": "~2.4.8",
-    "q": "~0.9.7"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/getify/asynquence.git"
-  },
-  "keywords": [
-    "async",
-    "flow-control",
-    "sequences",
-    "promise",
-    "iterator",
-    "generator"
-  ],
-  "bugs": {
-    "url": "https://github.com/getify/asynquence/issues",
-    "email": "getify@gmail.com"
-  },
-  "homepage": "https://github.com/getify/asynquence/blob/master/contrib",
-  "author": "Kyle Simpson <getify@gmail.com>",
-  "license": "MIT"
+	"name": "asynquence-contrib",
+	"version": "0.1.10-b",
+	"description": "contrib plugins for asynquence",
+	"main": "./contrib.js",
+	"scripts": {
+		"test": "./node-tests.js",
+		"bundle": "./bundle.js"
+	},
+	"devDependencies": {
+		"asynquence": "latest",
+		"uglify-js": "~2.4.8",
+		"q": "~0.9.7"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/getify/asynquence.git"
+	},
+	"keywords": [
+		"async",
+		"flow-control",
+		"sequences",
+		"promise",
+		"iterator",
+		"generator"
+	],
+	"bugs": {
+		"url": "https://github.com/getify/asynquence/issues",
+		"email": "getify@gmail.com"
+	},
+	"homepage": "https://github.com/getify/asynquence/blob/master/contrib",
+	"author": "Kyle Simpson <getify@gmail.com>",
+	"license": "MIT"
 }

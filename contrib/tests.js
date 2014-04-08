@@ -1117,7 +1117,7 @@
 							done(x * 2);
 						}
 						else {
-							done.fail("Too big!");
+							done.fail("Too big!",x);
 						}
 					},50);
 				});
@@ -1130,7 +1130,7 @@
 						def.resolve(x * 2);
 					}
 					else {
-						def.reject("Too big!");
+						def.reject(ASQ.messages("Too big!",x));
 					}
 				},50);
 				return def.promise;
@@ -1147,11 +1147,11 @@
 			ASQ(2)
 			.runner(
 				ASQ.iterable()
-				.then(doubleSeq)
-				.then(doublePromise)
-				.then(doubleSeq)
-				.then(doublePromise)
-				.then(twiceValues) // return the value itself, twice
+					.then(doubleSeq)
+					.then(doublePromise)
+					.then(doubleSeq)
+					.then(doublePromise)
+					.then(twiceValues) // return the value itself, twice
 			)
 			.val(function(msg1,msg2){
 				if (!(
@@ -1168,20 +1168,21 @@
 				ASQ(42)
 				.runner(
 					ASQ.iterable()
-					.then(justValue) // just returns the value directly
-					.then(doubleSeq)
-					.then(doubleSeq)
-					.then(doubleSeq)
+						.then(justValue) // just returns the value directly
+						.then(doubleSeq)
+						.then(doubleSeq)
+						.then(doubleSeq)
 				)
 				.val(function(){
 					var args = ARRAY_SLICE.call(arguments);
 					args.unshift(testDone,label);
 					FAIL.apply(FAIL,args);
 				})
-				.or(function(msg){
+				.or(function(msg1,msg2){
 					if (
-						arguments.length === 1 &&
-						msg === "Too big!"
+						arguments.length === 2 &&
+						msg1 === "Too big!" &&
+						msg2 === 168
 					) {
 						done();
 					}
@@ -1193,12 +1194,12 @@
 				});
 			})
 			.then(function(done){
-				ASQ(42)
+				ASQ(30)
 				.runner(
 					ASQ.iterable()
-					.then(doublePromise)
-					.then(doublePromise)
-					.then(doublePromise)
+						.then(doublePromise)
+						.then(doublePromise)
+						.then(doublePromise)
 				)
 				.pipe(done);
 			})
@@ -1207,12 +1208,13 @@
 				args.unshift(testDone,label);
 				FAIL.apply(FAIL,args);
 			})
-			.or(function(msg){
+			.or(function(msg1,msg2){
 				clearTimeout(timeout);
 
 				if (
-					arguments.length === 1 &&
-					msg === "Too big!"
+					arguments.length === 2 &&
+					msg1 === "Too big!" &&
+					msg2 === 120
 				) {
 					PASS(testDone,label);
 				}
@@ -1228,7 +1230,137 @@
 			},1000);
 		});
 		tests.push(function(testDone){
-			var label = "Contrib Test #16", timeout;
+			var label = "Contrib Test #16", timeout,
+				isq, Q = tests.Q
+			;
+
+			function doubleSeq(x) {
+				return ASQ(function(done){
+					setTimeout(function(){
+						if (x < 2000) {
+							done(x * 2);
+						}
+						else {
+							done.fail("Too big!",x);
+						}
+					},10);
+				});
+			}
+
+			function doublePromise(x) {
+				var def = Q.defer();
+				setTimeout(function(){
+					if (x < 2000) {
+						def.resolve(x * 2);
+					}
+					else {
+						def.reject(ASQ.messages("Too big!",x));
+					}
+				},10);
+				return def.promise;
+			}
+
+			function justValue(x) {
+				return x;
+			}
+
+			function twiceValues(x) {
+				return ASQ.messages(x,x);
+			}
+
+			ASQ(2)
+			.runner(
+				ASQ.iterable()
+					.then(doubleSeq)
+					.then(doublePromise)
+					.then(doubleSeq)
+					.then(doublePromise)
+					.then(twiceValues),
+				ASQ.iterable()
+					.then(doublePromise)
+					.then(doubleSeq),
+				ASQ.iterable()
+					.then(doubleSeq)
+					.then(doublePromise)
+					.then(doubleSeq)
+			)
+			.val(function(msg1,msg2){
+				if (!(
+					arguments.length === 2 &&
+					msg1 === 1024 &&
+					msg2 === 1024
+				)) {
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+					return;
+				}
+			})
+			.runner(
+				ASQ.iterable()
+					.then(function(){ return null; })
+					.then(function(msg){ return msg; })
+					.then(function(msg){ return msg; })
+			)
+			.val(function(msg){
+				if (!(
+					arguments.length === 1 &&
+					msg === null
+				)) {
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+					return;
+				}
+
+				// seed the next `runner(..)` call
+				return 2;
+			})
+			.runner(
+				ASQ.iterable()
+					.then(doubleSeq)
+					.then(doubleSeq)
+					.then(doubleSeq)
+					.then(doubleSeq)
+					.then(doubleSeq)
+					.then(doubleSeq),
+				ASQ.iterable()
+					.then(doublePromise)
+					.then(doublePromise)
+					.then(doublePromise)
+					.then(doublePromise)
+					.then(doublePromise)
+					.then(doublePromise)
+			)
+			.val(function(){
+				clearTimeout(timeout);
+				var args = ARRAY_SLICE.call(arguments);
+				args.unshift(testDone,label);
+				FAIL.apply(FAIL,args);
+			})
+			.or(function(msg1,msg2){
+				clearTimeout(timeout);
+
+				if (msg1 === "Too big!" &&
+					msg2 === 2048
+				) {
+					PASS(testDone,label);
+				}
+				else {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			});
+
+			timeout = setTimeout(function(){
+				FAIL(testDone,label + " (from timeout)");
+			},1000);
+		});
+		tests.push(function(testDone){
+			var label = "Contrib Test #17", timeout;
 
 			ASQ.react(function(proceed){
 				var sq1, sq2, sq3;
