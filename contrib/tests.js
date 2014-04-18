@@ -1193,6 +1193,60 @@
 					}
 				});
 			})
+			.gate(
+				function(done){
+					ASQ()
+					.runner(
+						ASQ.iterable()
+							.then(function(){ return 42; })
+							.then(function(){})
+					)
+					.pipe(done);
+				},
+				function(done){
+					ASQ()
+					.runner(
+						ASQ.iterable()
+							.then(function(){ return 42; })
+							.then(function(){ return null; })
+					)
+					.pipe(done);
+				},
+				function(done){
+					ASQ()
+					.runner(
+						ASQ.iterable()
+							.then(function(){ return 42; })
+							.then(function(){ return ASQ.messages(undefined); })
+					)
+					.pipe(done);
+				},
+				function(done){
+					ASQ()
+					.runner(
+						ASQ.iterable()
+							.then(function(){ return 42; })
+							.then(function(){ return ASQ.messages(undefined,43); })
+					)
+					.pipe(done);
+				}
+			)
+			.val(function(msg1,msg2,msg3,msg4){
+				if (!(
+					arguments.length === 4 &&
+					msg1 === 42 &&
+					msg2 === null &&
+					msg3 === undefined &&
+					Array.isArray(msg4) &&
+					msg4.length === 2 &&
+					msg4[0] === undefined &&
+					msg4[1] === 43
+				)) {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			})
 			.then(function(done){
 				ASQ(30)
 				.runner(

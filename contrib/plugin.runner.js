@@ -82,17 +82,20 @@ ASQ.extend("runner",function __extend__(api,internals){
 					// otherwise, assume immediate value received, so
 					// wrap it in a sequence.
 					else {
-						ret.value = ASQ(ret.value);
+						ret.value = ASQ.apply(ø,(typeof ret.value !== "undefined") ? [ret.value] : []);
 					}
 				}
 
 				ret.value
 				.val(function(){
-					// still more to iterate?
-					if (!ret.done) {
+					if (arguments.length > 0) {
 						// save any return messages for input
 						// to next iteration
 						msgs = ARRAY_SLICE.call(arguments);
+					}
+
+					// still more to iterate?
+					if (!ret.done) {
 						// round-robin: insert co-routine back
 						// in at end of list
 						co_runs.push(run);
