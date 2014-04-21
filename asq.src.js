@@ -1,5 +1,5 @@
 /*! asynquence
-    v0.3.4-g (c) Kyle Simpson
+    v0.3.5-a (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -654,12 +654,10 @@
 	// Object branding utilities
 	// ***********************************************
 	function brandIt(obj) {
-		Object.defineProperty(obj,brand,{
+		return Object.defineProperty(obj,brand,{
 			enumerable: false,
 			value: true
 		});
-
-		return obj;
 	}
 
 	function checkBranding(val) {

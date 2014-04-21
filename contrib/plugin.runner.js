@@ -116,7 +116,7 @@ ASQ.extend("runner",function __extend__(api,internals){
 					// if an error occurs in the step-continuation
 					// promise or sequence, throw it back into the
 					// generator or iterable-sequence
-					run.throw.apply(ø,arguments);
+					run["throw"].apply(ø,arguments);
 				});
 			})();
 		});

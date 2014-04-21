@@ -17,7 +17,7 @@ ASQ.extend("until",function __extend__(api,internals){
 				sq
 				.then(function __inner_then__(){
 					var args = ARRAY_SLICE.call(arguments);
-					args[0].break = function __break__(){
+					args[0]["break"] = function __break__(){
 						mainDone.fail.apply(ø,arguments);
 						sq.abort();
 					};

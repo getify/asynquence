@@ -50,7 +50,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Contrib Test  #2", timeout;
@@ -126,7 +126,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Contrib Test  #3", timeout;
@@ -201,7 +201,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Contrib Test  #4", timeout;
@@ -276,7 +276,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Contrib Test  #5", timeout;
@@ -352,7 +352,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Contrib Test  #6", timeout, counter = 0;
@@ -400,7 +400,7 @@
 					setTimeout(function(){
 						counter++;
 						if (counter > 10) {
-							done.break(
+							done["break"](
 								ASQ.messages("Stop","the","madness!")
 							);
 						}
@@ -438,27 +438,27 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Contrib Test  #7", timeout;
 
 			ASQ()
-			.try(
+			["try"](
 				function(done){
 					setTimeout(function(){
 						done.fail("Hello");
-					},100);
+					},10);
 				},
 				function(done,msg){
 					if (
 						arguments.length === 2 &&
 						typeof msg === "object" &&
-						msg.catch === "Hello"
+						msg["catch"] === "Hello"
 					) {
 						setTimeout(function(){
-							done(msg.catch,"World");
-						},100);
+							done(msg["catch"],"World");
+						},10);
 					}
 					else {
 						done.fail("Oops");
@@ -490,7 +490,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Contrib Test  #8", timeout, isq,
@@ -540,7 +540,7 @@
 						// advance the iterable-sequence 2 steps, which
 						// should keep the main sequence going
 						isq.next("Hello","world");
-					},100);
+					},10);
 				}
 			})
 			.seq(isq,isq) // listen for two iterations
@@ -560,8 +560,8 @@
 						// throw an error into the iterable-sequence,
 						// which should throw the main sequence into
 						// error
-						isq.throw("Cool","beans");
-					},100);
+						isq["throw"]("Cool","beans");
+					},10);
 				}
 			})
 			.seq(isq)
@@ -594,7 +594,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Contrib Test  #9", timeout, isq;
@@ -613,7 +613,7 @@
 					// advance the iterable-sequence a step, which should
 					// keep the main sequence going
 					isq.next("Hello","world");
-				},100);
+				},10);
 			})
 			.val(function(msg1,msg2){
 				if (!(
@@ -630,7 +630,7 @@
 			.then(function(done){
 				// throw an error into the iterable-sequence, which
 				// should throw the main sequence into error
-				isq.throw("Awesome","sauce!");
+				isq["throw"]("Awesome","sauce!");
 
 				// wait to listen for errors on the iterable-sequence
 				// until well after it's been error'd
@@ -638,7 +638,7 @@
 					// wait for the iterable-sequence to advance
 					// before the main sequence can proceed
 					isq.pipe(done);
-				},100);
+				},10);
 			})
 			.val(function(){
 				clearTimeout(timeout);
@@ -665,7 +665,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Contrib Test #10", timeout, sq, isq,
@@ -676,7 +676,7 @@
 			}
 
 			function delay(done,msg) {
-				setTimeout(done,50);
+				setTimeout(done,10);
 			}
 
 			function iterate(msg) {
@@ -734,7 +734,7 @@
 				if (msg > 15) {
 					// throw an error into the iterable
 					// sequence
-					isq.throw("Too big!");
+					isq["throw"]("Too big!");
 				}
 
 				// store seed so we can check it at the end
@@ -747,7 +747,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Contrib Test #11", timeout,
@@ -847,7 +847,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Contrib Test #12", timeout;
@@ -862,14 +862,14 @@
 
 					if (sum % 2 === 1) done(sum,sum*2);
 					else done(sum*2+1);
-				},100);
+				},10);
 			}
 
 			function broken(done) {
 				var args = ARRAY_SLICE.call(arguments,1);
 				setTimeout(function(){
 					done.fail.apply(done,args);
-				},100);
+				},10);
 			}
 
 			ASQ(3)
@@ -944,7 +944,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Contrib Test #13", timeout;
@@ -993,7 +993,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Contrib Test #14", timeout;
@@ -1078,7 +1078,7 @@
 					else {
 						done(item / 2);
 					}
-				},100);
+				},10);
 			},[1,2,3])
 			.val(function(){
 				var args = ARRAY_SLICE.call(arguments);
@@ -1103,7 +1103,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Contrib Test #15", timeout,
@@ -1119,7 +1119,7 @@
 						else {
 							done.fail("Too big!",x);
 						}
-					},50);
+					},10);
 				});
 			}
 
@@ -1132,7 +1132,7 @@
 					else {
 						def.reject(ASQ.messages("Too big!",x));
 					}
-				},50);
+				},10);
 				return def.promise;
 			}
 
@@ -1281,7 +1281,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Contrib Test #16", timeout,
@@ -1411,7 +1411,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Contrib Test #17", timeout;
@@ -1471,7 +1471,7 @@
 			.then(function(done,msg){
 				setTimeout(function(){
 					done(msg * 2);
-				},100);
+				},10);
 			})
 			.or(function(){
 				clearTimeout(timeout);
@@ -1482,7 +1482,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 
 		return tests;

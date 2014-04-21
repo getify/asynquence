@@ -63,7 +63,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Core Test  #2", timeout;
@@ -94,7 +94,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Core Test  #3", timeout;
@@ -130,7 +130,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Core Test  #4", timeout;
@@ -161,7 +161,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Core Test  #5", timeout;
@@ -190,7 +190,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Core Test #5b";
@@ -273,7 +273,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Core Test  #7", timeout;
@@ -322,7 +322,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Core Test  #8", timeout;
@@ -362,7 +362,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Core Test  #9", timeout;
@@ -400,7 +400,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Core Test #10", timeout;
@@ -438,7 +438,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Core Test #11", timeout;
@@ -468,7 +468,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Core Test #12", timeout;
@@ -498,7 +498,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Core Test #13", timeout;
@@ -529,7 +529,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Core Test #14", timeout;
@@ -560,7 +560,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Core Test #15", timeout;
@@ -629,7 +629,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Core Test #16", timeout;
@@ -696,7 +696,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Core Test #17", timeout;
@@ -732,7 +732,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Core Test #18", timeout;
@@ -764,7 +764,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Core Test #19", timeout;
@@ -857,7 +857,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Core Test #20", timeout, Q = tests.Q;
@@ -867,7 +867,7 @@
 				var def = Q.defer();
 				setTimeout(function(){
 					def.resolve(args.length > 1 ? args : args[0]);
-				},50);
+				},10);
 				return def.promise;
 			}
 
@@ -876,7 +876,7 @@
 				var def = Q.defer();
 				setTimeout(function(){
 					def.reject(args.length > 1 ? args : args[0]);
-				},50);
+				},10);
 				return def.promise;
 			}
 
@@ -932,7 +932,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Core Test #21", timeout;
@@ -1041,7 +1041,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Core Test #22", timeout, sq, sq2, sq3, sq4, sq5;
@@ -1049,7 +1049,7 @@
 			sq = ASQ(function(done){
 				setTimeout(function(){
 					done("Hello");
-				},100);
+				},10);
 			});
 
 			// first fork-listener
@@ -1092,7 +1092,7 @@
 			sq.then(function(done){
 				setTimeout(function(){
 					done.fail("World");
-				},100);
+				},10);
 			});
 
 			// second fork-listener
@@ -1159,7 +1159,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Core Test #23", timeout,
@@ -1250,7 +1250,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 		tests.push(function(testDone){
 			var label = "Core Test #24", timeout;
@@ -1305,7 +1305,7 @@
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
-			},1000);
+			},2000);
 		});
 
 		return tests;
