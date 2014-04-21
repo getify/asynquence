@@ -4,8 +4,7 @@
 
 ASQ.iterable = function __iterable__() {
 	var sequence_api,
-		ARRAY_SLICE = Array.prototype.slice,
-		brand = "__ASQ__", ø = Object.create(null),
+		brand = "__ASQ__",
 
 		seq_error = false,
 		seq_aborted = false,

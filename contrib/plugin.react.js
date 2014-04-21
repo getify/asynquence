@@ -1,9 +1,6 @@
 // "react" (reactive sequences)
 ASQ.react = function __react__(fn) {
-	var ARRAY_SLICE = Array.prototype.slice,
-		brand = "__ASQ__", ø = Object.create(null),
-		template
-	;
+	var brand = "__ASQ__", template;
 
 	function proceed() {
 		var sq = template.duplicate();
