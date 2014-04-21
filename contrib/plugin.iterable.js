@@ -2,204 +2,204 @@
 (function(){
 	var template;
 
-ASQ.iterable = function __iterable__() {
-	var sequence_api,
-		brand = "__ASQ__",
+	ASQ.iterable = function __iterable__() {
+		var sequence_api,
+			brand = "__ASQ__",
 
-		seq_error = false,
-		seq_aborted = false,
+			seq_error = false,
+			seq_aborted = false,
 
-		seq_tick,
+			seq_tick,
 
-		val_queue = [],
-		or_queue = [],
+			val_queue = [],
+			or_queue = [],
 
-		sequence_errors = []
-	;
-
-	function schedule(fn) {
-		return (typeof setImmediate !== "undefined") ?
-			setImmediate(fn) : setTimeout(fn,0)
+			sequence_errors = []
 		;
-	}
 
-	function notifyErrors() {
-		var fn;
+		function schedule(fn) {
+			return (typeof setImmediate !== "undefined") ?
+				setImmediate(fn) : setTimeout(fn,0)
+			;
+		}
 
-		seq_tick = null;
+		function notifyErrors() {
+			var fn;
 
-		if (sequence_errors.length > 0) {
-			while (or_queue.length > 0) {
-				fn = or_queue.shift();
-				try {
-					fn.apply(ø,sequence_errors);
-				}
-				catch (err) {
-					if (checkBranding(err)) {
-						sequence_errors = sequence_errors.concat(err);
+			seq_tick = null;
+
+			if (sequence_errors.length > 0) {
+				while (or_queue.length > 0) {
+					fn = or_queue.shift();
+					try {
+						fn.apply(ø,sequence_errors);
 					}
-					else {
-						sequence_errors.push(err);
-						if (err.stack) { sequence_errors.push(err.stack); }
-					}
-					if (or_queue.length === 0) {
-						console.error.apply(console,sequence_errors);
+					catch (err) {
+						if (checkBranding(err)) {
+							sequence_errors = sequence_errors.concat(err);
+						}
+						else {
+							sequence_errors.push(err);
+							if (err.stack) { sequence_errors.push(err.stack); }
+						}
+						if (or_queue.length === 0) {
+							console.error.apply(console,sequence_errors);
+						}
 					}
 				}
 			}
 		}
-	}
 
-	function val() {
-		if (seq_error || seq_aborted ||	arguments.length === 0) {
+		function val() {
+			if (seq_error || seq_aborted ||	arguments.length === 0) {
+				return sequence_api;
+			}
+
+			val_queue.push.apply(val_queue,arguments);
+
 			return sequence_api;
 		}
 
-		val_queue.push.apply(val_queue,arguments);
+		function or() {
+			if (seq_aborted || arguments.length === 0) {
+				return sequence_api;
+			}
 
-		return sequence_api;
-	}
+			or_queue.push.apply(or_queue,arguments);
 
-	function or() {
-		if (seq_aborted || arguments.length === 0) {
+			if (!seq_tick) {
+				seq_tick = schedule(notifyErrors);
+			}
+
 			return sequence_api;
 		}
 
-		or_queue.push.apply(or_queue,arguments);
+		function pipe() {
+			if (seq_aborted || arguments.length === 0) {
+				return sequence_api;
+			}
 
-		if (!seq_tick) {
-			seq_tick = schedule(notifyErrors);
-		}
+			ARRAY_SLICE.call(arguments)
+			.forEach(function __foreach__(fn){
+				val(fn).or(fn.fail);
+			});
 
-		return sequence_api;
-	}
-
-	function pipe() {
-		if (seq_aborted || arguments.length === 0) {
 			return sequence_api;
 		}
 
-		ARRAY_SLICE.call(arguments)
-		.forEach(function __foreach__(fn){
-			val(fn).or(fn.fail);
+		function next() {
+			if (seq_error || seq_aborted || val_queue.length === 0) {
+				if (val_queue.length > 0) {
+					throwErr("Sequence cannot be iterated");
+				}
+				return { done: true };
+			}
+
+			try {
+				return { value: val_queue.shift().apply(ø,arguments) };
+			}
+			catch (err) {
+				if (ASQ.isMessageWrapper(err)) {
+					throwErr.apply(ø,err);
+				}
+				else if (err.stack) {
+					throwErr(err,err.stack);
+				}
+				else {
+					throwErr(err);
+				}
+
+				return {};
+			}
+		}
+
+		function throwErr() {
+			if (seq_error || seq_aborted) {
+				return sequence_api;
+			}
+
+			sequence_errors.push.apply(sequence_errors,arguments);
+			seq_error = true;
+			if (!seq_tick) {
+				seq_tick = schedule(notifyErrors);
+			}
+
+			return sequence_api;
+		}
+
+		function abort() {
+			if (seq_error || seq_aborted) {
+				return;
+			}
+
+			seq_aborted = true;
+
+			clearTimeout(seq_tick);
+			seq_tick = null;
+			val_queue.length = 0;
+			or_queue.length = 0;
+			sequence_errors.length = 0;
+		}
+
+		function duplicate() {
+			var isq;
+
+			template = {
+				val_queue: val_queue.slice(0),
+				or_queue: or_queue.slice(0)
+			};
+			isq = ASQ.iterable();
+			template = null;
+
+			return isq;
+		}
+
+
+		// ***********************************************
+		// Object branding utilities
+		// ***********************************************
+		function brandIt(obj) {
+			Object.defineProperty(obj,brand,{
+				enumerable: false,
+				value: true
+			});
+
+			return obj;
+		}
+
+
+		// ***********************************************
+		// Setup the ASQ.iterable() public API
+		// ***********************************************
+		sequence_api = brandIt({
+			val: val,
+			then: val,
+			or: or,
+			pipe: pipe,
+			next: next,
+			"throw": throwErr,
+			abort: abort,
+			duplicate: duplicate
 		});
 
-		return sequence_api;
-	}
-
-	function next() {
-		if (seq_error || seq_aborted || val_queue.length === 0) {
-			if (val_queue.length > 0) {
-				throwErr("Sequence cannot be iterated");
-			}
-			return { done: true };
-		}
-
-		try {
-			return { value: val_queue.shift().apply(ø,arguments) };
-		}
-		catch (err) {
-			if (ASQ.isMessageWrapper(err)) {
-				throwErr.apply(ø,err);
-			}
-			else if (err.stack) {
-				throwErr(err,err.stack);
-			}
-			else {
-				throwErr(err);
-			}
-
-			return {};
-		}
-	}
-
-	function throwErr() {
-		if (seq_error || seq_aborted) {
+		// useful for ES6 `for..of` loops,
+		// add `@@iterator` to simply hand back
+		// our iterable sequence itself!
+		sequence_api[(typeof Symbol === "object" && Symbol != null && Symbol.iterator) || "@@iterator"] = function __iter__() {
 			return sequence_api;
-		}
-
-		sequence_errors.push.apply(sequence_errors,arguments);
-		seq_error = true;
-		if (!seq_tick) {
-			seq_tick = schedule(notifyErrors);
-		}
-
-		return sequence_api;
-	}
-
-	function abort() {
-		if (seq_error || seq_aborted) {
-			return;
-		}
-
-		seq_aborted = true;
-
-		clearTimeout(seq_tick);
-		seq_tick = null;
-		val_queue.length = 0;
-		or_queue.length = 0;
-		sequence_errors.length = 0;
-	}
-
-	function duplicate() {
-		var isq;
-
-		template = {
-			val_queue: val_queue.slice(0),
-			or_queue: or_queue.slice(0)
 		};
-		isq = ASQ.iterable();
-		template = null;
 
-		return isq;
-	}
+		// templating the iterable-sequence setup?
+		if (template) {
+			val_queue = template.val_queue.slice(0);
+			or_queue = template.or_queue.slice(0);
+		}
 
+		// treat ASQ.iterable() constructor parameters as having been
+		// passed to `val()`
+		sequence_api.val.apply(ø,arguments);
 
-	// ***********************************************
-	// Object branding utilities
-	// ***********************************************
-	function brandIt(obj) {
-		Object.defineProperty(obj,brand,{
-			enumerable: false,
-			value: true
-		});
-
-		return obj;
-	}
-
-
-	// ***********************************************
-	// Setup the ASQ.iterable() public API
-	// ***********************************************
-	sequence_api = brandIt({
-		val: val,
-		then: val,
-		or: or,
-		pipe: pipe,
-		next: next,
-		"throw": throwErr,
-		abort: abort,
-		duplicate: duplicate
-	});
-
-	// useful for ES6 `for..of` loops,
-	// add `@@iterator` to simply hand back
-	// our iterable sequence itself!
-	sequence_api[(typeof Symbol === "object" && Symbol != null && Symbol.iterator) || "@@iterator"] = function __iter__() {
 		return sequence_api;
 	};
-
-	// templating the iterable-sequence setup?
-	if (template) {
-		val_queue = template.val_queue.slice(0);
-		or_queue = template.or_queue.slice(0);
-	}
-
-	// treat ASQ.iterable() constructor parameters as having been
-	// passed to `val()`
-	sequence_api.val.apply(ø,arguments);
-
-	return sequence_api;
-};
 
 })();
