@@ -9,8 +9,10 @@
 <h1>asynquence test suite</h1>
 <textarea id="logmsgs" cols="40" rows="35"></textarea>
 
+<script src="node_modules/q/q.js"></script>
+
 <script src="asq.src.js"></script>
-<script src="contrib.src.js"></script>
+<script src="contrib/contrib.src.js"></script>
 
 <script src="tests.js"></script>
 <script src="contrib/tests.js"></script>
@@ -26,6 +28,8 @@ function doneLogMsg(msg) {
 var tests = ASQ_tests(doneLogMsg);
 var contrib_tests = ASQ_contrib_tests(doneLogMsg);
 
+tests.Q = Q;
+contrib_tests.Q = Q;
 
 ASQ.apply(ASQ,tests)
 .val(doneLogMsg("ALL CORE TESTS PASSED!"))
