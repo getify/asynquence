@@ -184,9 +184,15 @@ API methods take one or more functions as their parameters. `gate(..)` treats mu
 ### Promises/A+ Compliance
 **The goal of *asynquence* is that you should be able to use it as your primary async flow-control library, without the need for other Promises implementations.**
 
-This lib is intentionally designed to hide/abstract the idea of Promises, such that you can do quick and easy async flow-control programming without creating Promises directly.
+-----
 
-As such, the *asynquence* API itself is *not [Promises/A+](http://promisesaplus.com/) compliant*, nor *should* it be, because the "promises" used are hidden underneath *asynquence*'s API. **Note:** the implementation promises behave predictably like standard Promises.
+If you're looking for actual Promises/A+ compliance, I've just released [Native Promise Only](http://github.com/getify/native-promise-only), a tiny and fast polyfill of purely just the native ES6 `Promise()` mechanism.
+
+-----
+
+*asynquence* is intentionally designed to hide/abstract the idea of Promises, such that you can do quick and easy async flow-control programming without creating Promises directly.
+
+As such, the *asynquence* API itself is *not [Promises/A+](http://promisesaplus.com/) compliant*, nor *should* it be, because the "promises" used are hidden underneath *asynquence*'s API. **Note:** the implementation promises behave predictably like standard Promises where they need to.
 
 If you are also using other Promises implementations alongside *asynquence*, you *can* quite easily receive and consume a regular Promise value from some other method into the signal/control flow for an *asynquence* sequence.
 
