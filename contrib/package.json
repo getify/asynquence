@@ -1,6 +1,6 @@
 {
 	"name": "asynquence-contrib",
-	"version": "0.1.10-l",
+	"version": "0.1.10-m",
 	"description": "contrib plugins for asynquence",
 	"main": "./contrib.js",
 	"scripts": {
