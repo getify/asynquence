@@ -6,12 +6,11 @@ function doneLogMsg(msg) {
 	};
 }
 
+require("native-promise-only");
 var ASQ = require("asynquence");
 var path = require("path");
 require(path.join(__dirname,"contrib.src.js"));
-var Q = require("q");
 var tests = require(path.join(__dirname,"tests.js"))(doneLogMsg);
-tests.Q = Q; // inject Q so the tests can use it
 
 console.log("asynquence-contrib test suite");
 

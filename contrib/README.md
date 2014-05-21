@@ -31,6 +31,52 @@ Sequence-step variations:
 
 `iterable-sequence` plugin provides `ASQ.iterable()` for creating iterable sequences. See [Iterable Sequences](https://github.com/getify/asynquence/blob/master/README.md#iterable-sequences) for more information, and examples: [sync loop](https://gist.github.com/getify/8211148#file-ex1-sync-iteration-js) and [async loop](https://gist.github.com/getify/8211148#file-ex2-async-iteration-js).
 
+### `toPromise` Plugin
+
+`toPromise` plugin provides `.toPromise()` (takes zero parameters) on a *asynquence* sequence instance's API, which allows you to vend/fork a new **native `Promise`** that's chained off of your sequence. Use this plugin if you need to send an *asynquence* sequence instance into some other utility which requires a *thenable* or standard [Promises/A+ compliant](http://promisesaplus.com) promise.
+
+**Note:** The vended promise is forked off the sequence, leaving the original sequence intact, to be continuable as normal. The message(s) (both success and error) from the chain are passed along to the promise, but they are *also* retained in the sequence itself, as if the forked-off promise is ignored.
+
+```js
+// make an asynquence sequence to use
+var sq = ASQ(function(done){
+	setTimeout(function(){
+		done(42);
+	},100);
+});
+
+// fork and deal with the native promise
+sq.toPromise()
+.then(
+	// success
+	function(msg){
+		console.log(msg); // 42
+	},
+	// error
+	function(err){
+		console.log(err);
+	}
+);
+
+// also continue with the original sequence
+sq
+.val(function(msg){
+	console.log(msg); // 42
+});
+```
+
+The goal of *asynquence* is to provide everything you need for promises-based async flow control without you needing to expose and use native promises or other promise libraries/utilities. Theoretically, this plugin should only be used when *asynquence* is insufficient in some way. If you find yourself needing to regularly vend native promises from *asynquence*, perhaps *asynquence* needs to be extended to handle that use-case, so let us know!
+
+-----
+
+If you're using *asynquence* in an older environment which doesn't have the native ES6 `Promise` built-in, but you still want to be able to use the `.toPromise()` utility, you need a `Promise` polyfill. There are plenty of choices out there, but a great one to consider is:
+
+[Native Promise Only](http://github.com/getify/native-promise-only)
+
+As long as either the native `Promise` is there, or that global has been spec-compliant polyfilled, this `toPromise` plugin can create promises off your *asynquence* sequences.
+
+-----
+
 ### `errfcb` Plugin
 
 `errfcb` plugin provides `errfcb()` on the main sequence instance API. Unlike other API methods, `errfcb()` **does not return** the main sequence instance (for chaining). Instead, it returns an "error-first" style (aka "node-style") callback that can be used with any method that expects such a callback.
@@ -109,7 +155,7 @@ Each time the button is clicked, a new sequence is defined and executed to "reac
 
 The `react` plugin provides first-class syntactic support for *asynquence* "reactive sequence" pattern, inspired by [Reactive Observables](http://rxjs.codeplex.com/). It essentially combines *asynquence*'s promise-based sequence control with repeatable event handling.
 
-1. `react(..)` accepts a listener setup handler, which will receive a trigger (called `proceed` in the snippet below) that  event listener(s) "react" by invoking.
+1. `react(..)` accepts a listener setup handler, which will receive a trigger (called `proceed` in the snippet below) that event listener(s) "react" by invoking.
 
 2. The rest of the chain after `react(..)...` sets up a templated sequence, which will then be executed each time the `proceed()` trigger is fired.
 

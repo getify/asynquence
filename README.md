@@ -190,17 +190,17 @@ If you're looking for actual Promises/A+ compliance, I've just released [Native 
 
 -----
 
-*asynquence* is intentionally designed to hide/abstract the idea of Promises, such that you can do quick and easy async flow-control programming without creating Promises directly.
+*asynquence* is intentionally designed to hide/abstract the idea and use of Promises, such that you can do quick and easy async flow-control programming without some of the hassles/tedium of creating `Promise`s directly.
 
-As such, the *asynquence* API itself is *not [Promises/A+](http://promisesaplus.com/) compliant*, nor *should* it be, because the "promises" used are hidden underneath *asynquence*'s API. **Note:** the implementation promises behave predictably like standard Promises where they need to.
+As such, the *asynquence* API itself is *not [Promises/A+](http://promisesaplus.com/) compliant*, nor *should* it be, because the "promises" used are hidden underneath *asynquence*'s API. **Note:** the hidden promises behave predictably like standard Promises where they need to, so *asynquence* as an abstraction offers the same trust guarantees.
 
-If you are also using other Promises implementations alongside *asynquence*, you *can* quite easily receive and consume a regular Promise value from some other method into the signal/control flow for an *asynquence* sequence.
+If you are also using other Promises implementations alongside *asynquence*, you *can* quite easily receive and consume a regular Promise value (or thenable) from some other method into the signal/control flow for an *asynquence* sequence.
 
-For example, if using both the [Q promises library](https://github.com/kriskowal/q) and *asynquence*:
+For example, if using jQuery, the [Q promises library](https://github.com/kriskowal/q), and *asynquence*:
 
 ```js
 // Using *Q*, make a standard Promise out
-// of jQuery's Ajax "promise"
+// of jQuery's Ajax (non-standard) "promise"
 var p = Q( $.ajax(..) );
 
 // Now, asynquence flow-control including a
@@ -216,9 +216,11 @@ ASQ()
 });
 ```
 
-**Despite API similarities** (like the presence of `then(..)` on the API), an *asynquence* instance is **not** designed to be used *as a Promise value* linked/passed to another standard Promise.
+**Despite API similarities** (like the presence of `then(..)` on the API), an *asynquence* instance is **not itself** designed to be used *as a Promise value* linked/passed to another standard Promise or other utilities that expect real promises.
 
 Trying to do so will likely cause unexpected behavior, because Promises/A+ insists on problematic (read: "dangerous") duck-typing for objects that have a `then()` method, as *asynquence* instances do.
+
+**However,** if you really need a standard native `Promise` from your sequence, you can use the [`toPromise` contrib plugin](https://github.com/getify/asynquence/blob/master/contrib/README.md#topromise-plugin), which vends/forks an actual native `Promise` off an *asynquence* sequence instance.
 
 ## Browser, node.js (CommonJS), AMD: ready!
 

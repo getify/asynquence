@@ -1107,7 +1107,7 @@
 		});
 		tests.push(function(testDone){
 			var label = "Contrib Test #15", timeout,
-				isq, Q = tests.Q
+				isq
 			;
 
 			function doubleSeq(x) {
@@ -1124,16 +1124,16 @@
 			}
 
 			function doublePromise(x) {
-				var def = Q.defer();
-				setTimeout(function(){
-					if (x < 100) {
-						def.resolve(x * 2);
-					}
-					else {
-						def.reject(ASQ.messages("Too big!",x));
-					}
-				},10);
-				return def.promise;
+				return new Promise(function(resolve,reject){
+					setTimeout(function(){
+						if (x < 100) {
+							resolve(x * 2);
+						}
+						else {
+							reject(ASQ.messages("Too big!",x));
+						}
+					},10);
+				});
 			}
 
 			function justValue(x) {
@@ -1285,7 +1285,7 @@
 		});
 		tests.push(function(testDone){
 			var label = "Contrib Test #16", timeout,
-				isq, Q = tests.Q
+				isq
 			;
 
 			function doubleSeq(x) {
@@ -1302,16 +1302,16 @@
 			}
 
 			function doublePromise(x) {
-				var def = Q.defer();
-				setTimeout(function(){
-					if (x < 2000) {
-						def.resolve(x * 2);
-					}
-					else {
-						def.reject(ASQ.messages("Too big!",x));
-					}
-				},10);
-				return def.promise;
+				return new Promise(function(resolve,reject){
+					setTimeout(function(){
+						if (x < 2000) {
+							resolve(x * 2);
+						}
+						else {
+							reject(ASQ.messages("Too big!",x));
+						}
+					},10);
+				});
 			}
 
 			function justValue(x) {
@@ -1414,7 +1414,82 @@
 			},2000);
 		});
 		tests.push(function(testDone){
-			var label = "Contrib Test #17", timeout;
+			var label = "Contrib Test #17", timeout, sq, isq, p;
+
+			isq = ASQ.iterable();
+
+			sq = ASQ(function(done){
+				setTimeout(function(){
+					isq.next(10);
+				},20);
+				setTimeout(function(){
+					done(10);
+				},10);
+			});
+
+			p = sq.toPromise()
+			.then(function(msg){
+				return msg * 2;
+			});
+
+			sq
+			.promise(
+				Promise.all([
+					p,
+					// cast iterable-sequence to sequence
+					// so we can vend/fork a promise off it
+					ASQ().seq(isq).toPromise()
+				])
+			)
+			.val(function(msgs){
+				if (!(
+					arguments.length === 1 &&
+					Array.isArray(msgs) &&
+					msgs.length === 2 &&
+					msgs[0] === 20 &&
+					msgs[1] === 10
+				)) {
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+					return;
+				}
+			})
+			.then(function(done){
+				setTimeout(function(){
+					done.fail(42);
+				},10);
+			});
+
+			sq.toPromise()
+			.then(
+				function(){
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				},
+				function(msg){
+					clearTimeout(timeout);
+
+					if (msg === 42) {
+						PASS(testDone,label);
+					}
+					else {
+						var args = ARRAY_SLICE.call(arguments);
+						args.unshift(testDone,label);
+						FAIL.apply(FAIL,args);
+					}
+				}
+			);
+
+			timeout = setTimeout(function(){
+				FAIL(testDone,label + " (from timeout)");
+			},2000);
+		});
+		tests.push(function(testDone){
+			var label = "Contrib Test #18", timeout;
 
 			ASQ.react(function(proceed){
 				var sq1, sq2, sq3;
