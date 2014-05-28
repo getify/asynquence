@@ -1,8 +1,10 @@
 # asynquence
 
-A lightweight (**~2.0k** minzipped) micro-lib for asynchronous flow-control using sequences and gates.
+A tiny (**~2.0k** minzipped) lib for promise-style async sequence flow-control.
 
 ## Explanation
+
+*asynquence* is a thin wrapper/abstraction on top of promises that makes using them for async flow control easier and more powerful.
 
 ### TL;DR: By Example
 
@@ -14,6 +16,7 @@ A lightweight (**~2.0k** minzipped) micro-lib for asynchronous flow-control usin
 * API [Usage Examples](#usage-examples)
 
 ### Sequences
+
 Say you want to perform two or more asynchronous tasks one after the other (like animation delays, XHR calls, file I/O, etc). You need to set up an ordered series of tasks and make sure the previous one finishes before the next one is processed. You need a **sequence**.
 
 You create a sequence by calling `ASQ(...)`. **Each time you call `ASQ()`, you create a new, separate sequence.**
@@ -29,6 +32,7 @@ You can register multiple steps, and multiple failure handlers. However, message
 To listen for any step failing, call `or(...)` on your sequence to register a failure callback. You can call `or()` as many times as you would like. If you call `or()` on a sequence that has already been flagged as failed, the callback you specify will just be executed at the next opportunity.
 
 ### Gates
+
 If you have two or more tasks to perform at the same time, but want to wait for them all to complete before moving on, you need a **gate**.
 
 Calling `gate(..)` with two or more functions creates a step that is a parallel gate across those functions, such that the single step in question isn't complete until all segments of the parallel gate are **successfully** complete.
@@ -36,6 +40,7 @@ Calling `gate(..)` with two or more functions creates a step that is a parallel 
 For parallel gate steps, each segment of that gate will receive a copy of the message(s) passed from the previous step. Also, all messages from the segments of this gate will be passed along to the next step (or the next failure handler, in the case of a gate segment indicating a failure).
 
 ### Conveniences
+
 There are a few convenience methods on the API, as well:
 
 * `pipe(..)` takes one or more completion triggers from other sequences, treating each one as a separate step in the sequence in question. These completion triggers will, in turn, be piped both the success and failure streams from the sequence.
@@ -99,6 +104,7 @@ If you want to test if any arbitrary object is an *asynquence* sequence instance
 `ASQ.noConflict()` rolls back the global `ASQ` identifier and returns the current API instance to you. This can be used to keep your global namespace clean, or it can be used to have multiple simultaneous libraries (including separate versions/copies of *asynquence*!) in the same program without conflicts over the `ASQ` global identifier.
 
 ### Plugin Extensions
+
 `ASQ.extend( {name}, {build} )` allows you to specify an API extension, giving it a `name` and a `build` function callback that should return the implementation of your API extension. The `build` callback is provided two parameters, the sequence `api` instance, and an `internals(..)` method, which lets you get or set values of various internal properties (generally, don't use this if you can avoid it).
 
 Example:
@@ -130,6 +136,7 @@ The `/contrib/*` plugins provide a variety of [optional contrib plugins](https:/
 For browser usage, simply include the `asq.js` library file and then the `contrib.js` file. For node.js, these contrib plugins are available as a separate npm module `asynquence-contrib`.
 
 #### Iterable Sequences
+
 One of the contrib plugins provided is `iterable-sequence`. Unlike other plugins, which add methods onto the sequence instance API, this plugin adds a new method directly onto the main module API: `ASQ.iterable(..)`. Calling `ASQ.iterable(..)` creates a special iterable sequence, as compared to calling `ASQ(..)` to create a normal *asynquence* sequence.
 
 An iterable sequence works similarly to normal *asynquence* sequences, but a bit different. `then(..)` still registers steps on the sequence, but it's basically just an alias of `val(..)`, because the most important difference is that steps of an iterable sequence **are not passed completion triggers**.
@@ -179,9 +186,11 @@ This example shows sync iteration with a `for` loop, but of course, `next(..)` c
 Just like regular sequences, iterable sequences have a `duplicate()` method (see ASQ's instance API above) which makes a copy of the sequence *at that moment*. However, iterable sequences are already "paused" at each step anyway, so unlike regular sequences, there's no `unpause()` (nor is there any reason to use the `ASQ.unpause(..)` helper!), because it's unnecessary. You just call `next()` on an iterable sequence (even if it's a copy of another) when you want to advance it one step.
 
 ### Multiple parameters
+
 API methods take one or more functions as their parameters. `gate(..)` treats multiple functions as segments in the same gate. The other API methods (`then(..)`, `or(..)`, `pipe(..)`, `seq(..)`, and `val(..)`) treat multiple parameters as just separate subsequent steps in the respective sequence. These methods don't accept arrays of functions (that you might build up programatically), but since they take multiple parameters, you can use `.apply(..)` to spread those out.
 
 ### Promises/A+ Compliance
+
 **The goal of *asynquence* is that you should be able to use it as your primary async flow-control library, without the need for other Promises implementations.**
 
 -----
