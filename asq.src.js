@@ -1,5 +1,5 @@
 /*! asynquence
-    v0.3.6-a (c) Kyle Simpson
+    v0.4.0-b (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -9,8 +9,6 @@
 	else { context[name] = definition(name,context); }
 })("ASQ",this,function DEF(name,context){
 	"use strict";
-
-	function ignored(){}
 
 	function schedule(fn) {
 		return (typeof setImmediate !== "undefined") ?
@@ -22,10 +20,9 @@
 
 		function scheduleSequenceTick() {
 			if (seq_aborted) {
-				return sequenceTick();
+				sequenceTick();
 			}
-
-			if (!seq_tick) {
+			else if (!seq_tick) {
 				seq_tick = schedule(sequenceTick);
 			}
 		}
@@ -44,10 +41,7 @@
 			if (seq_aborted) {
 				clearTimeout(seq_tick);
 				seq_tick = null;
-				then_queue.length = 0;
-				or_queue.length = 0;
-				sequence_messages.length = 0;
-				sequence_errors.length = 0;
+				then_queue.length = or_queue.length = sequence_messages.length = sequence_errors.length = 0;
 			}
 			else if (seq_error) {
 				if (or_queue.length === 0 && !error_reported) {
@@ -62,7 +56,7 @@
 						fn.apply(ø,sequence_errors);
 					}
 					catch (err) {
-						if (checkBranding(err)) {
+						if (isMessageWrapper(err)) {
 							sequence_errors = sequence_errors.concat(err);
 						}
 						else {
@@ -86,7 +80,7 @@
 					fn.apply(ø,args);
 				}
 				catch (err) {
-					if (checkBranding(err)) {
+					if (isMessageWrapper(err)) {
 						sequence_errors = sequence_errors.concat(err);
 					}
 					else {
@@ -99,6 +93,7 @@
 		}
 
 		function createStepCompletion() {
+
 			function done() {
 				// ignore this call?
 				if (seq_error || seq_aborted || then_ready) {
@@ -112,7 +107,7 @@
 				scheduleSequenceTick();
 			}
 
-			done.fail = function __step_fail__(){
+			done.fail = function step$fail(){
 				// ignore this call?
 				if (seq_error || seq_aborted || then_ready) {
 					return;
@@ -125,21 +120,20 @@
 				scheduleSequenceTick();
 			};
 
-			done.abort = function __step_abort__(){
+			done.abort = function step$abort(){
 				if (seq_error || seq_aborted) {
 					return;
 				}
 
 				then_ready = false;
 				seq_aborted = true;
-				sequence_messages.length = 0;
-				sequence_errors.length = 0;
+				sequence_messages.length = sequence_errors.length = 0;
 
 				scheduleSequenceTick();
 			};
 
 			// handles "error-first" (aka "node-style") callbacks
-			done.errfcb = function __errorfirst_callback__(err){
+			done.errfcb = function step$errfcb(err){
 				if (err) {
 					done.fail(err);
 				}
@@ -204,10 +198,7 @@
 			}
 
 			function checkGate() {
-				if (seq_error || seq_aborted || gate_error ||
-					gate_aborted || gate_completed ||
-					segment_completion.length === 0
-				) {
+				if (segment_completion.length === 0) {
 					return;
 				}
 
@@ -236,7 +227,7 @@
 
 					// put gate-segment messages into `messages`-branded
 					// container
-					var args = public_api.messages.apply(ø,arguments);
+					var args = ASQmessages.apply(ø,arguments);
 
 					segment_messages["s" + segment_completion_idx] =
 						args.length > 1 ? args : args[0];
@@ -247,7 +238,7 @@
 
 				var segment_completion_idx = segment_completion.length;
 
-				done.fail = function __segment_fail__(){
+				done.fail = function segment$fail(){
 					// ignore this call?
 					if (seq_error || seq_aborted || gate_error ||
 						gate_aborted || gate_completed ||
@@ -262,7 +253,7 @@
 					scheduleGateTick();
 				};
 
-				done.abort = function __segment_abort__(){
+				done.abort = function segment$abort(){
 					if (seq_error || seq_aborted || gate_error ||
 						gate_aborted || gate_completed
 					) {
@@ -276,7 +267,7 @@
 				};
 
 				// handles "error-first" (aka "node-style") callbacks
-				done.errfcb = function __errorfirst_callback__(err){
+				done.errfcb = function segment$errfcb(err){
 					if (err) {
 						done.fail(err);
 					}
@@ -323,7 +314,7 @@
 			});
 
 			if (err_msg) {
-				if (checkBranding(err_msg)) {
+				if (isMessageWrapper(err_msg)) {
 					stepCompletion.fail.apply(ø,err_msg);
 				}
 				else {
@@ -400,49 +391,54 @@
 			.forEach(function __foreach__(fn){
 				var trigger;
 
-				// is `fn` an iterable-sequence?
-				if (checkBranding(fn) && "next" in fn) {
-					// listen for signals from the iterable sequence
-					fn
-					// note: cannot use `fn.pipe(trigger)` because we
-					// need to be able to update the shared closure
-					// to change `trigger`
-					.then(function __then__(){
-						trigger.apply(ø,arguments);
-					})
-					.or(function __or__(){
-						trigger.fail.apply(ø,arguments);
-					});
+				// is `fn` a sequence or iterable-sequence?
+				if (isSequence(fn)) {
+					fn.defer(); // opt it out of global error reporting
 
-					// wrap a normal sequence around the iterable sequence,
-					// which when called replaces the temporary `trigger`
-					// (defined below) with a real sequence trigger
-					fn = createSequence(function __create_sequence__(done){
-						trigger = done;
-					})
-					.or(ignored);
-
-					// temporary version of `trigger`, which if called
-					// (right away), by the iterable sequence's `next` being
-					// called synchronously, will simply create a normal
-					// sequence with the success/error message(s) pre-injected
-					trigger = function __trigger__() {
-						fn = createSequence.apply(ø,arguments).or(ignored);
-					};
-					trigger.fail = function __trigger_fail__() {
-						var args = ARRAY_SLICE.call(arguments);
-						fn = createSequence(function __create_sequence__(done){
-							done.fail.apply(ø,args);
+					// is `fn` an iterable-sequence?
+					if ("next" in fn) {
+						// listen for signals from the iterable sequence
+						fn
+						// note: cannot use `fn.pipe(trigger)` because we
+						// need to be able to update the shared closure
+						// to change `trigger`
+						.then(function __then__(){
+							trigger.apply(ø,arguments);
 						})
-						.or(ignored);
-					};
+						.or(function __or__(){
+							trigger.fail.apply(ø,arguments);
+						});
+
+						// wrap a normal sequence around the iterable sequence,
+						// which when called replaces the temporary `trigger`
+						// (defined below) with a real sequence trigger
+						fn = createSequence(function __create_sequence__(done){
+							trigger = done;
+						})
+						.defer();
+
+						// temporary version of `trigger`, which if called
+						// (right away), by the iterable sequence's `next` being
+						// called synchronously, will simply create a normal
+						// sequence with the success/error message(s) pre-injected
+						trigger = function __trigger__() {
+							fn = createSequence.apply(ø,arguments).defer();
+						};
+						trigger.fail = function __trigger_fail__() {
+							var args = ARRAY_SLICE.call(arguments);
+							fn = createSequence(function __create_sequence__(done){
+								done.fail.apply(ø,args);
+							})
+							.defer();
+						};
+					}
 				}
 
 				then(function __then__(done){
 					// check if this argument is not already an ASQ instance?
 					// if not, assume a function to invoke that will return
 					// an ASQ instance
-					if (!checkBranding(fn)) {
+					if (!isSequence(fn)) {
 						fn = fn.apply(ø,ARRAY_SLICE.call(arguments,1));
 					}
 					// pipe the ASQ instance into our current sequence
@@ -464,8 +460,8 @@
 			.forEach(function __foreach__(fn){
 				then(function __then__(done){
 					var msgs = fn.apply(ø,ARRAY_SLICE.call(arguments,1));
-					if (!checkBranding(msgs)) {
-						msgs = public_api.messages(msgs);
+					if (!isMessageWrapper(msgs)) {
+						msgs = ASQmessages(msgs);
 					}
 					done.apply(ø,msgs);
 				});
@@ -477,7 +473,7 @@
 		function promise() {
 			function wrap(fn) {
 				return function __fn__(){
-					fn.apply(ø,public_api.isMessageWrapper(arguments[0]) ? arguments[0] : arguments);
+					fn.apply(ø,isMessageWrapper(arguments[0]) ? arguments[0] : arguments);
 				};
 			}
 
@@ -488,7 +484,7 @@
 			ARRAY_SLICE.call(arguments)
 			.forEach(function __foreach__(pr){
 				then(function __then__(done){
-					// check if this argument is a non-thennable function, and
+					// check if this argument is a non-thenable function, and
 					// if so, assume we shold invoke it to return a promise
 					// NOTE: `then` duck-typing of promises is stupid.
 					if (typeof pr === "function" && !("then" in pr)) {
@@ -514,9 +510,9 @@
 					trigger.apply(ø,arguments);
 				}
 				else {
-					trigger = createSequence.apply(ø,arguments).or(ignored);
+					trigger = createSequence.apply(ø,arguments).defer();
 				}
-				return public_api.messages.apply(ø,arguments);
+				return ASQmessages.apply(ø,arguments);
 			});
 			// listen for error at this point in the sequence
 			or(function __or__(){
@@ -528,7 +524,7 @@
 					trigger = createSequence().then(function __then__(done){
 						done.fail.apply(ø,args);
 					})
-					.or(ignored);
+					.defer();
 				}
 			});
 
@@ -543,7 +539,7 @@
 					trigger.pipe(done);
 				}
 			})
-			.or(ignored);
+			.defer();
 		}
 
 		function abort() {
@@ -562,8 +558,8 @@
 			var sq;
 
 			template = {
-				then_queue: then_queue.slice(0),
-				or_queue: or_queue.slice(0)
+				then_queue: then_queue.slice(),
+				or_queue: or_queue.slice()
 			};
 			sq = createSequence();
 			template = null;
@@ -575,6 +571,12 @@
 			sequence_messages.push.apply(sequence_messages,arguments);
 			if (seq_tick === true) seq_tick = null;
 			scheduleSequenceTick();
+		}
+
+		// opt-out of global error reporting for this sequence
+		function defer() {
+			or_queue.push(function ignored(){});
+			return sequence_api;
 		}
 
 		function internals(name,value) {
@@ -635,7 +637,8 @@
 				promise: promise,
 				fork: fork,
 				abort: abort,
-				duplicate: duplicate
+				duplicate: duplicate,
+				defer: defer
 			})
 		;
 
@@ -689,7 +692,7 @@
 	function valWrapper(numArgs) {
 		// `numArgs` indicates how many pre-bound arguments
 		// will be sent in.
-		return public_api.messages.apply(ø,
+		return ASQmessages.apply(ø,
 			// pass along only the pre-bound arguments
 			preboundArgs(numArgs,arguments)
 		);
@@ -712,7 +715,7 @@
 		var i, j;
 		args = ARRAY_SLICE.call(args);
 		for (i=0; i<args.length; i++) {
-			if (Array.isArray(args[i]) && checkBranding(args[i])) {
+			if (isMessageWrapper(args[i])) {
 				args[i] = wrapper.bind.apply(wrapper,
 					// partial-application of arguments
 					[/*this=*/null,/*numArgs=*/args[i].length]
@@ -750,8 +753,9 @@
 
 	var public_api, extensions = {}, template,
 		old_public_api = (context || {})[name],
-		ARRAY_SLICE = Array.prototype.slice,
-		brand = "__ASQ__", ø = Object.create(null)
+		ARRAY_SLICE = [].slice,
+		brand = "__ASQ__", ø = Object.create(null),
+		ASQmessages, isSequence, isMessageWrapper
 	;
 
 	// ***********************************************
@@ -759,9 +763,9 @@
 	// ***********************************************
 	public_api = createSequence;
 
-	public_api.extend = function __extend__(name,build) {
+	public_api.extend = function publicAPI$extend(name,build) {
 		// reserved API override not allowed
-		if (!~["then","or","gate","pipe","seq","val","abort"]
+		if (!~["then","or","gate","pipe","seq","val","promise","fork","abort","duplicate","defer"]
 			.indexOf(name)
 		) {
 			extensions[name] = build;
@@ -770,27 +774,26 @@
 		return public_api;
 	};
 
-	public_api.messages = function __messages__() {
+	public_api.messages = ASQmessages = function publicAPI$messages() {
 		var ret = ARRAY_SLICE.call(arguments);
 		// brand the message wrapper so we can detect
-		brandIt(ret);
-		return ret;
+		return brandIt(ret);
 	};
 
-	public_api.isSequence =	function __is_seq__(val) {
+	public_api.isSequence = isSequence = function publicAPI$isSequence(val) {
 		return checkBranding(val) && !Array.isArray(val);
 	};
 
-	public_api.isMessageWrapper = function __is_msg_wrapper(val) {
+	public_api.isMessageWrapper = isMessageWrapper = function publicAPI$isMessageWrapper(val) {
 		return checkBranding(val) && Array.isArray(val);
 	};
 
-	public_api.unpause = function __unpause__(sq) {
+	public_api.unpause = function publicAPI$unpause(sq) {
 		if (sq.unpause) sq.unpause();
 		return sq;
 	};
 
-	public_api.noConflict = function __noconflict__() {
+	public_api.noConflict = function publicAPI$noConflict() {
 		if (context) {
 			context[name] = old_public_api;
 		}

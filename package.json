@@ -1,6 +1,6 @@
 {
 	"name": "asynquence",
-	"version": "0.3.6-a",
+	"version": "0.4.0-b",
 	"description": "asynquence: async sequences & gates for flow-control",
 	"main": "./asq.js",
 	"scripts": {

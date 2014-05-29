@@ -33,6 +33,15 @@ You can register multiple steps, and multiple failure handlers. However, message
 
 To listen for any step failing, call `or(...)` on your sequence to register a failure callback. You can call `or()` as many times as you would like. If you call `or()` on a sequence that has already been flagged as failed, the callback you specify will just be executed at the next opportunity.
 
+```js
+ASQ(function(done){
+    done.fail("Failed!");
+})
+.or(function(err){
+    console.log(err); // Failed!
+});
+```
+
 ### Gates
 
 If you have two or more tasks to perform at the same time, but want to wait for them all to complete before moving on, you need a **gate**.
@@ -40,6 +49,53 @@ If you have two or more tasks to perform at the same time, but want to wait for 
 Calling `gate(..)` with two or more functions creates a step that is a parallel gate across those functions, such that the single step in question isn't complete until all segments of the parallel gate are **successfully** complete.
 
 For parallel gate steps, each segment of that gate will receive a copy of the message(s) passed from the previous step. Also, all messages from the segments of this gate will be passed along to the next step (or the next failure handler, in the case of a gate segment indicating a failure).
+
+### Handling Failures & Errors
+
+Whenever a sequence goes into the error state, any error handlers on that sequence (or any sequence that it's been `pipe()`d to -- see [Conveniences](#conveniences) below), has registered with `or(..)` will be fired. Even registering `or(..)` handlers after a sequence is already in the error state will also queue them to be fired (async, on the next event loop turn).
+
+Errors can be programmatic failures (see above) or they can be uncaught JS errors such as `ReferenceError` or `TypeError`:
+
+```js
+ASQ(function(done){
+    foo();
+})
+.or(function(err){
+    console.log(err); // ReferenceError: foo is not defined
+});
+```
+
+In general, you should always register an error handler on a sequence, so as to catch any failures or errors gracefully. If there's no handlers registered when an error or failure is encountered, the default behavior of the sequence is to `throw` a global error (unfortunately not catchable with `try..catch`).
+
+```js
+ASQ(function(done){
+    foo();
+});
+
+// (global) Uncaught ReferenceError: foo is not defined
+```
+
+However, there will be plenty of cases where you construct a sequence and fully intend to register a handler at a later time, or wire it into another sequence (using `pipe()` or `seq()`-- see [Conveniences](#conveniences) below), and these sequences might be intended to latently hold an error without noisily reporting it until that later time.
+
+In those cases, where you know what you're doing, you can opt-out of the globally thrown error condition just described by calling `defer()` on the sequence:
+
+```js
+var failedSeq = ASQ(function(done){
+    done.fail("Failed!");
+})
+// opt-out of global error reporting for
+// this sequence!
+.defer();
+
+// later
+ASQ(..)
+.seq(failedSeq)
+.or(function(err){
+   console.log(err); // Failed!
+});
+```
+
+Don't `defer()` a sequence's global error reporting unless you know what you're doing and that you'll definitely have its error stream wired into another sequence at some point. Otherwise, you'll miss errors that will be silently swallowed, and that makes everyone sad.
 
 ### Conveniences
 
