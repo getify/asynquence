@@ -1,5 +1,5 @@
 /*! asynquence
-    v0.4.0-b (c) Kyle Simpson
+    v0.4.1-a (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -435,14 +435,15 @@
 				}
 
 				then(function __then__(done){
+					var _fn = fn;
 					// check if this argument is not already an ASQ instance?
 					// if not, assume a function to invoke that will return
 					// an ASQ instance
 					if (!isSequence(fn)) {
-						fn = fn.apply(ø,ARRAY_SLICE.call(arguments,1));
+						_fn = fn.apply(ø,ARRAY_SLICE.call(arguments,1));
 					}
 					// pipe the ASQ instance into our current sequence
-					fn.pipe(done);
+					_fn.pipe(done);
 				});
 			});
 
@@ -484,14 +485,15 @@
 			ARRAY_SLICE.call(arguments)
 			.forEach(function __foreach__(pr){
 				then(function __then__(done){
+					var _pr = pr;
 					// check if this argument is a non-thenable function, and
 					// if so, assume we shold invoke it to return a promise
 					// NOTE: `then` duck-typing of promises is stupid.
 					if (typeof pr === "function" && !("then" in pr)) {
-						pr = pr.apply(ø,ARRAY_SLICE.call(arguments,1));
+						_pr = pr.apply(ø,ARRAY_SLICE.call(arguments,1));
 					}
 					// now, hook up the promise to the sequence
-					pr.then(
+					_pr.then(
 						wrap(done),
 						wrap(done.fail)
 					);

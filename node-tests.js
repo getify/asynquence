@@ -6,11 +6,10 @@ function doneLogMsg(msg) {
 	};
 }
 
-var ASQ = require("./asq.src.js");
-var Q = require("q");
-var tests = require("./tests.js")(doneLogMsg);
-tests.Q = Q; // inject Q so the tests can use it
+require("native-promise-only");
 var path = require("path");
+var ASQ = require(path.join(__dirname,"asq.src.js"));
+var tests = require(path.join(__dirname,"tests.js"))(doneLogMsg);
 var fs = require("fs");
 var child_process = require("child_process");
 var contrib_tests_file = path.join(__dirname,"contrib","node-tests.js");

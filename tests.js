@@ -860,24 +860,24 @@
 			},2000);
 		});
 		tests.push(function(testDone){
-			var label = "Core Test #20", timeout, Q = tests.Q;
+			var label = "Core Test #20", timeout;
 
 			function Pr(){
 				var args = ASQ.messages.apply(ø,arguments);
-				var def = Q.defer();
-				setTimeout(function(){
-					def.resolve(args.length > 1 ? args : args[0]);
-				},10);
-				return def.promise;
+				return new Promise(function(resolve){
+					setTimeout(function(){
+						resolve(args.length > 1 ? args : args[0]);
+					},10);
+				});
 			}
 
 			function bPr(){
 				var args = ASQ.messages.apply(ø,arguments);
-				var def = Q.defer();
-				setTimeout(function(){
-					def.reject(args.length > 1 ? args : args[0]);
-				},10);
-				return def.promise;
+				return new Promise(function(_,reject){
+					setTimeout(function(){
+						reject(args.length > 1 ? args : args[0]);
+					},10);
+				});
 			}
 
 			ASQ("Hello")
@@ -1166,7 +1166,25 @@
 				sq1, sq2, seed = 10
 			;
 
+			function seqMessages(msg1,msg2,msg3) {
+				return ASQ(function(done){
+					setTimeout(function(){
+						done(msg1,msg2,msg3);
+					},25);
+				});
+			}
+
+			function promiseMessages(msg1,msg2,msg3) {
+				return new Promise(function(resolve){
+					setTimeout(function(){
+						resolve(ASQ.messages(msg1,msg2,msg3));
+					},25);
+				});
+			}
+
 			sq1 = ASQ()
+			.seq(seqMessages)
+			.promise(promiseMessages)
 			.val(function(s1,s2,s3){
 				// if any messages received, use them
 				seed += ((s1 + s2 + s3) || 0);
