@@ -52,7 +52,7 @@ For parallel gate steps, each segment of that gate will receive a copy of the me
 
 ### Handling Failures & Errors
 
-Whenever a sequence goes into the error state, any error handlers on that sequence (or any sequence that it's been `pipe()`d to -- see [Conveniences](#conveniences) below), has registered with `or(..)` will be fired. Even registering `or(..)` handlers after a sequence is already in the error state will also queue them to be fired (async, on the next event loop turn).
+Whenever a sequence goes into the error state, any error handlers on that sequence (or any sequence that it's been `pipe()`d to -- see [Conveniences](#conveniences) below) registered with `or(..)` will be fired. Even registering `or(..)` handlers after a sequence is already in the error state will also queue them to be fired (async, on the next event loop turn).
 
 Errors can be programmatic failures (see above) or they can be uncaught JS errors such as `ReferenceError` or `TypeError`:
 
