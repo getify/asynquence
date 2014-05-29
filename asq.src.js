@@ -1,5 +1,5 @@
 /*! asynquence
-    v0.3.5-d (c) Kyle Simpson
+    v0.3.6-a (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -10,6 +10,8 @@
 })("ASQ",this,function DEF(name,context){
 	"use strict";
 
+	function ignored(){}
+
 	function schedule(fn) {
 		return (typeof setImmediate !== "undefined") ?
 			setImmediate(fn) : setTimeout(fn,0)
@@ -17,15 +19,6 @@
 	}
 
 	function createSequence() {
-
-		function resetSequence() {
-			clearTimeout(seq_tick);
-			seq_tick = null;
-			then_queue.length = 0;
-			or_queue.length = 0;
-			sequence_messages.length = 0;
-			sequence_errors.length = 0;
-		}
 
 		function scheduleSequenceTick() {
 			if (seq_aborted) {
@@ -37,6 +30,10 @@
 			}
 		}
 
+		function throwSequenceErrors() {
+			throw (sequence_errors.length === 1 ? sequence_errors[0] : sequence_errors);
+		}
+
 		function sequenceTick() {
 			var fn, args;
 
@@ -45,10 +42,21 @@
 			delete sequence_api.unpause;
 
 			if (seq_aborted) {
-				resetSequence();
+				clearTimeout(seq_tick);
+				seq_tick = null;
+				then_queue.length = 0;
+				or_queue.length = 0;
+				sequence_messages.length = 0;
+				sequence_errors.length = 0;
 			}
 			else if (seq_error) {
+				if (or_queue.length === 0 && !error_reported) {
+					error_reported = true;
+					throwSequenceErrors();
+				}
+
 				while (or_queue.length) {
+					error_reported = true;
 					fn = or_queue.shift();
 					try {
 						fn.apply(ø,sequence_errors);
@@ -62,7 +70,7 @@
 							if (err.stack) { sequence_errors.push(err.stack); }
 						}
 						if (or_queue.length === 0) {
-							console.error.apply(console,sequence_errors);
+							throwSequenceErrors();
 						}
 					}
 				}
@@ -411,20 +419,22 @@
 					// (defined below) with a real sequence trigger
 					fn = createSequence(function __create_sequence__(done){
 						trigger = done;
-					});
+					})
+					.or(ignored);
 
 					// temporary version of `trigger`, which if called
 					// (right away), by the iterable sequence's `next` being
 					// called synchronously, will simply create a normal
 					// sequence with the success/error message(s) pre-injected
 					trigger = function __trigger__() {
-						fn = createSequence.apply(ø,arguments);
+						fn = createSequence.apply(ø,arguments).or(ignored);
 					};
 					trigger.fail = function __trigger_fail__() {
 						var args = ARRAY_SLICE.call(arguments);
 						fn = createSequence(function __create_sequence__(done){
 							done.fail.apply(ø,args);
-						});
+						})
+						.or(ignored);
 					};
 				}
 
@@ -504,7 +514,7 @@
 					trigger.apply(ø,arguments);
 				}
 				else {
-					trigger = createSequence.apply(ø,arguments);
+					trigger = createSequence.apply(ø,arguments).or(ignored);
 				}
 				return public_api.messages.apply(ø,arguments);
 			});
@@ -517,7 +527,8 @@
 					var args = ARRAY_SLICE.call(arguments);
 					trigger = createSequence().then(function __then__(done){
 						done.fail.apply(ø,args);
-					});
+					})
+					.or(ignored);
 				}
 			});
 
@@ -531,7 +542,8 @@
 				else {
 					trigger.pipe(done);
 				}
-			});
+			})
+			.or(ignored);
 		}
 
 		function abort() {
@@ -600,6 +612,7 @@
 		}
 
 		var seq_error = false,
+			error_reported = false,
 			seq_aborted = false,
 			then_ready = true,
 

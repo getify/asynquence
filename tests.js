@@ -640,7 +640,9 @@
 				seq
 				.then(asyncDelayFn(250))
 				// NOTE: calling doSeq2() to pass in ASQ instance itself
-				.seq(doSeq2(msg2));
+				.seq(function(){
+					return doSeq2(msg2);
+				});
 
 				return seq;
 			}
@@ -651,7 +653,9 @@
 				seq
 				.then(asyncDelayFn(50))
 				// NOTE: calling doSeq3() to pass in ASQ instance itself
-				.seq(doSeq3(msg + "!"));
+				.seq(function(){
+					return doSeq3(msg + "!");
+				});
 
 				return seq;
 			}
