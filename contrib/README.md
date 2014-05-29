@@ -1,6 +1,6 @@
 # asynquence Contrib
 
-Optional plugin helpers are provided in `/contrib/*`. The full bundle of plugins (`contrib.js`) is **~1.9k** minzipped.
+Optional plugin helpers are provided in `/contrib/*`. The full bundle of plugins (`contrib.js`) is **~2.1k** minzipped.
 
 Gate variations:
 
@@ -87,7 +87,7 @@ If the "error-first" callback is then invoked with the first ("error") parameter
 
 `runner(..)` takes either an **iterable-sequence** or an ES6 generator function, which will be iterated through step-by-step. `runner(..)` will handle either asynquence sequences, standard promises, or immediate values as the yielded/returned values from the generator or iterable-sequence steps.
 
-The generator/iterable-sequence will receive any value-messages from the previous sequence step, and the final yielded/returned value will be passed along as the success message(s) to the next main sequence step. Error(s) if any will flag the main sequence as error, with error messages passed along as expected.
+The generator/iterable-sequence will receive any value-messages from the previous sequence step (via the *control token* -- see [CSP-style Concurrency](#csp-style-concurrency) below for explanation), and the final yielded/returned value will be passed along as the success message(s) to the next main sequence step. Error(s) if any will flag the main sequence as error, with error messages passed along as expected.
 
 Examples:
 
@@ -101,12 +101,16 @@ function double(x) {
 }
 
 ASQ(2)
-.runner(function*(x){
+.runner(function*(token){
+	// extract message from control-token so
+	// we can operate on it
+	var x = token.messages[0];
+
 	while (x < 100) {
 		x = yield double(x);
 	}
 })
-.then(function(num){
+.val(function(num){
 	console.log(num); // 128
 });
 ```
@@ -124,22 +128,37 @@ function double(x) {
 ASQ(2)
 .runner(
 	ASQ.iterable()
+	.then(function(token){
+		// extract message from control-token so
+		// we can operate on it
+		return token.messages[0];
+	})
 	.then(double)
 	.then(double)
 	.then(double)
 )
-.then(function(num){
+.val(function(num){
 	console.log(num); // 16
 });
 ```
 
-`runner(..)` can accept 2+ iterators (iterable-sequences or generator functions), and it will interleave the execution of them. When one iterator returns/yields a value, it will be passed, in round-robbin order, to the next iterator, and so on.
+#### CSP-style Concurrency
+
+`runner(..)` can accept 2 or more generators (or iterable-sequences) that you can cooperatively interleave execution of, which lets you leverage a simple form of CSP-style coroutine concurrency (aka cooperative multitasking").
+
+Generators/iterable-sequences will receive a *control token* with a messages channel (`.messages` property is a simple array) to use for passing messages back and forth as the coroutines interleave.
+
+If you `yield` (or `return` in the case of iterable-sequences) that *control token* back (or a sequence/promise that eventually produces it), then you will signal to transfer control to the next (round-robbin ordering style) generator/sequence in the concurrency-grouping.
+
+Otherwise, yielding/returning of any other type of value, **including a sequence/promise**, will retain control with the current generator/iterator-step.
+
+With both generators and iterable-sequences, the last *final* non-`undefined` value that is yielded/returned from the concurrency-grouping run will be the forward-passed message(s) to the next step in your main *asynquence* chain. If you want to pass on the channel messages from your generator run, end your last generator by `yield`ing out the `.messages` property of the *control token*. Likewise with iterable-sequences, `return` the channel messages from the last iterable-sequence step.
 
 To get a better sense of how this advanced functionality works, here's an [example of two generators paired as CSP-style co-routines](https://gist.github.com/getify/10172207).
 
 ### `react` Plugin
 
-Consider this code:
+Consider this kind of ugly code:
 
 ```js
 $("#button").click(function(evt){
@@ -151,37 +170,55 @@ $("#button").click(function(evt){
 });
 ```
 
-Each time the button is clicked, a new sequence is defined and executed to "react" to the event. But it's a little awkward and backward that the sequence must be (re)defined each time, *inside* the event listener.
+Each time the button is clicked, a new sequence is defined and executed to "react" to the event. But it's a little awkward and ugly that the sequence must be (re)defined each time, *inside* the event listener.
 
-The `react` plugin provides first-class syntactic support for *asynquence* "reactive sequence" pattern, inspired by [Reactive Observables](http://rxjs.codeplex.com/). It essentially combines *asynquence*'s promise-based sequence control with repeatable event handling.
+The `react` plugin separates the capabilities of listening for events and of responding to them, providing first-class syntactic support for the *asynquence* "reactive sequence" pattern, inspired by [RxJS Reactive Observables](http://rxjs.codeplex.com/). It essentially combines *asynquence*'s flow-control with repeatable event handling.
 
-1. `react(..)` accepts a listener setup handler, which will receive a trigger (called `proceed` in the snippet below) that event listener(s) "react" by invoking.
+1. `react(..)` accepts a listener setup handler, which will receive a reactive trigger (called `proceed` in the snippet below) that event listener(s) "react" with by invoking. It will also receive a function you can call one or more times to register a *teardown* handler (to unbind event handlers, etc).
 
-2. The rest of the chain after `react(..)...` sets up a templated sequence, which will then be executed each time the `proceed()` trigger is fired.
+2. The rest of the chain sets up a normal *asynquence* sequence, which will then be repeat-executed each time the reactive trigger is fired. The reactive sequence also has an added `stop()` method, which you can use to trigger any registered teardown handlers and stop all reactive sequence handling.
 
-The `react` plugin simply reverses the paradigm of the previous snippet, providing a way to specify the sequence externally and once, and have it be reinvoked each time an event triggers it.
+The `react` plugin reverses the paradigm of the first snippet, providing a way to specify the sequence externally and once, and have it be re-triggered each time an event fires.
 
 ```js
-ASQ.react(
+var rsq = ASQ.react(
    // this listener setup handler will be called only once
-   function(proceed){
-      // we can call `proceed(..)` (or whatever you want to call the param!)
-      // every time our stream/event fires, instead of just once, like
-      // normal promise triggers
-      $("#button").click(function(evt){
-         // fire off a new sequence for each click
+   function setup(proceed,registerTeardownHandler){
+      // fire off a new sequence for each click
+      function handler(evt) {
+         // we can call `proceed(..)` (or whatever you want
+         // to call the param!) every time our stream/event
+         // fires, instead of just once like normal promise
+         // resolution
          proceed(this.id);
+      }
+
+      $("#button").click(handler);
+
+      // register a handler to be called when tearing down
+      // the reactive sequence handling
+      registerTeardownHandler(function(){
+         $("#button").unbind("click",handler);
       });
+
+      // inside our `setup` handler, `this` will point to
+      // the reactive sequence, which has a `stop()` method
+      // that tears down the reactive sequence handling
+      EVTHUB.on("finish",this.stop);
    }
 )
-// each time our reactive event fires, process the rest of this sequence
+// each time our reactive event fires,
+// process the rest of this sequence
 .then(..)
 .seq(..)
 .then(..)
 .val(..);
+
+// later, to stop the reactive sequence handling:
+EVTHUB.on("totally-done",rsq.stop);
 ```
 
-Inside the `react(..)` listener setup function, you can set up as many listeners for any kind of events (ajax, timers, click handlers, etc) as you want, and all you need to do to fire off the sequence is call the `proceed()` (or whatever you want to name it!) callback. Whatever messages you pass to `proceed(..)` will pass along to the first step of the sequence.
+Inside the `react(..)` listener setup function, you can set up as many listeners for any kind of events (ajax, timers, click handlers, etc) as you want, and for each, all you need to do to fire off the sequence is call the `proceed(..)` (or whatever you want to name it!) callback. Whatever messages you pass to `proceed(..)` will pass along to the first step of the sequence instance.
 
 ## Using Contrib Plugins
 

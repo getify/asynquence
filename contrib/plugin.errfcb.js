@@ -7,11 +7,14 @@ ASQ.extend("errfcb",function __extend__(api,internals){
 			then: function __then__(cb){ isq.then_cb = cb; return isq; },
 			or: function __or__(cb){ isq.or_cb = cb; return isq; },
 
-			// note: these are used only to trick `seq(..)`s
-			// duck-typing checks for an "iterable-sequence"
-			__ASQ__: true,
+			// note: used only to trick `seq(..)`s duck-typing
+			// checks for an "iterable-sequence"
 			next: true
 		};
+
+		// note: used only to trick `seq(..)`s duck-typing
+		// checks for an "iterable-sequence"
+		isq[brand] = true;
 
 		// immediately register our fake "iterable sequence"
 		// on the main sequence

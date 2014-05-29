@@ -3,24 +3,14 @@
 	var template;
 
 	ASQ.iterable = function __iterable__() {
-		var sequence_api,
-			brand = "__ASQ__",
-
-			seq_error = false,
-			seq_aborted = false,
-
-			seq_tick,
-
-			val_queue = [],
-			or_queue = [],
-
-			sequence_errors = []
-		;
-
 		function schedule(fn) {
 			return (typeof setImmediate !== "undefined") ?
 				setImmediate(fn) : setTimeout(fn,0)
 			;
+		}
+
+		function throwSequenceErrors() {
+			throw (sequence_errors.length === 1 ? sequence_errors[0] : sequence_errors);
 		}
 
 		function notifyErrors() {
@@ -28,8 +18,14 @@
 
 			seq_tick = null;
 
-			if (sequence_errors.length > 0) {
+			if (seq_error) {
+				if (or_queue.length === 0 && !error_reported) {
+					error_reported = true;
+					throwSequenceErrors();
+				}
+
 				while (or_queue.length > 0) {
+					error_reported = true;
 					fn = or_queue.shift();
 					try {
 						fn.apply(ø,sequence_errors);
@@ -43,7 +39,7 @@
 							if (err.stack) { sequence_errors.push(err.stack); }
 						}
 						if (or_queue.length === 0) {
-							console.error.apply(console,sequence_errors);
+							throwSequenceErrors();
 						}
 					}
 				}
@@ -167,6 +163,19 @@
 			return obj;
 		}
 
+		var sequence_api,
+
+			seq_error = false,
+			error_reported = false,
+			seq_aborted = false,
+
+			seq_tick,
+
+			val_queue = [],
+			or_queue = [],
+
+			sequence_errors = []
+		;
 
 		// ***********************************************
 		// Setup the ASQ.iterable() public API

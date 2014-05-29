@@ -1144,9 +1144,14 @@
 				return ASQ.messages(x,x);
 			}
 
+			function extractTokenMessage(token) {
+				return token.messages[0];
+			}
+
 			ASQ(2)
 			.runner(
 				ASQ.iterable()
+					.val(extractTokenMessage)
 					.then(doubleSeq)
 					.then(doublePromise)
 					.then(doubleSeq)
@@ -1168,6 +1173,7 @@
 				ASQ(42)
 				.runner(
 					ASQ.iterable()
+						.val(extractTokenMessage)
 						.then(justValue) // just returns the value directly
 						.then(doubleSeq)
 						.then(doubleSeq)
@@ -1251,6 +1257,7 @@
 				ASQ(30)
 				.runner(
 					ASQ.iterable()
+						.val(extractTokenMessage)
 						.then(doublePromise)
 						.then(doublePromise)
 						.then(doublePromise)
@@ -1284,9 +1291,7 @@
 			},2000);
 		});
 		tests.push(function(testDone){
-			var label = "Contrib Test #16", timeout,
-				isq
-			;
+			var label = "Contrib Test #16", timeout, isq;
 
 			function doubleSeq(x) {
 				return ASQ(function(done){
@@ -1322,14 +1327,33 @@
 				return ASQ.messages(x,x);
 			}
 
+			function extractTokenMessage(token) {
+				return token.messages[0];
+			}
+
+			function addA(token) {
+				token.messages[0] += "A";
+				return token;
+			}
+
+			function addB(token) {
+				token.messages[0] += "B";
+				return token;
+			}
+
+			function addC(token) {
+				token.messages[0] += "C";
+				return token;
+			}
+
 			ASQ(2)
 			.runner(
 				ASQ.iterable()
+					.val(extractTokenMessage)
 					.then(doubleSeq)
 					.then(doublePromise)
 					.then(doubleSeq)
-					.then(doublePromise)
-					.then(twiceValues),
+					.then(doublePromise),
 				ASQ.iterable()
 					.then(doublePromise)
 					.then(doubleSeq),
@@ -1337,6 +1361,7 @@
 					.then(doubleSeq)
 					.then(doublePromise)
 					.then(doubleSeq)
+					.then(twiceValues)
 			)
 			.val(function(msg1,msg2){
 				if (!(
@@ -1348,7 +1373,6 @@
 					var args = ARRAY_SLICE.call(arguments);
 					args.unshift(testDone,label);
 					FAIL.apply(FAIL,args);
-					return;
 				}
 			})
 			.runner(
@@ -1369,11 +1393,44 @@
 					return;
 				}
 
+				return "";
+			})
+			.runner(
+				ASQ.iterable()
+					.then(addA)
+					.then(addA)
+					.then(addA),
+				ASQ.iterable()
+					.then(addB)
+					.then(addB),
+				ASQ.iterable()
+					.then(addC)
+					.then(addC)
+					.then(addC)
+					.then(addC)
+					.then(addC)
+					.then(function(token){
+						return token.messages[0];
+					})
+			)
+			.val(function(msg){
+				if (!(
+					arguments.length === 1 &&
+					msg === "ABCABCACCC"
+				)) {
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+					return;
+				}
+
 				// seed the next `runner(..)` call
 				return 2;
 			})
 			.runner(
 				ASQ.iterable()
+					.val(extractTokenMessage)
 					.then(doubleSeq)
 					.then(doubleSeq)
 					.then(doubleSeq)
@@ -1489,10 +1546,23 @@
 			},2000);
 		});
 		tests.push(function(testDone){
-			var label = "Contrib Test #18", timeout;
+			var label = "Contrib Test #18", timeout, rsq;
 
-			ASQ.react(function(proceed){
-				var sq1, sq2, sq3;
+			rsq = ASQ.react(function(proceed){
+				var sq1, sq2, sq3, sq4, self = this;
+
+				if (!(
+					self &&
+					rsq &&
+					self === rsq &&
+					self.stop &&
+					self.stop === rsq.stop &&
+					typeof self.stop === "function"
+				)) {
+					clearTimeout(timeout);
+					FAIL(testDone,label,"rsq.stop !== this.stop");
+					return;
+				}
 
 				setTimeout(function(){
 					sq1 = proceed();
@@ -1505,24 +1575,40 @@
 
 					ASQ()
 					.gate(
-						function(done){
-							sq1.pipe(done);
-						},
-						function(done){
-							sq2.pipe(done);
-						},
-						function(done){
-							sq3.pipe(done);
-						}
+						sq1.pipe,
+						sq2.pipe,
+						sq3.pipe
 					)
 					.val(function(msg1,msg2,msg3){
-						clearTimeout(timeout);
-
-						if (
+						if (!(
 							arguments.length === 3 &&
 							msg1 === 20 &&
 							msg2 === 14 &&
 							msg3 === 30
+						)) {
+							clearTimeout(timeout);
+							var args = ARRAY_SLICE.call(arguments);
+							args.unshift(testDone,label);
+							FAIL.apply(FAIL,args);
+						}
+					})
+					.then(function(done){
+						setTimeout(function(){
+							sq4 = proceed(50,75).pipe(done);
+						},300);
+					})
+					.val(function(){
+						clearTimeout(timeout);
+						var args = ARRAY_SLICE.call(arguments);
+						args.unshift(testDone,label);
+						FAIL.apply(FAIL,args);
+					})
+					.or(function(err){
+						clearTimeout(timeout);
+
+						if (
+							arguments.length === 1 &&
+							err === "Disabled Sequence"
 						) {
 							PASS(testDone,label);
 						}
@@ -1531,14 +1617,12 @@
 							args.unshift(testDone,label);
 							FAIL.apply(FAIL,args);
 						}
-					})
-					.or(function(){
-						clearTimeout(timeout);
-						var args = ARRAY_SLICE.call(arguments);
-						args.unshift(testDone,label);
-						FAIL.apply(FAIL,args);
 					});
 				},30);
+
+				setTimeout(function(){
+					self.stop(); // stop the reactive sequence
+				},100);
 			})
 			.val(function(msg1,msg2){
 				return ((msg1 + msg2) || 10);

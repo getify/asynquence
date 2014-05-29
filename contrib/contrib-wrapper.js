@@ -1,5 +1,5 @@
 /*! asynquence-contrib
-    v0.1.11-a (c) Kyle Simpson
+    v0.2.0-a (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -11,7 +11,8 @@
 	"use strict";
 
 	var ARRAY_SLICE = Array.prototype.slice,
-		ø = Object.create(null)
+		ø = Object.create(null),
+		brand = "__ASQ__"
 	;
 
 /*PLUGINS*/
