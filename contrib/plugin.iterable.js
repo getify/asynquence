@@ -86,7 +86,7 @@
 		function next() {
 			if (seq_error || seq_aborted || val_queue.length === 0) {
 				if (val_queue.length > 0) {
-					throwErr("Sequence cannot be iterated");
+					$throw$("Sequence cannot be iterated");
 				}
 				return { done: true };
 			}
@@ -96,20 +96,20 @@
 			}
 			catch (err) {
 				if (ASQ.isMessageWrapper(err)) {
-					throwErr.apply(ø,err);
+					$throw$.apply(ø,err);
 				}
 				else if (err.stack) {
-					throwErr(err,err.stack);
+					$throw$(err,err.stack);
 				}
 				else {
-					throwErr(err);
+					$throw$(err);
 				}
 
 				return {};
 			}
 		}
 
-		function throwErr() {
+		function $throw$() {
 			if (seq_error || seq_aborted) {
 				return sequence_api;
 			}
@@ -132,17 +132,15 @@
 
 			clearTimeout(seq_tick);
 			seq_tick = null;
-			val_queue.length = 0;
-			or_queue.length = 0;
-			sequence_errors.length = 0;
+			val_queue.length = or_queue.length = sequence_errors.length = 0;
 		}
 
 		function duplicate() {
 			var isq;
 
 			template = {
-				val_queue: val_queue.slice(0),
-				or_queue: or_queue.slice(0)
+				val_queue: val_queue.slice(),
+				or_queue: or_queue.slice()
 			};
 			isq = ASQ.iterable();
 			template = null;
@@ -150,6 +148,11 @@
 			return isq;
 		}
 
+		// opt-out of global error reporting for this sequence
+		function defer() {
+			or_queue.push(function ignored(){});
+			return sequence_api;
+		}
 
 		// ***********************************************
 		// Object branding utilities
@@ -186,9 +189,10 @@
 			or: or,
 			pipe: pipe,
 			next: next,
-			"throw": throwErr,
+			"throw": $throw$,
 			abort: abort,
-			duplicate: duplicate
+			duplicate: duplicate,
+			defer: defer
 		});
 
 		// useful for ES6 `for..of` loops,

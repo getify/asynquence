@@ -751,7 +751,7 @@
 		});
 		tests.push(function(testDone){
 			var label = "Contrib Test #11", timeout,
-				isq1, isq2, res1, res2
+				isq1, isq2, isq3, isq4, res1, res2
 			;
 
 			function step(num) {
@@ -814,6 +814,12 @@
 				FAIL.apply(FAIL,args);
 			});
 
+			isq3 = ASQ.iterable();
+			isq3["throw"]("isq3 error");
+
+			isq4 = ASQ.iterable().defer();
+			isq4["throw"]("isq4 error");
+
 			ASQ()
 			.gate(
 				function(done){
@@ -826,9 +832,29 @@
 			.val(function(msg1,msg2){
 				clearTimeout(timeout);
 
-				if (
+				if (!(
+					arguments.length === 2 &&
 					msg1 === 32 &&
 					msg2 === 96
+				)) {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			})
+			.seq(isq3)
+			.val(function(){
+				clearTimeout(timeout);
+				var args = ARRAY_SLICE.call(arguments);
+				args.unshift(testDone,label);
+				FAIL.apply(FAIL,args);
+			})
+			.or(function(err){
+				clearTimeout(timeout);
+
+				if (
+					arguments.length === 1 &&
+					err === "isq3 error"
 				) {
 					PASS(testDone,label);
 				}
@@ -837,12 +863,6 @@
 					args.unshift(testDone,label);
 					FAIL.apply(FAIL,args);
 				}
-			})
-			.or(function(){
-				clearTimeout(timeout);
-				var args = ARRAY_SLICE.call(arguments);
-				args.unshift(testDone,label);
-				FAIL.apply(FAIL,args);
 			});
 
 			timeout = setTimeout(function(){

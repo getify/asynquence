@@ -9,7 +9,8 @@ ASQ.extend("errfcb",function __extend__(api,internals){
 
 			// note: used only to trick `seq(..)`s duck-typing
 			// checks for an "iterable-sequence"
-			next: true
+			next: true,
+			defer: function ignored(){}
 		};
 
 		// note: used only to trick `seq(..)`s duck-typing
