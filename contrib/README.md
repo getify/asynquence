@@ -220,6 +220,8 @@ EVTHUB.on("totally-done",rsq.stop);
 
 Inside the `react(..)` listener setup function, you can set up as many listeners for any kind of events (ajax, timers, click handlers, etc) as you want, and for each, all you need to do to fire off the sequence is call the `proceed(..)` (or whatever you want to name it!) callback. Whatever messages you pass to `proceed(..)` will pass along to the first step of the sequence instance.
 
+For a more real-world type of example, see [reactive sequences + `gate()`](http://jsbin.com/rozipaki/1).
+
 ## Using Contrib Plugins
 
 In the browser, include the `contrib.js` file along with the *asynquence* library file (`asq.js`). Doing so automatically extends the API with the plugins.
