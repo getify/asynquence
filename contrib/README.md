@@ -226,14 +226,14 @@ For a more real-world type of example, see [reactive sequences + `gate()`](http:
 
 In the browser, include the `contrib.js` file along with the *asynquence* library file (`asq.js`). Doing so automatically extends the API with the plugins.
 
-In node.js, you install the `asynquence-contrib` package alongside the `asynquence` package, and `require(..)` both of them, in order:
+In node.js, you install the `asynquence-contrib` package alongside the `asynquence` package. **Note:** The *asynquence-contrib* package will return the ASQ for you, so you technically only need to this if using both:
 
 ```js
-var ASQ = require("asynquence");
-require("asynquence-contrib");
-```
+// Note: requiring "asynquence" not strictly needed here,
+// since contrib will retrieve and return it automatically
 
-**Note:** The `asynquence-contrib` module has no API (it only attaches itself to the `asynquence` package), so just calling `require(..)` without storing its return value is sufficient and recommended.
+var ASQ = require("asynquence-contrib");
+```
 
 They can then be used directly, like this:
 

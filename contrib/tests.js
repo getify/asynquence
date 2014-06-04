@@ -1,11 +1,11 @@
-(function(name,context,dependency,definition){
-	if (typeof module !== "undefined" && module.exports) module.exports = definition(require(dependency));
-	else if (typeof define === "function" && define.amd) define([dependency],definition);
-	else context[name] = definition(dependency);
-})("ASQ_contrib_tests",this,this.ASQ || "asynquence",function(ASQ){
+(function(name,context,definition){
+	if (typeof module !== "undefined" && module.exports) module.exports = definition();
+	else if (typeof define === "function" && define.amd) define(definition);
+	else context[name] = definition();
+})("ASQ_contrib_tests",this,function(){
 	"use strict";
 
-	function defineTests(doneLogMsg) {
+	function defineTests(ASQ,doneLogMsg) {
 
 		function asyncDelayFn(delay) {
 			return function(done) {
@@ -1526,6 +1526,10 @@
 					msgs[0] === 20 &&
 					msgs[1] === 10
 				)) {
+					console.log("..........");
+					console.log(msgs.length);
+					console.log(JSON.stringify(msgs));
+					console.log("..........");
 					clearTimeout(timeout);
 					var args = ARRAY_SLICE.call(arguments);
 					args.unshift(testDone,label);

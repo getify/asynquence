@@ -1,14 +1,16 @@
 {
 	"name": "asynquence-contrib",
-	"version": "0.2.1-a",
+	"version": "0.2.2-b",
 	"description": "contrib plugins for asynquence",
 	"main": "./contrib.js",
 	"scripts": {
 		"test": "./node-tests.js",
 		"bundle": "./bundle.js"
 	},
+	"peerDependencies": {
+		"asynquence": "*"
+	},
 	"devDependencies": {
-		"asynquence": "latest",
 		"uglify-js": "~2.4.8",
 		"native-promise-only": "latest"
 	},
