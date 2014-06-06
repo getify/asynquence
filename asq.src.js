@@ -1,5 +1,5 @@
 /*! asynquence
-    v0.5.0-a (c) Kyle Simpson
+    v0.5.1-a (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -20,15 +20,14 @@
 	function Queue() {
 		var first, last, item;
 
-		function Item(fn,self) {
+		function Item(fn) {
 			this.fn = fn;
-			this.self = self;
 			this.next = void 0;
 		}
 
 		return {
-			add: function add(fn,self) {
-				item = new Item(fn,self);
+			add: function add(fn) {
+				item = new Item(fn);
 				if (last) {
 					last.next = item;
 				}
@@ -40,7 +39,7 @@
 			},
 			drain: function drain(self) {
 				while (first) {
-					first.fn.call(first.self);
+					first.fn(self);
 					first = first.next;
 				}
 				cycle = last = first;
@@ -50,8 +49,8 @@
 
 	scheduling_queue = Queue();
 
-	function schedule(fn,self) {
-		scheduling_queue.add(fn,self);
+	function schedule(fn) {
+		scheduling_queue.add(fn);
 		if (!cycle) {
 			cycle = timer(scheduling_queue.drain);
 		}
