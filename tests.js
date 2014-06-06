@@ -473,10 +473,8 @@
 		tests.push(function(testDone){
 			var label = "Core Test #12", timeout;
 
-			ASQ()
-			.then(function(done){
-				done.fail("Hello");
-			})
+			ASQ
+			.failed("Hello")
 			.then(function(done){
 				clearTimeout(timeout);
 				var args = ARRAY_SLICE.call(arguments);

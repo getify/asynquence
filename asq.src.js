@@ -1,5 +1,5 @@
 /*! asynquence
-    v0.4.1-a (c) Kyle Simpson
+    v0.5.0-a (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -10,10 +10,51 @@
 })("ASQ",this,function DEF(name,context){
 	"use strict";
 
-	function schedule(fn) {
-		return (typeof setImmediate !== "undefined") ?
-			setImmediate(fn) : setTimeout(fn,0)
-		;
+	var cycle, scheduling_queue,
+		timer = (typeof setImmediate !== "undefined") ?
+			function timer(fn) { return setImmediate(fn); } :
+			setTimeout
+	;
+
+	// Note: using a queue instead of array for efficiency
+	function Queue() {
+		var first, last, item;
+
+		function Item(fn,self) {
+			this.fn = fn;
+			this.self = self;
+			this.next = void 0;
+		}
+
+		return {
+			add: function add(fn,self) {
+				item = new Item(fn,self);
+				if (last) {
+					last.next = item;
+				}
+				else {
+					first = item;
+				}
+				last = item;
+				item = void 0;
+			},
+			drain: function drain(self) {
+				while (first) {
+					first.fn.call(first.self);
+					first = first.next;
+				}
+				cycle = last = first;
+			}
+		};
+	}
+
+	scheduling_queue = Queue();
+
+	function schedule(fn,self) {
+		scheduling_queue.add(fn,self);
+		if (!cycle) {
+			cycle = timer(scheduling_queue.drain);
+		}
 	}
 
 	function createSequence() {
@@ -649,8 +690,8 @@
 
 		// templating the sequence setup?
 		if (template) {
-			then_queue = template.then_queue.slice(0);
-			or_queue = template.or_queue.slice(0);
+			then_queue = template.then_queue.slice();
+			or_queue = template.or_queue.slice();
 
 			// templating a sequence starts it out paused
 			// add temporary `unpause()` API hook
@@ -764,6 +805,11 @@
 	// Setup the ASQ public API
 	// ***********************************************
 	public_api = createSequence;
+
+	public_api.failed = function publicAPI$failed() {
+		var args = public_api.messages.apply(ø,arguments);
+		return createSequence(function $failed$(){ throw args; });
+	};
 
 	public_api.extend = function publicAPI$extend(name,build) {
 		// reserved API override not allowed

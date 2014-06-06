@@ -1,6 +1,6 @@
 # asynquence
 
-A tiny (**~2.0k** minzipped) lib for promise-style async sequence flow-control.
+A tiny (**~2.2k** minzipped) lib for promise-style async sequence flow-control.
 
 ## Explanation
 
@@ -150,6 +150,10 @@ There are a few convenience methods on the API, as well:
     `ASQ(function(done){ somethingAsync(done.errfcb); })` is sugar short-hand for `ASQ(function(done){ somethingAsync(function(err){ if (err) done.fail(err); else done.apply(null,[].slice.call(arguments,1))}); })`.
 
 You can also `abort()` a sequence at any time, which will prevent any further actions from occurring on that sequence (all callbacks will be ignored). The call to `abort()` can happen on the sequence API itself, or using the `abort` flag on a completion trigger in any step (see example below).
+
+#### Static Methods
+
+`ASQ.failed(..)` produces a sequence which is already in the failed state. If you pass messages along to `failed(..)`, they will be the error messages for the sequence.
 
 `ASQ.messages(..)` wraps a set of values as a ASQ-branded array, making it easier to pass multiple messages at once, and also to make it easier to distinguish a normal array (a value) from a value-messages container array, using `ASQ.isMessageWrapper(..)`.
 
