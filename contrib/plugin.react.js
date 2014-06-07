@@ -11,6 +11,22 @@ ASQ.react = function __react__(setup) {
 		return ASQ().val(function(){ throw "Disabled Sequence"; });
 	}
 
+	proceed.onStream = function onStream() {
+		ARRAY_SLICE.call(arguments)
+		.forEach(function $forEach$(stream){
+			stream.on("data",proceed);
+			stream.on("error",proceed);
+		});
+	};
+
+	proceed.unStream = function unStream() {
+		ARRAY_SLICE.call(arguments)
+		.forEach(function $forEach$(stream){
+			stream.removeListener("data",proceed);
+			stream.removeListener("error",proceed);
+		});
+	};
+
 	function teardown() {
 		if (template) {
 			template = null;

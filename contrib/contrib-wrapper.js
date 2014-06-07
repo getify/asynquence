@@ -1,5 +1,5 @@
 /*! asynquence-contrib
-    v0.2.2-b (c) Kyle Simpson
+    v0.2.3-a (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 

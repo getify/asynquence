@@ -1,6 +1,6 @@
 # asynquence Contrib
 
-Optional plugin helpers are provided in `/contrib/*`. The full bundle of plugins (`contrib.js`) is **~2.1k** minzipped.
+Optional plugin helpers are provided in `/contrib/*`. The full bundle of plugins (`contrib.js`) is **~2.2k** minzipped.
 
 Gate variations:
 
@@ -219,6 +219,26 @@ EVTHUB.on("totally-done",rsq.stop);
 ```
 
 Inside the `react(..)` listener setup function, you can set up as many listeners for any kind of events (ajax, timers, click handlers, etc) as you want, and for each, all you need to do to fire off the sequence is call the `proceed(..)` (or whatever you want to name it!) callback. Whatever messages you pass to `proceed(..)` will pass along to the first step of the sequence instance.
+
+The `proceed` function has two helpers on it for dealing with streams (particularly node streams): `proceed.onStream(..)` and `proceed.unStream(..)`. `onStream(..)` takes one or more streams and subscribes the `data` and `error` events to call the `proceed` function. `unStream(..)` takes one or more streams to unsubscribe, so you would likely use it in a registered teardown handler. For example:
+
+```js
+var rsq = ASQ.react(function(proceed,registerTeardownHandler){
+	proceed.onStream( mydatastream );
+
+	registerTeardownHandler(function(){
+		proceed.unStream( mydatastream );
+	});
+})
+.val(function(v){
+	if (v instanceof Error) throw v;
+	// ..
+})
+// ..
+.or(function(err){
+	console.log(err);
+});
+```
 
 For a more real-world type of example, see [reactive sequences + `gate()`](http://jsbin.com/rozipaki/1). Here's [another example](https://gist.github.com/getify/bba5ec0de9d6047b720e), which handles http request/response streams with reactive sequences.
 

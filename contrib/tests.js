@@ -1526,10 +1526,6 @@
 					msgs[0] === 20 &&
 					msgs[1] === 10
 				)) {
-					console.log("..........");
-					console.log(msgs.length);
-					console.log(JSON.stringify(msgs));
-					console.log("..........");
 					clearTimeout(timeout);
 					var args = ARRAY_SLICE.call(arguments);
 					args.unshift(testDone,label);
@@ -1655,6 +1651,119 @@
 				setTimeout(function(){
 					done(msg * 2);
 				},10);
+			})
+			.or(function(){
+				clearTimeout(timeout);
+				var args = ARRAY_SLICE.call(arguments);
+				args.unshift(testDone,label);
+				FAIL.apply(FAIL,args);
+			});
+
+			timeout = setTimeout(function(){
+				FAIL(testDone,label + " (from timeout)");
+			},2000);
+		});
+		tests.push(function(testDone){
+			var label = "Contrib Test #19", timeout, rsq, text = "",
+				writable, makeStream
+			;
+
+			try {
+				makeStream = (writable = require("stream").Writable) &&
+					function() { return new writable(); }
+				;
+			}
+			catch (err) {
+				makeStream = fakeDuplexStream;
+			}
+
+			// make a stream that pumps `data` at `interval` ms,
+			// then closes after `limit` events sent
+			function setupStream(data,interval,limit) {
+				var stream = makeStream(), count = 0, intv;
+
+				intv = setInterval(function(){
+					if (++count > limit) {
+						clearInterval(intv);
+						stream.emit("end");
+						return;
+					}
+
+					stream.emit("data",data);
+				},interval);
+
+				return stream;
+			}
+
+			function setupErrorStream(data,delay) {
+				var stream = makeStream();
+				setTimeout(function(){
+					stream.emit("data",data);
+				},delay);
+				setTimeout(function(){
+					stream.emit("error",data.toLowerCase());
+				},delay * 2);
+				return stream;
+			}
+
+
+			rsq = ASQ.react(function(proceed,registerTeardown){
+				var stream1 = setupStream("A",25,5);
+				var stream2 = setupStream("B",30,2);
+				var stream3 = setupErrorStream("C",40);
+
+				proceed.onStream(stream1,stream2,stream3);
+
+				ASQ()
+				.gate(
+					function(done){
+						stream1.on("end",done);
+					},
+					function(done){
+						stream2.on("end",done);
+					},
+					function(done){
+						stream3.on("error",done);
+					}
+				)
+				.val(function(){
+					rsq.stop();
+				})
+				.or(function(){
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				});
+
+				registerTeardown(function(){
+					clearTimeout(timeout);
+
+					proceed.unStream(stream1,stream2,stream3);
+					stream1.removeAllListeners("end");
+					stream2.removeAllListeners("end");
+					stream3.removeAllListeners("error");
+
+					if (text === "ABCABAcAA") {
+						PASS(testDone,label);
+					}
+					else {
+						FAIL(testDone,label,text);
+					}
+				});
+			});
+
+			rsq
+			.val(function(v){
+				if (arguments.length === 1) {
+					text += v;
+				}
+				else {
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
 			})
 			.or(function(){
 				clearTimeout(timeout);
