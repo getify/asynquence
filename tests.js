@@ -561,7 +561,7 @@
 			},2000);
 		});
 		tests.push(function(testDone){
-			var label = "Core Test #15", timeout;
+			var label = "Core Test #15", timeout, sq2;
 
 			function doSeq(msg1,msg2) {
 				var seq = ASQ();
@@ -587,6 +587,8 @@
 				return seq;
 			}
 
+			sq2 = doSeq2();
+
 			ASQ()
 			.then(function(done){
 				asyncDelayFn(100)(function(){
@@ -604,8 +606,8 @@
 
 				return "Ignored message";
 			})
-			// NOTE: calling doSeq2() to pass in ASQ instance itself
-			.seq(doSeq2())
+			// NOTE: passing in the sequence `sq2` itself
+			.seq(sq2)
 			.then(function(done,msg){
 				clearTimeout(timeout);
 
@@ -623,6 +625,13 @@
 				var args = ARRAY_SLICE.call(arguments);
 				args.unshift(testDone,label);
 				FAIL.apply(FAIL,args);
+			});
+
+			// should not affect the main sequence above
+			// since `sq2` should be tapped immediately
+			// at time of `seq(..)` call.
+			sq2.val(function(){
+				return "OOPS!";
 			});
 
 			timeout = setTimeout(function(){
