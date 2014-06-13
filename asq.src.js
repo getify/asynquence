@@ -56,6 +56,46 @@
 		}
 	}
 
+	function tapSequence(def) {
+		var trigger;
+
+		// listen for signals from the sequence
+		def.fn
+		// note: cannot use `fn.pipe(trigger)` because we
+		// need to be able to update the shared closure
+		// to change `trigger`
+		.val(function __val__(){
+			trigger.apply(ø,arguments);
+			return ASQmessages.apply(ø,arguments);
+		})
+		.or(function __or__(){
+			trigger.fail.apply(ø,arguments);
+		});
+
+		// make a sequence to act as a proxy to the original
+		// sequence
+		def.fn = createSequence(function __create_sequence__(done){
+			// replace the temporary trigger (created below)
+			// with this proxy's trigger
+			trigger = done;
+		})
+		.defer();
+
+		// temporary `trigger` which, if called before being replaced
+		// above, creates replacement proxy sequence with the
+		// success/error message(s) pre-injected
+		trigger = function __trigger__() {
+			def.fn = createSequence.apply(ø,arguments).defer();
+		};
+		trigger.fail = function __trigger_fail__() {
+			var args = ARRAY_SLICE.call(arguments);
+			def.fn = createSequence(function __create_sequence__(done){
+				done.fail.apply(ø,args);
+			})
+			.defer();
+		};
+	}
+
 	function createSequence() {
 
 		function scheduleSequenceTick() {
@@ -400,7 +440,21 @@
 				return sequence_api;
 			}
 
-			var fns = ARRAY_SLICE.call(arguments);
+			var fns = ARRAY_SLICE.call(arguments)
+			// map any sequences to gate segments
+			.map(function __map__(fn){
+				var def;
+
+				// is `fn` a sequence or iterable-sequence?
+				if (isSequence(fn)) {
+					def = { fn: fn };
+					tapSequence(def);
+					return function __segment__(done) {
+						def.fn.pipe(done);
+					};
+				}
+				else return fn;
+			});
 
 			then(function __then__(done){
 				var args = ARRAY_SLICE.call(arguments,1);
@@ -434,53 +488,20 @@
 
 			ARRAY_SLICE.call(arguments)
 			.forEach(function __foreach__(fn){
-				var trigger;
+				var def = { fn: fn };
 
 				// is `fn` a sequence or iterable-sequence?
 				if (isSequence(fn)) {
-					// listen for signals from the sequence
-					fn
-					// note: cannot use `fn.pipe(trigger)` because we
-					// need to be able to update the shared closure
-					// to change `trigger`
-					.val(function __val__(){
-						trigger.apply(ø,arguments);
-					})
-					.or(function __or__(){
-						trigger.fail.apply(ø,arguments);
-					});
-
-					// make a sequence to act as a proxy to the original
-					// sequence
-					fn = createSequence(function __create_sequence__(done){
-						// replace the temporary trigger (created below)
-						// with this proxy's trigger
-						trigger = done;
-					})
-					.defer();
-
-					// temporary `trigger` which, if called before being replaced
-					// above, creates replacement proxy sequence with the
-					// success/error message(s) pre-injected
-					trigger = function __trigger__() {
-						fn = createSequence.apply(ø,arguments).defer();
-					};
-					trigger.fail = function __trigger_fail__() {
-						var args = ARRAY_SLICE.call(arguments);
-						fn = createSequence(function __create_sequence__(done){
-							done.fail.apply(ø,args);
-						})
-						.defer();
-					};
+					tapSequence(def);
 				}
 
 				then(function __then__(done){
-					var _fn = fn;
+					var _fn = def.fn;
 					// check if this argument is not already a sequence?
 					// if not, assume a function to invoke that will return
 					// a sequence.
-					if (!isSequence(fn)) {
-						_fn = fn.apply(ø,ARRAY_SLICE.call(arguments,1));
+					if (!isSequence(def.fn)) {
+						_fn = def.fn.apply(ø,ARRAY_SLICE.call(arguments,1));
 					}
 					// pipe the provided sequence into our current sequence
 					_fn.pipe(done);
@@ -644,6 +665,10 @@
 					return sequence_messages;
 				case "sequence_errors":
 					return sequence_errors;
+				case "schedule":
+					return schedule;
+				case "tapSequence":
+					return tapSequence;
 			}
 		}
 

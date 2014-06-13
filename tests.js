@@ -13,6 +13,12 @@
 			};
 		}
 
+		function asyncDelaySeq(delay) {
+			return ASQ(function(done){
+				setTimeout(done,delay);
+			});
+		}
+
 		function PASS(testDone,testLabel) {
 			doneLogMsg(testLabel + ": PASSED")();
 			testDone();
@@ -69,6 +75,7 @@
 			var label = "Core Test  #2", timeout;
 
 			ASQ()
+			.then(asyncDelaySeq(50))
 			.then(function(done){
 				asyncDelayFn(100)(function(){
 					done("Hello World");
@@ -251,13 +258,15 @@
 			});
 		});
 		tests.push(function(testDone){
-			var label = "Core Test  #6", timeout;
+			var label = "Core Test  #6", timeout, delay_sq;
+
+			delay_sq = asyncDelaySeq(600);
 
 			ASQ()
 			.then(asyncDelayFn(100))
 			.gate(
 				asyncDelayFn(800),
-				asyncDelayFn(600),
+				delay_sq,
 				asyncDelayFn(700)
 			)
 			.then(function(){
@@ -336,9 +345,13 @@
 					});
 				},
 				function(done){
-					asyncDelayFn(200)(function(){
-						done.fail("World");
-					});
+					ASQ()
+					.gate(
+						asyncDelayFn(200),
+						// insert a failed sequence into the gate
+						ASQ.failed("World")
+					)
+					.pipe(done);
 				}
 			)
 			.then(function(){
@@ -410,11 +423,13 @@
 			.then(function(done){
 				ASQ()
 				.then(asyncDelayFn(100))
-				.then(function(done){
-					asyncDelayFn(100)(function(){
-						done.fail("Hello");
-					});
-				})
+				.then(
+					ASQ(function(done){
+						setTimeout(function(){
+							done.fail("Hello");
+						},100);
+					})
+				)
 				.pipe(done);
 			})
 			.then(function(done){
@@ -561,7 +576,7 @@
 			},2000);
 		});
 		tests.push(function(testDone){
-			var label = "Core Test #15", timeout, sq2;
+			var label = "Core Test #15", timeout, sq2, sq3;
 
 			function doSeq(msg1,msg2) {
 				var seq = ASQ();
@@ -589,6 +604,8 @@
 
 			sq2 = doSeq2();
 
+			sq3 = ASQ.failed("Yep");
+
 			ASQ()
 			.then(function(done){
 				asyncDelayFn(100)(function(){
@@ -608,10 +625,34 @@
 			})
 			// NOTE: passing in the sequence `sq2` itself
 			.seq(sq2)
-			.then(function(done,msg){
+			.val(function(msg){
+				if (!(
+					arguments.length === 1 &&
+					msg === "Sweet"
+				)) {
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+					return;
+				}
+
+				return "Another ignored message";
+			})
+			// NOTE: passing in a failed sequence `sq3` itself
+			.seq(sq3)
+			.val(function(){
+				clearTimeout(timeout);
+				var args = ARRAY_SLICE.call(arguments);
+				args.unshift(testDone,label);
+				FAIL.apply(FAIL,args);
+			})
+			.or(function(msg){
 				clearTimeout(timeout);
 
-				if (msg === "Sweet") {
+				if (arguments.length === 1 &&
+					msg === "Yep"
+				) {
 					PASS(testDone,label);
 				}
 				else {
@@ -619,20 +660,43 @@
 					args.unshift(testDone,label);
 					FAIL.apply(FAIL,args);
 				}
-			})
-			.or(function(){
-				clearTimeout(timeout);
-				var args = ARRAY_SLICE.call(arguments);
-				args.unshift(testDone,label);
-				FAIL.apply(FAIL,args);
 			});
 
-			// should not affect the main sequence above
-			// since `sq2` should be tapped immediately
-			// at time of `seq(..)` call.
-			sq2.val(function(){
+			// Note: these should not affect the main sequence above,
+			// since `sq2` and `sq3` should be tapped immediately
+			// at time of `seq(..)` calls.
+			sq2.val(function(msg){
+				if (!(
+					arguments.length === 1 &&
+					msg === "Sweet"
+				)) {
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+					return;
+				}
+
 				return "OOPS!";
 			});
+
+			sq3.or(function(msg){
+				if (!(
+					arguments.length === 1 &&
+					msg === "Yep"
+				)) {
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+					return;
+				}
+
+				throw "Uh oh!";
+			})
+			// Note: deferring because we don't actually care about
+			// this error!
+			.defer();
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");

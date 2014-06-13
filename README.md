@@ -50,6 +50,8 @@ Calling `gate(..)` with two or more functions creates a step that is a parallel 
 
 For parallel gate steps, each segment of that gate will receive a copy of the message(s) passed from the previous step. Also, all messages from the segments of this gate will be passed along to the next step (or the next failure handler, in the case of a gate segment indicating a failure).
 
+`gate(..)` can also receive (instead of a function to act as a segment) just a regular *asynquence* sequence instance, which will automatically be tapped and piped into the gate as that particular segment. However, the success/error message streams from the separate sequence will pass-thru unaffected.
+
 ### Handling Failures & Errors
 
 Whenever a sequence goes into the error state, any error handlers on that sequence (or any sequence that it's been `pipe()`d to -- see [Conveniences](#conveniences) below) registered with `or(..)` will be fired. Even registering `or(..)` handlers after a sequence is already in the error state will also queue them to be fired (async, on the next event loop turn).
@@ -109,7 +111,7 @@ There are a few convenience methods on the API, as well:
 
     `seq(Fn)` is sugar short-hand for `then(function(done){ Fn.apply(null,[].slice.call(arguments,1)).pipe(done); })`.
 
-    This method will also accept *asynquence* sequence instances directly. `seq(Sq)` is sugar short-hand for `then(function(done){ Sq.pipe(done); })`.
+    This method will also accept *asynquence* sequence instances directly. `seq(Sq)` is (sort-of) sugar short-hand for `then(function(done){ Sq.pipe(done); })`. **Note:** the `Sq` sequence is tapped immediately, but both success/error message streams will pass-thru on `Sq` unaffected.
 
     Additionally, this method can accept, either directly or through function-call, an [Iterable Sequence](#iterable-sequences). `seq(iSq)` is (sort-of) sugar short-hand for `then(function(done){ iSq.then(done).or(done.fail); })`.
 
