@@ -1,5 +1,5 @@
 /*! asynquence
-    v0.5.1-a (c) Kyle Simpson
+    v0.5.2-a (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -368,10 +368,15 @@
 				return sequence_api;
 			}
 
-			then_queue.push.apply(
-				then_queue,
-				wrapValueMessages(arguments,thenWrapper)
-			);
+			wrapArgs(arguments,thenWrapper)
+			.forEach(function __foreach__(fn){
+				if (isSequence(fn)) {
+					seq(fn);
+				}
+				else {
+					then_queue.push(fn);
+				}
+			});
 
 			scheduleSequenceTick();
 
@@ -433,56 +438,51 @@
 
 				// is `fn` a sequence or iterable-sequence?
 				if (isSequence(fn)) {
-					fn.defer(); // opt it out of global error reporting
+					// listen for signals from the sequence
+					fn
+					// note: cannot use `fn.pipe(trigger)` because we
+					// need to be able to update the shared closure
+					// to change `trigger`
+					.val(function __val__(){
+						trigger.apply(ø,arguments);
+					})
+					.or(function __or__(){
+						trigger.fail.apply(ø,arguments);
+					});
 
-					// is `fn` an iterable-sequence?
-					if ("next" in fn) {
-						// listen for signals from the iterable sequence
-						fn
-						// note: cannot use `fn.pipe(trigger)` because we
-						// need to be able to update the shared closure
-						// to change `trigger`
-						.then(function __then__(){
-							trigger.apply(ø,arguments);
-						})
-						.or(function __or__(){
-							trigger.fail.apply(ø,arguments);
-						});
+					// make a sequence to act as a proxy to the original
+					// sequence
+					fn = createSequence(function __create_sequence__(done){
+						// replace the temporary trigger (created below)
+						// with this proxy's trigger
+						trigger = done;
+					})
+					.defer();
 
-						// wrap a normal sequence around the iterable sequence,
-						// which when called replaces the temporary `trigger`
-						// (defined below) with a real sequence trigger
+					// temporary `trigger` which, if called before being replaced
+					// above, creates replacement proxy sequence with the
+					// success/error message(s) pre-injected
+					trigger = function __trigger__() {
+						fn = createSequence.apply(ø,arguments).defer();
+					};
+					trigger.fail = function __trigger_fail__() {
+						var args = ARRAY_SLICE.call(arguments);
 						fn = createSequence(function __create_sequence__(done){
-							trigger = done;
+							done.fail.apply(ø,args);
 						})
 						.defer();
-
-						// temporary version of `trigger`, which if called
-						// (right away), by the iterable sequence's `next` being
-						// called synchronously, will simply create a normal
-						// sequence with the success/error message(s) pre-injected
-						trigger = function __trigger__() {
-							fn = createSequence.apply(ø,arguments).defer();
-						};
-						trigger.fail = function __trigger_fail__() {
-							var args = ARRAY_SLICE.call(arguments);
-							fn = createSequence(function __create_sequence__(done){
-								done.fail.apply(ø,args);
-							})
-							.defer();
-						};
-					}
+					};
 				}
 
 				then(function __then__(done){
 					var _fn = fn;
-					// check if this argument is not already an ASQ instance?
+					// check if this argument is not already a sequence?
 					// if not, assume a function to invoke that will return
-					// an ASQ instance
+					// a sequence.
 					if (!isSequence(fn)) {
 						_fn = fn.apply(ø,ARRAY_SLICE.call(arguments,1));
 					}
-					// pipe the ASQ instance into our current sequence
+					// pipe the provided sequence into our current sequence
 					_fn.pipe(done);
 				});
 			});
@@ -496,7 +496,7 @@
 			}
 
 			ARRAY_SLICE.call(
-				wrapValueMessages(arguments,valWrapper)
+				wrapArgs(arguments,valWrapper)
 			)
 			.forEach(function __foreach__(fn){
 				then(function __then__(done){
@@ -700,9 +700,7 @@
 
 		// treat ASQ() constructor parameters as having been
 		// passed to `then()`
-		sequence_api.then.apply(ø,
-			wrapValueMessages(arguments,thenWrapper)
-		);
+		sequence_api.then.apply(ø,arguments);
 
 		return sequence_api;
 	}
@@ -726,17 +724,13 @@
 	// ***********************************************
 	// Value messages utilities
 	// ***********************************************
-	function preboundArgs(numArgs,args) {
-		return ARRAY_SLICE.call(args).slice(1,numArgs+1);
-	}
-
 	// wrapper helpers
 	function valWrapper(numArgs) {
 		// `numArgs` indicates how many pre-bound arguments
 		// will be sent in.
 		return ASQmessages.apply(ø,
 			// pass along only the pre-bound arguments
-			preboundArgs(numArgs,arguments)
+			ARRAY_SLICE.call(arguments).slice(1,numArgs+1)
 		);
 	}
 
@@ -749,11 +743,11 @@
 		arguments[numArgs+1] // the `done()`
 		.apply(ø,
 			// pass along only the pre-bound arguments
-			preboundArgs(numArgs,arguments)
+			ARRAY_SLICE.call(arguments).slice(1,numArgs+1)
 		);
 	}
 
-	function wrapValueMessages(args,wrapper) {
+	function wrapArgs(args,wrapper) {
 		var i, j;
 		args = ARRAY_SLICE.call(args);
 		for (i=0; i<args.length; i++) {
@@ -767,7 +761,12 @@
 					)
 				);
 			}
-			else if (typeof args[i] !== "function") {
+			else if (typeof args[i] !== "function" &&
+				(
+					wrapper === valWrapper ||
+					!isSequence(args[i])
+				)
+			) {
 				for (j=i+1; j<args.length; j++) {
 					if (typeof args[j] === "function" ||
 						checkBranding(args[j])
