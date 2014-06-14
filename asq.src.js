@@ -1,5 +1,5 @@
 /*! asynquence
-    v0.5.2-b (c) Kyle Simpson
+    v0.5.2-c (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -665,10 +665,6 @@
 					return sequence_messages;
 				case "sequence_errors":
 					return sequence_errors;
-				case "schedule":
-					return schedule;
-				case "tapSequence":
-					return tapSequence;
 			}
 		}
 
@@ -817,7 +813,7 @@
 	}
 
 
-	var public_api, extensions = {}, template,
+	var extensions = {}, template,
 		old_public_api = (context || {})[name],
 		ARRAY_SLICE = [].slice,
 		brand = "__ASQ__", ø = Object.create(null),
@@ -825,16 +821,14 @@
 	;
 
 	// ***********************************************
-	// Setup the ASQ public API
+	// Setup the public API
 	// ***********************************************
-	public_api = createSequence;
-
-	public_api.failed = function publicAPI$failed() {
-		var args = public_api.messages.apply(ø,arguments);
-		return createSequence(function $failed$(){ throw args; });
+	createSequence.failed = function publicAPI$failed() {
+		var args = ASQmessages.apply(ø,arguments);
+		return createSequence(function $failed$(){ throw args; }).defer();
 	};
 
-	public_api.extend = function publicAPI$extend(name,build) {
+	createSequence.extend = function publicAPI$extend(name,build) {
 		// reserved API override not allowed
 		if (!~["then","or","gate","pipe","seq","val","promise","fork","abort","duplicate","defer"]
 			.indexOf(name)
@@ -842,34 +836,38 @@
 			extensions[name] = build;
 		}
 
-		return public_api;
+		return createSequence;
 	};
 
-	public_api.messages = ASQmessages = function publicAPI$messages() {
+	createSequence.messages = ASQmessages = function publicAPI$messages() {
 		var ret = ARRAY_SLICE.call(arguments);
 		// brand the message wrapper so we can detect
 		return brandIt(ret);
 	};
 
-	public_api.isSequence = isSequence = function publicAPI$isSequence(val) {
+	createSequence.isSequence = isSequence = function publicAPI$isSequence(val) {
 		return checkBranding(val) && !Array.isArray(val);
 	};
 
-	public_api.isMessageWrapper = isMessageWrapper = function publicAPI$isMessageWrapper(val) {
+	createSequence.isMessageWrapper = isMessageWrapper = function publicAPI$isMessageWrapper(val) {
 		return checkBranding(val) && Array.isArray(val);
 	};
 
-	public_api.unpause = function publicAPI$unpause(sq) {
+	createSequence.unpause = function publicAPI$unpause(sq) {
 		if (sq.unpause) sq.unpause();
 		return sq;
 	};
 
-	public_api.noConflict = function publicAPI$noConflict() {
+	createSequence.noConflict = function publicAPI$noConflict() {
 		if (context) {
 			context[name] = old_public_api;
 		}
-		return public_api;
+		return createSequence;
 	};
 
-	return public_api;
+	// private utility exports: only for internal/plugin use!
+	createSequence.__schedule = schedule;
+	createSequence.__tapSequence = tapSequence;
+
+	return createSequence;
 });
