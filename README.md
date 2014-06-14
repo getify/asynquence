@@ -27,6 +27,25 @@ To create a new step, simply call `then(...)` with a function. That function wil
 
 The completion trigger that your step function(s) receive can be called directly to indicate success, or you can add the `fail` flag (see examples below) to indicate failure of that step. In either case, you can pass one or more messages onto the next step (or the next failure handler) by simply adding them as parameters to the call.
 
+Example:
+
+```js
+ASQ(24)
+.then(function(done,msg){
+    setTimeout(function(){
+        done(msg * 2);
+    },10);
+})
+.then(function(done,msg){
+    done("Meaning of life: " + msg);
+});
+.then(function(done,msg){
+   msg; // "Meaning of life: 42"
+});
+```
+
+**Note:** `then(..)` can also receive other *asynquence* sequence instances directly, just as `seq(..)` can (see below). When you call `then(Sq)`, the `Sq` sequence is tapped immediately, but the success/error message streams of `Sq` will be unaffected, meaning `Sq` can be continued separately.
+
 If you register a step using `then(...)` on a sequence which is already currently complete, that step will be processed at the next opportunity. Otherwise, calls to `then(...)` will be queued up until that step is ready for processing.
 
 You can register multiple steps, and multiple failure handlers. However, messages from a previous step (success or failure completion) will only be passed to the immediately next registered step (or the next failure handler). If you want to propagate along a message through multiple steps, you must do so yourself by making sure you re-pass the received message at each step completion.
@@ -72,7 +91,7 @@ ASQ("message")
 });
 ```
 
-`gate(..)` can also receive (instead of a function to act as a segment) just a regular *asynquence* sequence instance, which will automatically be tapped and piped into the gate as that particular segment. However, the success/error message streams on the separate sequence will be unaffected, meaning that separate sequence can be continued separately.
+`gate(..)` can also receive (instead of a function to act as a segment) just a regular *asynquence* sequence instance as a gate segment. When you call `gate(Sq)`, the `Sq` sequence is tapped immediately, but the success/error message streams of `Sq` will be unaffected, meaning `Sq` can be continued separately.
 
 ### Handling Failures & Errors
 
@@ -133,7 +152,7 @@ There are a few convenience methods on the API, as well:
 
     `seq(Fn)` is sugar short-hand for `then(function(done){ Fn.apply(null,[].slice.call(arguments,1)).pipe(done); })`.
 
-    This method will also accept *asynquence* sequence instances directly. `seq(Sq)` is (sort-of) sugar short-hand for `then(function(done){ Sq.pipe(done); })`. **Note:** the `Sq` sequence is tapped immediately, but both success/error message streams will pass-thru on `Sq` unaffected.
+    This method will also accept *asynquence* sequence instances directly. `seq(Sq)` is (sort-of) sugar short-hand for `then(function(done){ Sq.pipe(done); })`. **Note:** the `Sq` sequence is tapped immediately, but the success/error message streams of `Sq` will be unaffected, meaning `Sq` can be continued separately.
 
     Additionally, this method can accept, either directly or through function-call, an [Iterable Sequence](#iterable-sequences). `seq(iSq)` is (sort-of) sugar short-hand for `then(function(done){ iSq.then(done).or(done.fail); })`.
 
