@@ -264,7 +264,8 @@
 
 			ASQ()
 			.then(asyncDelayFn(100))
-			.gate(
+			// using the `all(..)` alias of `gate(..)`
+			.all(
 				asyncDelayFn(800),
 				delay_sq,
 				asyncDelayFn(700)

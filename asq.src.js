@@ -1,5 +1,5 @@
 /*! asynquence
-    v0.5.2-c (c) Kyle Simpson
+    v0.5.2-d (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -694,6 +694,9 @@
 				then: then,
 				or: or,
 				gate: gate,
+				// alias of `gate(..)` to `all(..)` for symmetry
+				// with native ES6 promises
+				all: gate,
 				pipe: pipe,
 				seq: seq,
 				val: val,
@@ -705,7 +708,7 @@
 			})
 		;
 
-		// include extensions, if any
+		// include any extensions
 		includeExtensions();
 
 		// templating the sequence setup?
@@ -830,7 +833,7 @@
 
 	createSequence.extend = function publicAPI$extend(name,build) {
 		// reserved API override not allowed
-		if (!~["then","or","gate","pipe","seq","val","promise","fork","abort","duplicate","defer"]
+		if (!~["then","or","gate","all","pipe","seq","val","promise","fork","abort","duplicate","defer"]
 			.indexOf(name)
 		) {
 			extensions[name] = build;

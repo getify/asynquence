@@ -46,11 +46,33 @@ ASQ(function(done){
 
 If you have two or more tasks to perform at the same time, but want to wait for them all to complete before moving on, you need a **gate**.
 
-Calling `gate(..)` with two or more functions creates a step that is a parallel gate across those functions, such that the single step in question isn't complete until all segments of the parallel gate are **successfully** complete.
+Calling `gate(..)` (or alias `all(..)`) with two or more functions creates a step that is a parallel gate across those functions, such that the single step in question isn't complete until all segments of the parallel gate are **successfully** complete.
 
 For parallel gate steps, each segment of that gate will receive a copy of the message(s) passed from the previous step. Also, all messages from the segments of this gate will be passed along to the next step (or the next failure handler, in the case of a gate segment indicating a failure).
 
-`gate(..)` can also receive (instead of a function to act as a segment) just a regular *asynquence* sequence instance, which will automatically be tapped and piped into the gate as that particular segment. However, the success/error message streams from the separate sequence will pass-thru unaffected.
+Example:
+
+```js
+ASQ("message")
+.gate(
+    function(done,msg){
+        setTimeout(function(){
+            done(msg + " 1");
+        },200);
+    },
+    function(done,msg){
+        setTimeout(function(){
+            done(msg + " 2");
+        },10);
+    }
+)
+.val(function(msg1,msg2){
+   msg1; // "message 1"
+   msg2; // "message 2"
+});
+```
+
+`gate(..)` can also receive (instead of a function to act as a segment) just a regular *asynquence* sequence instance, which will automatically be tapped and piped into the gate as that particular segment. However, the success/error message streams on the separate sequence will be unaffected, meaning that separate sequence can be continued separately.
 
 ### Handling Failures & Errors
 
