@@ -1,5 +1,5 @@
-// "rejectAfter"
-ASQ.rejectAfter = function __rejectAfter__(num) {
+// "failAfter"
+ASQ.failAfter = function __rejectAfter__(num) {
 	var args = ARRAY_SLICE.call(arguments,1);
 	num = +num || 0;
 
