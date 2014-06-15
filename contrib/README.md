@@ -202,7 +202,10 @@ Otherwise, yielding/returning of any other type of value, **including a sequence
 
 With both generators and iterable-sequences, the last *final* non-`undefined` value that is yielded/returned from the concurrency-grouping run will be the forward-passed message(s) to the next step in your main *asynquence* chain. If you want to pass on the channel messages from your generator run, end your last generator by `yield`ing out the `.messages` property of the *control token*. Likewise with iterable-sequences, `return` the channel messages from the last iterable-sequence step.
 
-To get a better sense of how this advanced functionality works, here's an [example of two generators paired as CSP-style co-routines](https://gist.github.com/getify/10172207).
+To get a better sense of how this advanced functionality works, check out these examples:
+
+* [Ping Pong](http://jsbin.com/jecazequ/1) (from [js-csp](https://github.com/ubolonton/js-csp/blob/master/README.md#examples) and the [go ping-pong](http://talks.golang.org/2013/advconc.slide#6) example)
+* [Two generators paired as CSP-style co-routines](https://gist.github.com/getify/10172207)
 
 ### `react` Plugin
 
