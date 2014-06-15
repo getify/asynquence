@@ -27,6 +27,29 @@ Sequence-step variations:
 
     An error anywhere along the waterfall behaves like an error in any sequence, immediately jumping to error state and aborting any further success progression.
 
+### `failAfter` Plugin
+
+`failAfter` plugin provides `ASQ.failAfter(..)`, which is a time-delayed version of the core `ASQ.failed(..)`. `failAfter(..)` produces a sequence that will fail after a certain period of time.
+
+The first parameter to `failAfter(..)` is a number of milliseconds to delay the failure-completion. Any subsequent (optional) parameters passed will be the error messages for the eventually-failed sequence.
+
+The most likely usage of this plugin is in combination with the `race(..)` plugin, to create a "timeout" type of behavior:
+
+```js
+// make a 2 sec timeout for some action
+ASQ()
+.race(
+	doSomethingAsync(..),
+	ASQ.failAfter(2000,"Timeout!")
+)
+.val(function(){
+	// success!
+})
+.or(function(err){
+	err; // "Timeout!"
+});
+```
+
 ### `iterable-sequence` Plugin
 
 `iterable-sequence` plugin provides `ASQ.iterable()` for creating iterable sequences. See [Iterable Sequences](https://github.com/getify/asynquence/blob/master/README.md#iterable-sequences) for more information, and examples: [sync loop](https://gist.github.com/getify/8211148#file-ex1-sync-iteration-js) and [async loop](https://gist.github.com/getify/8211148#file-ex2-async-iteration-js).

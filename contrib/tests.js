@@ -32,8 +32,8 @@
 
 			ASQ()
 			.gate(
-				ASQ.rejectAfter(200,"Hello world!"),
-				ASQ.rejectAfter(100,"This","is","great!")
+				ASQ.failAfter(200,"Hello world!"),
+				ASQ.failAfter(100,"This","is","great!")
 			)
 			.or(function(msg1,msg2,msg3){
 				clearTimeout(timeout);
