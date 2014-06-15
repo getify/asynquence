@@ -1,13 +1,13 @@
 # asynquence Contrib
 
-Optional plugin helpers are provided in `/contrib/*`. The full bundle of plugins (`contrib.js`) is **~2.2k** minzipped.
+Optional *asynquence* plugin helpers. The full bundle of plugins (`contrib.js`) is **~2.4k** minzipped.
 
 Gate variations:
 
-* `all(..)` is **an alias** of `gate(..)`.
-* `any(..)` is like `gate(..)`, except **just one segment** *has* to succeed to proceed on the main sequence.
+* `any(..)` is like `gate(..)`, which waits for all segments to complete, except **just one segment has to eventually succeed** to proceed on the main sequence.
 * `first(..)` is like `any(..)`, except **as soon as any segment succeeds**, the main sequence proceeds (ignoring subsequent results from other segments).
-* `last(..)` is like `any(..)`, except only **the latest segment to complete successfully** sends message(s) along to the main sequence.
+* `race(..)` is like `first(..)`, except the main sequence proceeds **as soon as any segment completes** (either success or failure).
+* `last(..)` is like `any(..)`, except only **the latest segment to complete successfully** sends its message(s) along to the main sequence.
 * `none(..)` is the inverse of `gate(..)`: the main sequence proceeds only **if all the segments fail** (with all segment error message(s) transposed as success message(s) and vice versa).
 * `map(arr, eachFn)` allows an asynchronous mapping of an array's values to another set of values. `map(..)` constructs a gate of segments, one for each item in `arr`. Each segment invokes `eachFn(..)` for the respective item in the array.
 
@@ -37,11 +37,13 @@ Sequence-step variations:
 
 **Note:** The vended promise is forked off the sequence, leaving the original sequence intact, to be continuable as normal. The message(s) (both success and error) from the chain are passed along to the promise, but they are *also* retained in the sequence itself, as if the forked-off promise is ignored.
 
+Example:
+
 ```js
 // make an asynquence sequence to use
 var sq = ASQ(function(done){
 	setTimeout(function(){
-		done(42);
+		done(42); // send 42 along as success message
 	},100);
 });
 
@@ -79,9 +81,32 @@ As long as either the native `Promise` is there, or that global has been spec-co
 
 ### `errfcb` Plugin
 
-`errfcb` plugin provides `errfcb()` on the main sequence instance API. Unlike other API methods, `errfcb()` **does not return** the main sequence instance (for chaining). Instead, it returns an "error-first" style (aka "node-style") callback that can be used with any method that expects such a callback.
+`errfcb` plugin provides `errfcb()` on the main sequence instance API. Calling `errfcb()` returns an "error-first" style (aka "node-style") callback that can be used with any method that expects such a callback.
 
 If the "error-first" callback is then invoked with the first ("error") parameter set, the main sequence is flagged for error as usual. Otherwise, the main sequence proceeds as success. Messages sent to the callback are passed through to the main sequence as success/error as expected.
+
+Example:
+
+```js
+// node.js: fs.readFile wrapper
+function readFile(filename) {
+	// setup an empty sequence (much like an empty
+	// promise)
+	var sq = ASQ();
+
+	// call node.js `fs.readFile(..), but pass in
+	// an error-first callback that is automatically
+	// wired into a sequence
+	fs.readFile( filename, sq.errfcb() );
+
+	// now, return our sequence/promise
+	return sq;
+}
+
+readFile("meaningoflife.txt")
+.then(..)
+..
+```
 
 ### `runner` Plugin
 

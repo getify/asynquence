@@ -31,21 +31,26 @@
 			var label = "Contrib Test  #1", timeout;
 
 			ASQ()
-			.then(asyncDelayFn(200))
-			.all(
-				asyncDelayFn(400),
-				asyncDelayFn(300),
-				asyncDelayFn(200)
+			.gate(
+				ASQ.rejectAfter(200,"Hello world!"),
+				ASQ.rejectAfter(100,"This","is","great!")
 			)
-			.then(function(){
+			.or(function(msg1,msg2,msg3){
 				clearTimeout(timeout);
-				PASS(testDone,label);
-			})
-			.or(function(){
-				clearTimeout(timeout);
-				var args = ARRAY_SLICE.call(arguments);
-				args.unshift(testDone,label);
-				FAIL.apply(FAIL,args);
+
+				if (
+					arguments.length === 3 &&
+					msg1 === "This" &&
+					msg2 === "is" &&
+					msg3 === "great!"
+				) {
+					PASS(testDone,label);
+				}
+				else {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
 			});
 
 			timeout = setTimeout(function(){
@@ -72,17 +77,28 @@
 				},
 				function(done,msg){
 					done(msg.toLowerCase());
-				}
+				},
+				// passing in some sequences directly
+				ASQ.failed("failed"),
+				ASQ(function(done){
+					setTimeout(function(){
+						done("Super","Duper!");
+					},600);
+				})
 			)
-			.val(function(msg1,msg2,msg3,msg4){
+			.val(function(msg1,msg2,msg3,msg4,msg5,msg6){
 				if (!(
-					arguments.length === 4 &&
+					arguments.length === 6 &&
 					ASQ.isMessageWrapper(msg1) &&
 					msg1[0] === "Hello" &&
 					msg1[1] === "HELLO" &&
 					typeof msg2 === "undefined" &&
 					typeof msg3 === "undefined" &&
-					msg4 === "hello"
+					msg4 === "hello" &&
+					typeof msg5 === "undefined" &&
+					ASQ.isMessageWrapper(msg6) &&
+					msg6[0] === "Super" &&
+					msg6[1] === "Duper!"
 				)) {
 					var args = ARRAY_SLICE.call(arguments);
 					args.unshift(testDone,label);
@@ -95,9 +111,7 @@
 						done.fail("Looks","good");
 					},250);
 				},
-				function(done,msg){
-					done.fail("now");
-				}
+				ASQ.failed("now")
 			)
 			.val(function(){
 				clearTimeout(timeout);
@@ -150,7 +164,14 @@
 					setTimeout(function(){
 						done("Ignored, too late");
 					},750);
-				}
+				},
+				// passing in some sequences directly
+				ASQ.failed("failed"),
+				ASQ(function(done){
+					setTimeout(function(){
+						done("Also ignored, too late");
+					},600);
+				})
 			)
 			.val(function(msg){
 				if (!(
@@ -165,11 +186,33 @@
 				}
 			})
 			.first(
+				ASQ.failed("failure ignored"),
+				ASQ("all","good"),
+				ASQ(function(done){
+					setTimeout(function(){
+						done("Ignored message");
+					},100);
+				})
+			)
+			.val(function(msg){
+				if (!(
+					arguments.length === 1 &&
+					ASQ.isMessageWrapper(msg) &&
+					msg[0] === "all" &&
+					msg[1] === "good"
+				)) {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			})
+			.first(
 				function(done){
 					setTimeout(function(){
 						done.fail("Looks","good");
 					},250);
 				},
+				ASQ.failed("and","failed"),
 				function(done){
 					done.fail("now");
 				}
@@ -180,15 +223,18 @@
 				args.unshift(testDone,label);
 				FAIL.apply(FAIL,args);
 			})
-			.or(function(msg1,msg2){
+			.or(function(msg1,msg2,msg3){
 				clearTimeout(timeout);
 
 				if (
-					arguments.length === 2 &&
+					arguments.length === 3 &&
 					ASQ.isMessageWrapper(msg1) &&
 					msg1[0] === "Looks" &&
 					msg1[1] === "good" &&
-					msg2 === "now"
+					ASQ.isMessageWrapper(msg2) &&
+					msg2[0] === "and" &&
+					msg2[1] === "failed" &&
+					msg3 === "now"
 				) {
 					PASS(testDone,label);
 				}
@@ -211,6 +257,11 @@
 				function(done,msg){
 					done.fail("Bad");
 				},
+				ASQ(function(done){
+					setTimeout(function(){
+						done("yeah","YEAH");
+					},500);
+				}),
 				function(done,msg){
 					setTimeout(function(){
 						done(msg,msg.toUpperCase());
@@ -221,18 +272,14 @@
 						done(msg.toLowerCase());
 					},300);
 				},
-				function(done,msg){
-					setTimeout(function(){
-						done.fail("News");
-					},250);
-				}
+				ASQ.failed("News")
 			)
 			.val(function(msg){
 				if (!(
 					arguments.length === 1 &&
 					ASQ.isMessageWrapper(msg) &&
-					msg[0] === "Hello" &&
-					msg[1] === "HELLO"
+					msg[0] === "yeah" &&
+					msg[1] === "YEAH"
 				)) {
 					var args = ARRAY_SLICE.call(arguments);
 					args.unshift(testDone,label);
@@ -247,7 +294,8 @@
 				},
 				function(done){
 					done.fail("now");
-				}
+				},
+				ASQ.failed("yeah","yeah!")
 			)
 			.val(function(){
 				clearTimeout(timeout);
@@ -255,15 +303,18 @@
 				args.unshift(testDone,label);
 				FAIL.apply(FAIL,args);
 			})
-			.or(function(msg1,msg2){
+			.or(function(msg1,msg2,msg3){
 				clearTimeout(timeout);
 
 				if (
-					arguments.length === 2 &&
+					arguments.length === 3 &&
 					ASQ.isMessageWrapper(msg1) &&
 					msg1[0] === "Looks" &&
 					msg1[1] === "good" &&
-					msg2 === "now"
+					msg2 === "now" &&
+					ASQ.isMessageWrapper(msg3) &&
+					msg3[0] === "yeah" &&
+					msg3[1] === "yeah!"
 				) {
 					PASS(testDone,label);
 				}
@@ -290,15 +341,19 @@
 				},
 				function(done,msg){
 					done.fail("so far");
-				}
+				},
+				ASQ.failed("and","still")
 			)
-			.val(function(msg1,msg2){
+			.val(function(msg1,msg2,msg3){
 				if (!(
-					arguments.length === 2 &&
+					arguments.length === 3 &&
 					ASQ.isMessageWrapper(msg1) &&
 					msg1[0] === "Looks" &&
 					msg1[1] === "good" &&
-					msg2 === "so far"
+					msg2 === "so far" &&
+					ASQ.isMessageWrapper(msg3) &&
+					msg3[0] === "and" &&
+					msg3[1] === "still"
 				)) {
 					var args = ARRAY_SLICE.call(arguments);
 					args.unshift(testDone,label);
@@ -306,9 +361,7 @@
 				}
 			})
 			.none(
-				function(done){
-					done.fail("Bad");
-				},
+				ASQ.failed("Bad"),
 				function(done){
 					setTimeout(function(){
 						done("Hello");
@@ -317,6 +370,7 @@
 				function(done){
 					done("world","it's me!");
 				},
+				ASQ("Ah","Ha!"),
 				function(done){
 					setTimeout(function(){
 						done.fail("News");
@@ -329,17 +383,20 @@
 				args.unshift(testDone,label);
 				FAIL.apply(FAIL,args);
 			})
-			.or(function(msg1,msg2,msg3,msg4){
+			.or(function(msg1,msg2,msg3,msg4,msg5){
 				clearTimeout(timeout);
 
 				if (
-					arguments.length === 4 &&
+					arguments.length === 5 &&
 					typeof msg1 === "undefined" &&
 					msg2 === "Hello" &&
 					ASQ.isMessageWrapper(msg3) &&
 					msg3[0] === "world" &&
 					msg3[1] === "it's me!" &&
-					typeof msg4 === "undefined"
+					ASQ.isMessageWrapper(msg4) &&
+					msg4[0] === "Ah" &&
+					msg4[1] === "Ha!" &&
+					typeof msg5 === "undefined"
 				) {
 					PASS(testDone,label);
 				}

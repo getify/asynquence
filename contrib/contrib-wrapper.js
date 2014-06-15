@@ -1,5 +1,5 @@
 /*! asynquence-contrib
-    v0.2.3-a (c) Kyle Simpson
+    v0.3.0-a (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -27,8 +27,62 @@
 
 	var ARRAY_SLICE = Array.prototype.slice,
 		ø = Object.create(null),
-		brand = "__ASQ__"
+		brand = "__ASQ__",
+		schedule = ASQ.__schedule,
+		tapSequence = ASQ.__tapSequence
 	;
+
+	function wrapGate(api,fns,success,failure,reset) {
+		fns = fns.map(function __map__(fn,idx){
+			var def;
+			// tap any directly-provided sequences immediately
+			if (ASQ.isSequence(fn)) {
+				def = { fn: fn };
+				tapSequence(def);
+				return function __fn__(trigger) {
+					def.fn
+					.val(function __val__(){
+						success(trigger,idx,ARRAY_SLICE.call(arguments));
+					})
+					.or(function __or__(){
+						failure(trigger,idx,ARRAY_SLICE.call(arguments));
+					});
+				};
+			}
+			else {
+				return function __fn__(trigger) {
+					var args = ARRAY_SLICE.call(arguments);
+					args[0] = function __trigger__() {
+						success(trigger,idx,ARRAY_SLICE.call(arguments));
+					};
+					args[0].fail = function __fail__() {
+						failure(trigger,idx,ARRAY_SLICE.call(arguments));
+					};
+					args[0].abort = function __abort__() {
+						reset();
+					};
+					args[0].errfcb = function __errfcb__(err) {
+						if (err) {
+							failure(trigger,idx,[err]);
+						}
+						else {
+							success(trigger,idx,ARRAY_SLICE.call(arguments,1));
+						}
+					};
+
+					fn.apply(ø,args);
+				};
+			}
+		});
+
+		api.then(function __then__(){
+			var args = ARRAY_SLICE.call(arguments);
+
+			fns.forEach(function __forEach__(fn){
+				fn.apply(ø,args);
+			});
+		});
+	}
 
 /*PLUGINS*/
 

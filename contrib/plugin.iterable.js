@@ -3,12 +3,6 @@
 	var template;
 
 	ASQ.iterable = function __iterable__() {
-		function schedule(fn) {
-			return (typeof setImmediate !== "undefined") ?
-				setImmediate(fn) : setTimeout(fn,0)
-			;
-		}
-
 		function throwSequenceErrors() {
 			throw (sequence_errors.length === 1 ? sequence_errors[0] : sequence_errors);
 		}

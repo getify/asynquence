@@ -7,78 +7,75 @@ ASQ.extend("any",function __extend__(api,internals){
 			return api;
 		}
 
-		var fns = ARRAY_SLICE.call(arguments);
+		function reset() {
+			finished = true;
+			error_messages.length = 0;
+			success_messages.length = 0;
+		}
 
-		api.then(function __then__(mainDone){
-			function checkGate() {
-				var msgs;
-
-				if (completed === fns.length) {
-					msgs = [];
-
-					if (success) {
-						fns
-						.forEach(function __foreach__(fn,i){
-							msgs.push(success_messages["s" + i]);
-						});
-
-						// completed gate with at least one
-						// successful segment, so send success
-						// messages into main sequence
-						mainDone.apply(ø,msgs);
-					}
-					else {
-						fns
-						.forEach(function __foreach__(fn,i){
-							msgs.push(error_messages["s" + i]);
-						});
-						// completed gate without success, so
-						// send errors into main sequence
-						mainDone.fail.apply(ø,msgs);
-					}
-				}
+		function complete(trigger) {
+			if (success_messages.length > 0) {
+				// any successful segment's message(s) sent
+				// to main sequence to proceed as success
+				success_messages.length = fns.length;
+				trigger.apply(ø,success_messages);
+			}
+			else {
+				// send errors into main sequence
+				error_messages.length = fns.length;
+				trigger.fail.apply(ø,error_messages);
 			}
 
-			var success = false, completed = 0,
-				success_messages = {}, error_messages = {},
-				sq = ASQ.apply(ø,ARRAY_SLICE.call(arguments,1))
-			;
+			reset();
+		}
 
-			fns = fns.map(function __map__(fn,idx){
-				return function __segment__(done) {
-					var args = ARRAY_SLICE.call(arguments);
-					args[0] = function __done__() {
-						success = true;
-						completed++;
-						success_messages["s" + idx] =
-							arguments.length > 1 ?
-							ASQ.messages.apply(ø,arguments) :
-							arguments[0]
-						;
-						checkGate();
-					};
-					args[0].fail = function __fail__() {
-						completed++;
-						error_messages["s" + idx] =
-							arguments.length > 1 ?
-							ASQ.messages.apply(ø,arguments) :
-							arguments[0]
-						;
-						checkGate();
-					};
-					args[0].abort = function __abort__() {
-						if (!success) {
-							done.abort();
-							mainDone.abort();
-						}
-					};
+		function success(trigger,idx,args) {
+			if (!finished) {
+				completed++;
+				success_messages[idx] =
+					args.length > 1 ?
+					ASQ.messages.apply(ø,args) :
+					args[0]
+				;
 
-					fn.apply(ø,args);
-				};
-			});
+				// all segments complete?
+				if (completed === fns.length) {
+					finished = true;
 
-			sq.gate.apply(ø,fns);
-		});
+					complete(trigger);
+				}
+			}
+		}
+
+		function failure(trigger,idx,args) {
+			if (!finished &&
+				!(idx in error_messages)
+			) {
+				completed++;
+				error_messages[idx] =
+					args.length > 1 ?
+					ASQ.messages.apply(ø,args) :
+					args[0]
+				;
+			}
+
+			// all segments complete?
+			if (!finished &&
+				completed === fns.length
+			) {
+				finished = true;
+
+				complete(trigger);
+			}
+		}
+
+		var completed = 0, error_messages = [], finished = false, fns,
+			success_messages = []
+		;
+
+		fns = ARRAY_SLICE.call(arguments);
+
+		wrapGate(api,fns,success,failure,reset);
 
 		return api;
 	};

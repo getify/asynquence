@@ -7,67 +7,55 @@ ASQ.extend("first",function __extend__(api,internals){
 			return api;
 		}
 
-		var fns = ARRAY_SLICE.call(arguments);
+		function reset() {
+			error_messages.length = 0;
+		}
 
-		api.then(function __then__(mainDone){
-			var completed = 0, error_messages = {}, success = false,
-				sq = ASQ.apply(ø,ARRAY_SLICE.call(arguments,1))
-			;
+		function success(trigger,idx,args) {
+			if (!finished) {
+				finished = true;
 
-			fns = fns.map(function __map__(fn,idx){
-				return function __segment__(done) {
-					var args = ARRAY_SLICE.call(arguments);
-					args[0] = function __done__() {
-						if (!success) {
-							success = true;
-							completed++;
+				// first successful segment triggers
+				// main sequence to proceed as success
+				trigger(
+					args.length > 1 ?
+					ASQ.messages.apply(ø,args) :
+					args[0]
+				);
 
-							// first successful segment triggers
-							// main sequence to proceed as success
-							mainDone(
-								arguments.length > 1 ?
-								ASQ.messages.apply(ø,arguments) :
-								arguments[0]
-							);
+				reset();
+			}
+		}
 
-							// no longer need the inner gate
-							sq.abort();
-						}
-					};
-					args[0].fail = function __fail__() {
-						var msgs = [];
+		function failure(trigger,idx,args) {
+			if (!finished &&
+				!(idx in error_messages)
+			) {
+				completed++;
+				error_messages[idx] =
+					args.length > 1 ?
+					ASQ.messages.apply(ø,args) :
+					args[0]
+				;
 
-						completed++;
-						error_messages["s" + idx] =
-							arguments.length > 1 ?
-							ASQ.messages.apply(ø,arguments) :
-							arguments[0]
-						;
+				// all segments complete without success?
+				if (completed === fns.length) {
+					finished = true;
 
-						// all segments complete without success?
-						if (!success && completed === fns.length) {
-							fns
-							.forEach(function __foreach__(fn,i){
-								msgs.push(error_messages["s" + i]);
-							});
+					// send errors into main sequence
+					error_messages.length = fns.length;
+					trigger.fail.apply(ø,error_messages);
 
-							// send errors into main sequence
-							mainDone.fail.apply(ø,msgs);
-						}
-					};
-					args[0].abort = function __abort__() {
-						if (!success) {
-							done.abort();
-							mainDone.abort();
-						}
-					};
+					reset();
+				}
+			}
+		}
 
-					fn.apply(ø,args);
-				};
-			});
+		var completed = 0, error_messages = [], finished = false, fns;
 
-			sq.gate.apply(ø,fns);
-		});
+		fns = ARRAY_SLICE.call(arguments);
+
+		wrapGate(api,fns,success,failure,reset);
 
 		return api;
 	};
