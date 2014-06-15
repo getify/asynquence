@@ -1,6 +1,6 @@
 {
 	"name": "asynquence",
-	"version": "0.5.2-e",
+	"version": "0.5.2-f",
 	"description": "asynquence: promise-style async sequence flow-control",
 	"main": "./asq.js",
 	"scripts": {

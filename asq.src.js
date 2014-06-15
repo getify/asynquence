@@ -1,5 +1,5 @@
 /*! asynquence
-    v0.5.2-e (c) Kyle Simpson
+    v0.5.2-f (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -38,11 +38,13 @@
 				item = void 0;
 			},
 			drain: function drain(self) {
-				while (first) {
-					first.fn(self);
-					first = first.next;
+				var f = first;
+				first = last = cycle = null;
+
+				while (f) {
+					f.fn(self);
+					f = f.next;
 				}
-				cycle = last = first;
 			}
 		};
 	}
