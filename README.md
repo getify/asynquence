@@ -6,6 +6,12 @@ A tiny (**~2.2k** minzipped) lib for promise-style async sequence flow-control.
 
 *asynquence* is a thin wrapper/abstraction on top of promises that makes using them for async flow control easier and more powerful.
 
+-----
+
+**For an in-depth discussion of *asynquence*, check out this [two-part](http://davidwalsh.name/asynquence-part-1) blog [post series](http://davidwalsh.name/asynquence-part-2), graciously hosted on [David Walsh](http://twitter.com/davidwalshblog)'s site.**
+
+-----
+
 ### TL;DR: By Example
 
 * [Sequences & gates](https://gist.github.com/getify/5959149), at a glance
