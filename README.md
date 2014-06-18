@@ -13,7 +13,7 @@ A tiny (**~2.2k** minzipped) lib for promise-style async sequence flow-control.
 * Example/explanation of [promise-style sequences](https://gist.github.com/jakearchibald/0e652d95c07442f205ce#comment-977119)
 * More advanced example of ["nested" composition of sequences](https://gist.github.com/getify/10273f3de07dda27ebce)
 * [Iterable sequences](#iterable-sequences): [sync loop](https://gist.github.com/getify/8211148#file-ex1-sync-iteration-js) and [async loop](https://gist.github.com/getify/8211148#file-ex2-async-iteration-js) and [async batch iteration of list](https://gist.github.com/getify/8464917)
-* [CSP-style coroutine concurrency](https://gist.github.com/getify/10172207) via [`runner(..)` contrib plugin](https://github.com/getify/asynquence/blob/master/contrib/README.md#runner-plugin)
+* ["Ping Pong", CSP-style](http://jsbin.com/jecazequ/1) coroutine concurrency, via [`runner(..)` contrib plugin](https://github.com/getify/asynquence/blob/master/contrib/README.md#runner-plugin). Also [another example](https://gist.github.com/getify/10172207) showing message passing.
 * Reactive Sequences ([example 1](http://jsbin.com/rozipaki/1), [example2](https://gist.github.com/getify/bba5ec0de9d6047b720e)) (via [`react(..)` plugin](https://github.com/getify/asynquence/blob/master/contrib/README.md#react-plugin)) inspired by [RxJS's Reactive Observables](http://rxjs.codeplex.com/)
 * API [Usage Examples](#usage-examples)
 
