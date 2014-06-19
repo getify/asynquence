@@ -36,7 +36,7 @@ The completion trigger that your step function(s) receive can be called directly
 Example:
 
 ```js
-ASQ(24)
+ASQ(21)
 .then(function(done,msg){
     setTimeout(function(){
         done(msg * 2);
