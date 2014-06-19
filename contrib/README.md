@@ -1,6 +1,6 @@
 # asynquence Contrib
 
-Optional *asynquence* plugin helpers. The full bundle of plugins (`contrib.js`) is **~2.4k** minzipped.
+Optional *asynquence* plugin helpers. The full bundle of plugins (`contrib.js`) is **~2.5k** minzipped.
 
 Gate variations:
 
@@ -27,13 +27,29 @@ Sequence-step variations:
 
     An error anywhere along the waterfall behaves like an error in any sequence, immediately jumping to error state and aborting any further success progression.
 
-### `failAfter` Plugin
+### after/failAfter Plugins
 
-`failAfter` plugin provides `ASQ.failAfter(..)`, which is a time-delayed version of the core `ASQ.failed(..)`. `failAfter(..)` produces a sequence that will fail after a certain period of time.
+`after` plugin provides a sequence instance method `after(..)` which inserts a delay into a sequence at that step. The first parameter is a number of milliseconds to wait. (Optional) additional parameters provide sequence messages to pass along (overriding previous sequence messages). Otherwise, previous sequence messages pass-through the delay automatically.
 
-The first parameter to `failAfter(..)` is a number of milliseconds to delay the failure-completion. Any subsequent (optional) parameters passed will be the error messages for the eventually-failed sequence.
+`after` plugin also provides a static method version `ASQ.after(..)` which is the same as `ASQ().after(..)`.
 
-The most likely usage of this plugin is in combination with the `race(..)` plugin, to create a "timeout" type of behavior:
+
+```js
+ASQ(42) // `42` gets discarded
+.after(500,"Hello","World!")
+.val(function(msg1,msg2){
+	console.log(msg1,msg2); // "Hello"  "World!"
+});
+
+ASQ.after(500)
+.val(function(){
+	console.log("Hello World!");
+});
+```
+
+`failAfter` plugin provides both the sequence method `failAfter(..)` and the static method `ASQ.failAfter(..)`, which work exactly like the `after` plugin methods above, but result in failure rather than success.
+
+The most common usage of the `failAfter` plugin is likely in combination with the `race(..)` plugin, to create "timeout" behavior:
 
 ```js
 // make a 2 sec timeout for some action

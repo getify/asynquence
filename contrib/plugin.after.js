@@ -1,0 +1,24 @@
+// "after"
+ASQ.extend("after",function __extend__(api,internals){
+	return function __after__(num) {
+		var args = arguments.length > 1 ?
+			ARRAY_SLICE.call(arguments,1) :
+			void 0
+		;
+		num = +num || 0;
+
+		api.then(function(done){
+			args = args || ARRAY_SLICE.call(arguments,1);
+
+			setTimeout(function(){
+				done.apply(ø,args);
+			},num);
+		});
+
+		return api;
+	};
+});
+
+ASQ.after = function ASQ$after() {
+	return ASQ().after.apply(ø,arguments);
+};

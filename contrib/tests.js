@@ -32,9 +32,88 @@
 
 			ASQ()
 			.gate(
-				ASQ.failAfter(200,"Hello world!"),
-				ASQ.failAfter(100,"This","is","great!")
+				ASQ.after(300,"Hello"),
+				ASQ.after(200,"World","!")
 			)
+			.val(function(msg1,msg2){
+				if (!(
+					arguments.length === 2 &&
+					msg1 === "Hello" &&
+					ASQ.isMessageWrapper(msg2) &&
+					msg2[0] === "World" &&
+					msg2[1] === "!"
+				)) {
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+					return;
+				}
+
+				return msg1 + " " + msg2[0] + msg2[1];
+			})
+			.after(50)
+			.val(function(msg){
+				if (!(
+					arguments.length === 1 &&
+					msg === "Hello World!"
+				)) {
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+					return;
+				}
+
+				return "Ignored message";
+			})
+			.after(50,42)
+			.val(function(msg){
+				if (!(
+					arguments.length === 1 &&
+					msg === 42
+				)) {
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+					return;
+				}
+
+				return "Ignored message";
+			})
+			.then(function(done){
+				ASQ("Hello")
+				.failAfter(25)
+				.val(done.fail)
+				.or(done);
+			})
+			.val(function(){
+				if (arguments.length > 0) {
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+					return;
+				}
+
+				return "Ignored message";
+			})
+			.then(function(done){
+				ASQ()
+				.gate(
+					ASQ.failAfter(200,"Hello everyone!"),
+					ASQ.failAfter(100,"This","is","great!"),
+					ASQ("Ignored message").failAfter(150)
+				)
+				.pipe(done);
+			})
+			.val(function(){
+				clearTimeout(timeout);
+				var args = ARRAY_SLICE.call(arguments);
+				args.unshift(testDone,label);
+				FAIL.apply(FAIL,args);
+			})
 			.or(function(msg1,msg2,msg3){
 				clearTimeout(timeout);
 
