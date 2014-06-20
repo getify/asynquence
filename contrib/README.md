@@ -1,6 +1,6 @@
 # asynquence Contrib
 
-Optional *asynquence* plugin helpers. The full bundle of plugins (`contrib.js`) is **~2.5k** minzipped.
+Optional *asynquence* plugin helpers. The full bundle of plugins (`contrib.js`) is **~2.8k** minzipped.
 
 Gate variations:
 
@@ -27,7 +27,65 @@ Sequence-step variations:
 
     An error anywhere along the waterfall behaves like an error in any sequence, immediately jumping to error state and aborting any further success progression.
 
-### after/failAfter Plugins
+### `pThen` & `pCatch` Plugins
+
+`pThen` plugin provides a `pThen(..)` sequence method which is a cousin to the core built-in `then(..)`, but it works instead with similar semantics/behavior to native ES6 Promises. In other words, if you prefer the way `then(..)` works with Promises over *asynquence*'s `then(..)`, just use `pThen(..)` instead. **Note:** `pThen(..)` doesn't have the extra sugar capabilities like `then(..)` does, such as being able to accept sequences as direct parameters, etc -- it does just what Promise `then(..)` does.
+
+Also provided is `pCatch(..)` which has the same semantics as Promise `catch(..)`: it's literally the same as calling `pThen(null, ..)`.
+
+Example:
+
+```js
+ASQ(21)
+.pThen(function(msg){
+	return msg * 2;
+})
+.pThen(function(msg){
+	return ASQ(function(done){
+		setTimeout(function(){
+			done(msg);
+		},100);
+	});
+})
+.pThen(function(msg){
+	return new Promise(function(resolve,reject){
+		setTimeout(function(){
+			reject("Oops:" + msg);
+		},100);
+	});
+})
+.pThen(
+	function(msg){
+		throw msg.toUpperCase();
+	},
+	function(){} // never called
+)
+// sequence is now in error state here!
+.pCatch(
+	null,
+	function(err){
+		console.log(err); // "OOPS:42"
+		return "Cool";
+	}
+)
+// sequence no longer in error state since
+// `pCatch`/`pThen` registered an error handler
+// which handled the sequence error!
+.val(function(msg){
+	console.log(msg); // "Cool"
+})
+.or(function(){}); // never called
+```
+
+You'll notice differences from the *asynquence* core `then(..)`, and how they match Promise `then(..)` behaviors:
+
+1. `pThen(..)` takes a `success` and/or `failure` handler (both optional), rather than multiple `then` handlers.
+2. The `success` handler is not provided the `done` trigger.
+3. Instead, you return either an immediate value (which then passes on to the next step at the next cycle), or a sequence or promise for a value, in which case the sequence/promise is "unwrapped", and procession occurs only after it resolves.
+4. If you register a `failure` handler via `pThen(..)` or `pCatch(..)`, then it swallows (so you can handle) any sequence errors to that point, and essentially resets the sequence back to success state after it is passes.
+5. You can also return a value from a `failure` handler, which is the success message passed onto the next step. **Note:** Just like with Promises, a sequence/promise returned from an `failure` handler **is not "unwrapped"** -- it's just passed along as a normal value.
+
+### `after` & `failAfter` Plugins
 
 `after` plugin provides a sequence instance method `after(..)` which inserts a delay into a sequence at that step. The first parameter is a number of milliseconds to wait. (Optional) additional parameters provide sequence messages to pass along (overriding previous sequence messages). Otherwise, previous sequence messages pass-through the delay automatically.
 

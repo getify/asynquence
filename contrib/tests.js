@@ -1912,6 +1912,325 @@
 				FAIL(testDone,label + " (from timeout)");
 			},2000);
 		});
+		tests.push(function(testDone){
+			var label = "Contrib Test #20", timeout;
+
+			ASQ("Hello","World")
+			.pThen(function(msgs){
+				if (!(
+					arguments.length === 1 &&
+					ASQ.isMessageWrapper(msgs) &&
+					msgs[0] === "Hello" &&
+					msgs[1] === "World"
+				)) {
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+					return;
+				}
+
+				msgs.push("!");
+
+				return msgs;
+			})
+			.val(function(msg1,msg2,msg3){
+				if (!(
+					arguments.length === 3 &&
+					msg1 === "Hello" &&
+					msg2 === "World" &&
+					msg3 === "!"
+				)) {
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+					return;
+				}
+
+				return 42;
+			})
+			.pThen(function(msg){
+				if (!(
+					arguments.length === 1 &&
+					msg === 42
+				)) {
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+					return;
+				}
+
+				return msg * 2;
+			})
+			.pThen(function(msg){
+				if (!(
+					arguments.length === 1 &&
+					msg === 84
+				)) {
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+					return;
+				}
+
+				return ASQ(function(done){
+					setTimeout(function(){
+						done("Oh","Yeah!");
+					},100);
+				});
+			})
+			.pThen(function(msgs){
+				if (!(
+					arguments.length === 1 &&
+					ASQ.isMessageWrapper(msgs) &&
+					msgs[0] === "Oh" &&
+					msgs[1] === "Yeah!"
+				)) {
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+					return;
+				}
+
+				return new Promise(function(resolve,reject){
+					setTimeout(function(){
+						resolve(msgs.join(" ").toUpperCase() + "!");
+					},100);
+				});
+			})
+			.val(function(msg){
+				if (!(
+					arguments.length === 1 &&
+					msg === "OH YEAH!!"
+				)) {
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+					return;
+				}
+
+				throw "Can you handle it?";
+			})
+			.pThen(
+				function(){
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				},
+				function(err){
+					if (!(
+						arguments.length === 1 &&
+						err === "Can you handle it?"
+					)) {
+						clearTimeout(timeout);
+						var args = ARRAY_SLICE.call(arguments);
+						args.unshift(testDone,label);
+						FAIL.apply(FAIL,args);
+						return;
+					}
+
+					return err.toUpperCase();
+				}
+			)
+			.val(function(msg){
+				if (!(
+					arguments.length === 1 &&
+					msg === "CAN YOU HANDLE IT?"
+				)) {
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+					return;
+				}
+
+				throw ASQ.messages("Keep","It","Up");
+			})
+			.pThen(
+				function(){
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				},
+				function(errs){
+					if (!(
+						arguments.length === 1 &&
+						ASQ.isMessageWrapper(errs) &&
+						errs[0] === "Keep" &&
+						errs[1] === "It" &&
+						errs[2] === "Up"
+					)) {
+						clearTimeout(timeout);
+						var args = ARRAY_SLICE.call(arguments);
+						args.unshift(testDone,label);
+						FAIL.apply(FAIL,args);
+					}
+
+					// NOTE: no return value here, on purpose
+				}
+			)
+			.val(function(){
+				if (arguments.length > 0) {
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+					return;
+				}
+
+				throw "Yep";
+			})
+			.pThen(
+				function(){
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				},
+				function(err){
+					if (!(
+						arguments.length === 1 &&
+						err === "Yep"
+					)) {
+						clearTimeout(timeout);
+						var args = ARRAY_SLICE.call(arguments);
+						args.unshift(testDone,label);
+						FAIL.apply(FAIL,args);
+						return;
+					}
+
+					return ASQ.messages(err.toUpperCase(),"!");
+				}
+			)
+			// NOTE: intentionally `then(..)` instead of `pThen(..)` here
+			.then(function(done,msg1,msg2){
+				if (!(
+					arguments.length === 3 &&
+					msg1 === "YEP" &&
+					msg2 === "!"
+				)) {
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+					return;
+				}
+
+				var sq = ASQ()
+				.pThen(
+					function(){
+						throw "OK";
+					},
+					function(){
+						clearTimeout(timeout);
+						var args = ARRAY_SLICE.call(arguments);
+						args.unshift(testDone,label);
+						FAIL.apply(FAIL,args);
+						sq.abort();
+					}
+				)
+				.pCatch(
+					function(err){
+						if (!(
+							arguments.length === 1 &&
+							err === "OK"
+						)) {
+							clearTimeout(timeout);
+							var args = ARRAY_SLICE.call(arguments);
+							args.unshift(testDone,label);
+							FAIL.apply(FAIL,args);
+							sq.abort();
+							return;
+						}
+
+						return err + "!!";
+					}
+				)
+				.pThen(
+					function(msg){
+						if (!(
+							arguments.length === 1 &&
+							msg === "OK!!"
+						)) {
+							clearTimeout(timeout);
+							var args = ARRAY_SLICE.call(arguments);
+							args.unshift(testDone,label);
+							FAIL.apply(FAIL,args);
+							sq.abort();
+							return;
+						}
+
+						throw ASQ.messages(msg.toLowerCase(),"yay!!");
+					},
+					function(){
+						clearTimeout(timeout);
+						var args = ARRAY_SLICE.call(arguments);
+						args.unshift(testDone,label);
+						FAIL.apply(FAIL,args);
+						sq.abort();
+					}
+				)
+				.pCatch(function(errs){
+					if (!(
+						arguments.length === 1 &&
+						ASQ.isMessageWrapper(errs) &&
+						errs[0] === "ok!!" &&
+						errs[1] === "yay!!"
+					)) {
+						clearTimeout(timeout);
+						var args = ARRAY_SLICE.call(arguments);
+						args.unshift(testDone,label);
+						FAIL.apply(FAIL,args);
+						sq.abort();
+						return;
+					}
+
+					throw (errs[0] + errs[1]);
+				})
+				.val(function(){
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+					sq.abort();
+				})
+				.or(done);
+			})
+			.val(function(msg1,msg2,msg3){
+				clearTimeout(timeout);
+
+				if (
+					arguments.length === 3 &&
+					msg1 === "ok!!" &&
+					msg2 === "yay!!" &&
+					msg3 === "ok!!yay!!"
+				) {
+					PASS(testDone,label);
+				}
+				else {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			})
+			.or(function(){
+				clearTimeout(timeout);
+				var args = ARRAY_SLICE.call(arguments);
+				args.unshift(testDone,label);
+				FAIL.apply(FAIL,args);
+			});
+
+			timeout = setTimeout(function(){
+				FAIL(testDone,label + " (from timeout)");
+			},2000);
+		});
 
 		return tests;
 	}
