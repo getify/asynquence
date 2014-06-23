@@ -44,7 +44,7 @@ ASQ(21)
 })
 .then(function(done,msg){
     done("Meaning of life: " + msg);
-});
+})
 .then(function(done,msg){
    msg; // "Meaning of life: 42"
 });
