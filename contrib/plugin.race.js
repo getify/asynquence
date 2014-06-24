@@ -1,6 +1,6 @@
 // "race"
 ASQ.extend("race",function __extend__(api,internals){
-	return function __first__() {
+	return function __race__() {
 		if (internals("seq_error") || internals("seq_aborted") ||
 			arguments.length === 0
 		) {
