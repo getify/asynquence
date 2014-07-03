@@ -2,7 +2,6 @@
 
 var fs = require("fs"),
 	path = require("path"),
-	exec = require("child_process").exec,
 	ugly = require("uglify-js"),
 
 	result
