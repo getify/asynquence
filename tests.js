@@ -34,7 +34,7 @@
 		var tests = [];
 
 		tests.push(function(testDone){
-			var label = "Core Test  #1", timeout;
+			var label = "Core Test  #1", timeout, ASQ2;
 
 			ASQ()
 			.then(asyncDelayFn(100))
@@ -1343,13 +1343,43 @@
 			},2000);
 		});
 		tests.push(function(testDone){
-			var label = "Core Test #24", timeout;
+			var label = "Core Test #24", timeout, ASQ2, ASQ3;
+
+			ASQ2 = ASQ.clone();
+
+			ASQ2._hello_ = "world";
+			ASQ2.extend("foobar",function(){ return function(){}; });
+
+			ASQ3 = ASQ2.clone();
+
+			try {
+				ASQ().foobar();
+				FAIL(testDone,label,"ASQ().foobar()");
+				return;
+			} catch (err) {}
+
+			try {
+				ASQ2().foobar();
+			}
+			catch (err) {
+				FAIL(testDone,label,"ASQ2().foobar()",err,ASQ2(),ASQ2().foobar);
+				return;
+			}
+
+			try {
+				ASQ3._hello_.length;
+				ASQ3().foobar();
+				FAIL(testDone,label,"ASQ3",ASQ3);
+				return;
+			} catch (err) {}
 
 			// testing a custom plugin which will pass along
 			// any messages received to it, but will inject
 			// the message "foo" at the beginning, and append
 			// the message "bar" after the last
-			ASQ.extend("foobar",function(api,internals){
+			ASQ2 = ASQ.clone();
+
+			ASQ2.extend("foobar",function(api,internals){
 				return function __foobar__() {
 					api.then(function(done){
 						// cheat and manually inject a message into
@@ -1366,7 +1396,7 @@
 				};
 			});
 
-			ASQ("Hello","World")
+			ASQ2("Hello","World")
 			.foobar() // a custom plugin
 			.val(function(msg1,msg2,msg3,msg4){
 				clearTimeout(timeout);

@@ -1,5 +1,5 @@
 /*! asynquence
-    v0.5.2-g (c) Kyle Simpson
+    v0.5.3-a (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -868,6 +868,12 @@
 			context[name] = old_public_api;
 		}
 		return createSequence;
+	};
+
+	// create a clone of the *asynquence* API
+	// Note: does *not* include any registered extensions
+	createSequence.clone = function publicAPI$clone() {
+		return DEF(name,context);
 	};
 
 	// private utility exports: only for internal/plugin use!
