@@ -214,6 +214,36 @@ If you want to test if any arbitrary object is an *asynquence* sequence instance
 
 `ASQ.noConflict()` rolls back the global `ASQ` identifier and returns the current API instance to you. This can be used to keep your global namespace clean, or it can be used to have multiple simultaneous libraries (including separate versions/copies of *asynquence*!) in the same program without conflicts over the `ASQ` global identifier.
 
+`ASQ.clone()` creates a fresh, clean copy of *asynquence*. This is primarily useful if you want to have different *asynquence* copies which are each extended with different plugins (see below).
+
+**Note:** In node.js, if you load contrib bundle(s) from the standard top-level package location (`./node_modules/asynquence-contrib/a-bundle-file.js`), it will automatically look for and load (if found) the peer *asynquence* top-level package (`./node_modules/asynquence/`) and return it. So as a shortcut, you could simply do: `var ASQ = require("asynquence-contrib")` instead of loading both packages separately.
+
+However, if you load contrib bundle(s) that cannot find a peer *asynquence* top-level package to load and use, a dependency-injection function is instead returned, which expects to be called with either an *asynquence* instance, or a relative path specifying where to load it.
+
+In node, we can use the npm package `freshy` to let us reload the *asynquence* package to get a fresh copy of it, for each bundle to attach to:
+
+```js
+var ASQ1 = require("./path/to/bundle1.js");
+
+require("freshy").unload("asynquence");
+
+var ASQ2 = require("./path/to/bundle2.js");
+```
+
+In the browser, you need to do something like this:
+
+```html
+<script src="asq.js"></script>
+
+<script>ASQ1 = ASQ.clone(); ASQ2 = ASQ.clone();</script>
+
+<script>ASQ = ASQ1;</script>
+<script src="./path/to/bundle1.js"></script>
+
+<script>ASQ = ASQ2;</script>
+<script src="./path/to/bundle2.js"></script>
+```
+
 ### Plugin Extensions
 
 `ASQ.extend( {name}, {build} )` allows you to specify an API extension, giving it a `name` and a `build` function callback that should return the implementation of your API extension. The `build` callback is provided two parameters, the sequence `api` instance, and an `internals(..)` method, which lets you get or set values of various internal properties (generally, don't use this if you can avoid it).
@@ -240,11 +270,9 @@ ASQ()
 });
 ```
 
-See the `/contrib/*` plugins for more complex examples of how to extend the *asynquence* API.
+The `/contrib/` directory includes a variety of [optional contrib plugins](https://github.com/getify/asynquence/blob/master/contrib/README.md) as helpers for async flow-controls. See these plugins for more complex examples of how to extend the *asynquence* API.
 
-The `/contrib/*` plugins provide a variety of [optional contrib plugins](https://github.com/getify/asynquence/blob/master/contrib/README.md) as helpers for async flow-controls.
-
-For browser usage, simply include the `asq.js` library file and then the `contrib.js` file. For node.js, these contrib plugins are available as a separate npm module `asynquence-contrib`.
+For browser usage, simply include the `asq.js` library file and then the `contrib.js` file. For node.js, these contrib plugins are available as a separate npm package: `asynquence-contrib`.
 
 #### Iterable Sequences
 
