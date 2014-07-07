@@ -371,7 +371,7 @@ For a more real-world type of example, see [reactive sequences + `gate()`](http:
 
 In the browser, include the `contrib.js` file along with the *asynquence* library file (`asq.js`). Doing so automatically extends the API with the plugins.
 
-In node.js, you install the `asynquence-contrib` package alongside the `asynquence` package. **Note:** The *asynquence-contrib* package will return the ASQ for you, so you technically only need to this if using both:
+In node.js, you install the `asynquence-contrib` package alongside the `asynquence` package. **Note:** The *asynquence-contrib* package will return the *asynquence* instance for you, so you technically only need this if using both:
 
 ```js
 // Note: requiring "asynquence" not strictly needed here,
@@ -380,7 +380,7 @@ In node.js, you install the `asynquence-contrib` package alongside the `asynquen
 var ASQ = require("asynquence-contrib");
 ```
 
-They can then be used directly, like this:
+They can then be used together directly, like this:
 
 ```js
 ASQ()
@@ -389,23 +389,35 @@ ASQ()
 .then(baz);
 ```
 
+**Note:** If you load contrib bundle(s) that cannot find a peer *asynquence* top-level package to load and use, a dependency-injection function is instead returned, which expects to be called with either an *asynquence* instance, or a relative path specifying where to load it.
+
 ## Building Contrib Bundle
 
 There is a utility provided to bundle the contrib plugins.
 
-`bundle.js` builds the unminified bundle `contrib.src.js`, and then builds (minifies) `contrib.js`. The recommended way to invoke this utility is via npm:
+```
+bundle.js usage:
+  bundle.js [ {OPTION} .. ] [ {PLUGIN-NAME} .. ]
+
+--help                    prints this help
+--wrapper=filename        wrapper filename ("contrib-wrapper.js")
+--bundle=filename         bundle filename ("contrib.src.js")
+--min-bundle=filename     minified-bundle filename ("contrib.js")
+```
+
+`bundle.js` by default builds the unminified bundle `contrib.src.js`, and then builds (minifies) `contrib.js`. The recommended way to invoke this utility is via npm:
 
 `npm run-script bundle`
 
-By default, the build includes all the `contrib/plugin.*` plugins. But, you can manually specify which plugins you want, by name, like this:
+By default, the build includes all the `contrib/plugin.*.js` plugins. But, you can manually specify which plugins you want, by name. For example, to bundle only the `any`, `none`, and `try` plugins:
 
 ```
 ./bundle.js any none try
 ```
 
-This would bundle only the `any`, `none`, and `try` plugins.
+**Note:** `npm run-script ..` [doesn't *currently*](https://github.com/isaacs/npm/issues/3494) support passing any extra command line parameters, so you must use `./bundle.js` **instead of** `npm run-script bundle` if you want to specify parameters to the bundle script.
 
-**Note:** `npm run-script ..` [doesn't *currently*](https://github.com/isaacs/npm/issues/3494) support passing the extra command line parameters, so you must use `./bundle.js` **instead of** `npm run-script bundle` if you want to pick which specific plugins to bundle.
+By passing *option* parameters to the bundle script, you can override the default filenames used for the contrib plugin wrapper (`--wrapper=..`), bundle (`--bundle=..`), and minified-bundle (`--min-bundle=..`). These options are useful for creating multiple variations of the plugin bundle.
 
 ## License
 

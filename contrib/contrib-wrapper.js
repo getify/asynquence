@@ -1,5 +1,5 @@
 /*! asynquence-contrib
-    v0.4.0-a (c) Kyle Simpson
+    v0.5.0-a (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -7,20 +7,25 @@
 	if (typeof module !== "undefined" && module.exports) {
 		// make dependency injection wrapper first
 		module.exports = function $InjectDependency$(dep) {
-			try { dep = require(dep); }
-			catch (err) {
-				// dependency not yet fulfilled, so just return
-				// dependency injection wrapper again
-				return $InjectDependency$;
+			// only try to `require(..)` if dependency is a string module path
+			if (typeof dep == "string") {
+				try { dep = require(dep); }
+				catch (err) {
+					// dependency not yet fulfilled, so just return
+					// dependency injection wrapper again
+					return $InjectDependency$;
+				}
 			}
 			return definition(dep);
 		};
 
 		// if possible, immediately try to resolve wrapper
 		// (with peer dependency)
-		module.exports = module.exports( require("path").join("..",dependency) );
+		if (typeof dependency == "string") {
+			module.exports = module.exports( require("path").join("..",dependency) );
+		}
 	}
-	else if (typeof define === "function" && define.amd) { define([dependency],definition); }
+	else if (typeof define == "function" && define.amd) { define([dependency],definition); }
 	else { definition(dependency); }
 })(this.ASQ || "asynquence",function DEF(ASQ){
 	"use strict";
@@ -86,6 +91,6 @@
 
 /*PLUGINS*/
 
-	// just return ASQ itself for convenience sake
+	// just return `ASQ` itself for convenience sake
 	return ASQ;
 });

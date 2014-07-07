@@ -2231,6 +2231,36 @@
 				FAIL(testDone,label + " (from timeout)");
 			},2000);
 		});
+		tests.push(function(testDone){
+			var label = "Contrib Test #21", ASQ2, ASQ3;
+
+			// should we skip this test because we're not in node?
+			if (!(typeof module !== "undefined" && module.exports)) {
+				PASS(testDone,label + " (SKIPPED)");
+				return;
+			}
+
+			ASQ2 = require("./test-extensions-1.js")( ASQ.clone() );
+			ASQ3 = require("./test-extensions-2.js")( ASQ.clone() );
+
+			try {
+				ASQ2().foobar();
+				ASQ3().bazbam();
+			}
+			catch (err) {
+				FAIL(testDone,label,err,ASQ2(),ASQ3());
+				return;
+			}
+
+			try {
+				ASQ2().bazbam();
+				ASQ3().foobar();
+				FAIL(testDone,label,"ASQ().foobar()");
+				return;
+			} catch (err) {}
+
+			PASS(testDone,label);
+		});
 
 		return tests;
 	}
