@@ -2232,7 +2232,7 @@
 			},2000);
 		});
 		tests.push(function(testDone){
-			var label = "Contrib Test #21", ASQ2, ASQ3;
+			var label = "Contrib Test #21", ASQ2, ASQ3, freshy;
 
 			// should we skip this test because we're not in node?
 			if (!(typeof module !== "undefined" && module.exports)) {
@@ -2240,8 +2240,29 @@
 				return;
 			}
 
-			ASQ2 = require("./test-extensions-1.js")( ASQ.clone() );
-			ASQ3 = require("./test-extensions-2.js")( ASQ.clone() );
+			freshy = require("freshy");
+
+			// reset cached asynquence instance(s)
+			try { freshy.unload("../asynquence"); } catch (err) {}
+			try { freshy.unload("../asq.js"); } catch (err) {}
+
+			ASQ2 = require("./test-extensions-1.js");
+			try { ASQ2.messages(); } catch (err) {
+				ASQ2 = ASQ2( ASQ.clone() );
+			}
+
+			// reset cached asynquence instance(s)
+			try { freshy.unload("../asynquence"); } catch (err) {}
+			try { freshy.unload("../asq.js"); } catch (err) {}
+
+			ASQ3 = require("./test-extensions-2.js");
+			try { ASQ3.messages(); } catch (err) {
+				ASQ3 = ASQ3( ASQ.clone() );
+			}
+
+			// reset cached asynquence instance(s)
+			try { freshy.unload("../asynquence"); } catch (err) {}
+			try { freshy.unload("../asq.js"); } catch (err) {}
 
 			try {
 				ASQ2().foobar();
@@ -2253,8 +2274,8 @@
 			}
 
 			try {
-				ASQ2().bazbam();
 				ASQ3().foobar();
+				ASQ2().bazbam();
 				FAIL(testDone,label,"ASQ().foobar()");
 				return;
 			} catch (err) {}
