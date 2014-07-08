@@ -1,8 +1,61 @@
 # asynquence Contrib
 
-Optional *asynquence* plugin helpers. The full bundle of plugins (`contrib.js`) is **~2.8k** minzipped.
+Optional *asynquence* plugin helpers. The full bundle of plugins (`contrib.js`) is **~3k** minzipped.
 
-Gate variations:
+## Function-wrapping Adapter
+
+To integrate *asynquence* into standard callback-oriented code bases, sometimes it's preferable to create wrappers around commonly used callback-oriented functions, to be used in place of the original functions. The wrapper automatically constructs an *asynquence* instance when called, and wires up the underlying call to the original callback-oriented function so that it maps its output behavior to the *asynquence* instance.
+
+For example, in node.js, we can call `ASQ.wrap(..)` to wrap `fs.readFile(..)`, suppressing the callback in its signature and turning it into an *asynquence*-returning function:
+
+```js
+var readfile = ASQ.wrap(fs.readFile);
+
+readfile("something.txt",{ encoding: "utf8" })
+.val(function(contents){
+	// file contents
+})
+.or(function(err){
+	// oops, `err` in reading file!
+});
+```
+
+**Note:** `ASQ.wrap(..)` creates a function which will automatically be async in nature, even if the underlying function would normally have called its callback immediately/synchronously. **DO NOT RELY** on ordered side-effects of such wrapped functions.
+
+Most of node.js's standard functions expect an "error-first" style callback, and they also expect it to be at the end of the arguments list (aka "parameters first"). The default settings for `ASQ.wrap(..)` assume that sort of function signature.
+
+However, you may need to use *asynquence* with other sorts of function signatures.
+
+For example, some functions are the opposite in parameter order (aka "parameters last"), where the callback must be the first argument and any other parameters are passed after it. You can pass an options-object as the second parameter to `ASQ.wrap(..)` to signal alternative function signature behavior:
+
+```js
+function doSomething(cb,p1,p2) {
+	// do something with `p1` and `p2`, then later
+	// call `cb` as an error-first cb
+}
+
+var better = ASQ.wrap(doSomething,{ params_last: true });
+
+better("val 1","val 2")
+.val(function(result){
+	// result
+})
+.or(function(err){
+	// oops, `err` occurred!
+});
+```
+
+The complete list of options you can pass:
+
+* `params_first`: (default: `true`) signals "parameters first" style signature
+* `params_last`: (default: `false`) signals "parameters last" style signature
+* `errfcb`: (default: `true`) signals "error-first" style callback expected
+* `splitcb`: (default: `false`) signals split success and error callbacks expected
+* `simplecb`: (default: `false`) signals simple (success-only) callback expected, which assumes an error is either passed opaquely (inaccessible to *asynquence* handling) to the callback in some way (which you must handle), or an error is `throw`n to be `try..catch` caught (which *asynquence* will handle)
+
+Obviously, there's several mutually exclusive combinations of these options which would be ambiguous, and are thus not allowed (will result in an immediately-thrown error upon calling `wrap(..)`), such as `errfcb: false`, `params_first: true, params_last: true`, etc. **Just avoid these.** Also, `params_first: false` is allowed, and just means `params_last: true`, but the latter is more preferable to the former.
+
+## Gate-step Variations
 
 * `any(..)` is like `gate(..)`, which waits for all segments to complete, except **just one segment has to eventually succeed** to proceed on the main sequence.
 * `first(..)` is like `any(..)`, except **as soon as any segment succeeds**, the main sequence proceeds (ignoring subsequent results from other segments).
@@ -19,7 +72,7 @@ Gate variations:
 
     The final success message from a `map(..)` sequence step is the newly constructed array of mapped values.
 
-Sequence-step variations:
+## Sequence-step Variations
 
 * `until(..)` is like `then(..)`, except it **keeps re-trying until success** or `break()` (for loop semantics) before the main sequence proceeds.
 * `try(..)` is like `then(..)`, except it proceeds as success on the main sequence **regardless of success/failure signal**. If an error is caught, it's transposed as a special-format success message: `{ catch: ... }`.

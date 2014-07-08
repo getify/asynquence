@@ -2275,12 +2275,224 @@
 
 			try {
 				ASQ3().foobar();
+				FAIL(testDone,label,"ASQ3().foobar()");
+				return;
+			} catch (err) {}
+
+			try {
 				ASQ2().bazbam();
-				FAIL(testDone,label,"ASQ().foobar()");
+				FAIL(testDone,label,"ASQ2().bazbam()");
 				return;
 			} catch (err) {}
 
 			PASS(testDone,label);
+		});
+		tests.push(function(testDone){
+			var label = "Contrib Test #22", timeout, isnan,
+				_f1, _f1b, _f1c, _f1d, _f2, _f2b, _f3, _f4, _f5, _f6
+			;
+
+			isnan = Number.isNaN ? Number.isNaN : function(x) {
+				return typeof x == "number" && isNaN(x);
+			};
+
+			function f1(p1,p2,errfcb) {
+				setTimeout(function(){
+					if (p1 + p2 > 250) {
+						errfcb("too big: " + (p1 + p2));
+					}
+					else {
+						errfcb(void 0,p1 + p2);
+					}
+				},25);
+			}
+			function f2(errfcb,p1,p2) { return f1(p1,p2,errfcb); }
+			function f3(p1,p2,successCB,errorCB) {
+				setTimeout(function(){
+					if (p1 + p2 > 250) {
+						errorCB("too big: " + (p1 + p2));
+					}
+					else {
+						successCB(p1 + p2);
+					}
+				},25);
+			}
+			function f4(successCB,errorCB,p1,p2) { return f3(p1,p2,successCB,errorCB); }
+			function f5(p1,p2,simpleCB) {
+				if (p1 + p2 > 250) {
+					throw "too big: " + (p1 + p2);
+				}
+				setTimeout(function(){
+					simpleCB(p1 + p2);
+				},25);
+			}
+			function f6(simpleCB,p1,p2) { return f5(p1,p2,simpleCB); }
+
+			try {
+				ASQ.wrap( f1, { errfcb: true, splitcb: true });
+				FAIL(testDone,label,"errfcb + splitcb");
+				return;
+			} catch (err) {}
+			try {
+				ASQ.wrap( f1, { errfcb: true, simplecb: true });
+				FAIL(testDone,label,"errfcb + simplecb");
+				return;
+			} catch (err) {}
+			try {
+				ASQ.wrap( f1, { splitcb: true, simplecb: true });
+				FAIL(testDone,label,"splitcb + simplecb");
+				return;
+			} catch (err) {}
+			try {
+				ASQ.wrap( f1, { errfcb: false });
+				FAIL(testDone,label,"errfcb:false");
+				return;
+			} catch (err) {}
+			try {
+				ASQ.wrap( f1, { errfcb: false, splitcb:false });
+				FAIL(testDone,label,"errfcb:false + splitcb:false");
+				return;
+			} catch (err) {}
+			try {
+				ASQ.wrap( f1, { errfcb: false, splitcb:false, simplecb:false });
+				FAIL(testDone,label,"errfcb:false + splitcb:false + simplecb:false");
+				return;
+			} catch (err) {}
+			try {
+				ASQ.wrap( f1, { params_first: true, params_last: true });
+				FAIL(testDone,label,"params_first + params_last");
+				return;
+			} catch (err) {}
+
+			_f1 = ASQ.wrap( f1 ); // assumes: errfcb:true, params_first:true
+			_f2 = ASQ.wrap( f2, { params_last:true } ); // assumes: errfcb:true
+			_f3 = ASQ.wrap( f3, { splitcb:true } ); // assumes: params_first:true
+			_f4 = ASQ.wrap( f4, { splitcb:true, params_last:true } );
+			_f5 = ASQ.wrap( f5, { simplecb:true } ); // assumes params_first:true
+			_f6 = ASQ.wrap( f6, { simplecb:true, params_last:true } );
+
+			// alternate forms of the params-first/last logic
+			_f1b = ASQ.wrap( f1, { params_first: true });
+			_f1c = ASQ.wrap( f1, { params_last: false });
+			_f1d = ASQ.wrap( f1, { params_first: false, params_last: false });
+			_f2b = ASQ.wrap( f2, { params_first: false });
+
+			ASQ()
+			.gate(
+				_f1(10,20),
+				_f2(30,40),
+				_f3(50,60),
+				_f4(70,80),
+				_f5(90,100),
+				_f6(110,120)
+			)
+			.val(function(msg1,msg2,msg3,msg4,msg5,msg6){
+				if (!(
+					arguments.length === 6 &&
+					msg1 === 30 &&
+					msg2 === 70 &&
+					msg3 === 110 &&
+					msg4 === 150 &&
+					msg5 === 190 &&
+					msg6 === 230
+				)) {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			})
+			.gate(
+				_f1b(20,30),
+				_f1c(40,50),
+				_f1d(60,70),
+				_f2b(80,90)
+			)
+			.val(function(msg1,msg2,msg3,msg4){
+				if (!(
+					arguments.length === 4 &&
+					msg1 === 50 &&
+					msg2 === 90 &&
+					msg3 === 130 &&
+					msg4 === 170
+				)) {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			})
+			.gate(
+				_f1(void 0,void 0),
+				_f2(),
+				_f3(void 0,void 0),
+				_f4(),
+				_f5(void 0,void 0),
+				_f6()
+			)
+			.val(function(msg1,msg2,msg3,msg4,msg5,msg6){
+				if (!(
+					arguments.length === 6 &&
+					isnan(msg1) &&
+					isnan(msg2) &&
+					isnan(msg3) &&
+					isnan(msg4) &&
+					isnan(msg5) &&
+					isnan(msg6)
+				)) {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			})
+			.gate(
+				function(done){
+					_f1(150,150).then(done.fail).or(done);
+				},
+				function(done){
+					_f2(200,200).then(done.fail).or(done);
+				},
+				function(done){
+					_f3(250,250).then(done.fail).or(done);
+				},
+				function(done){
+					_f4(300,300).then(done.fail).or(done);
+				},
+				function(done){
+					_f5(350,350).then(done.fail).or(done);
+				},
+				function(done){
+					_f6(400,400).then(done.fail).or(done);
+				}
+			)
+			.val(function(msg1,msg2,msg3,msg4,msg5,msg6){
+				clearTimeout(timeout);
+
+				if (
+					arguments.length === 6 &&
+					msg1 === "too big: 300" &&
+					msg2 === "too big: 400" &&
+					msg3 === "too big: 500" &&
+					msg4 === "too big: 600" &&
+					msg5 === "too big: 700" &&
+					msg6 === "too big: 800"
+				) {
+					PASS(testDone,label);
+				}
+				else {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			})
+			.or(function(){
+				clearTimeout(timeout);
+				var args = ARRAY_SLICE.call(arguments);
+				args.unshift(testDone,label);
+				FAIL.apply(FAIL,args);
+			});
+
+			timeout = setTimeout(function(){
+				FAIL(testDone,label + " (from timeout)");
+			},2000);
 		});
 
 		return tests;
