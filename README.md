@@ -56,12 +56,13 @@ If you register a step using `then(...)` on a sequence which is already currentl
 
 You can register multiple steps, and multiple failure handlers. However, messages from a previous step (success or failure completion) will only be passed to the immediately next registered step (or the next failure handler). If you want to propagate along a message through multiple steps, you must do so yourself by making sure you re-pass the received message at each step completion.
 
-To listen for any step failing, call `or(...)` on your sequence to register a failure callback. You can call `or()` as many times as you would like. If you call `or()` on a sequence that has already been flagged as failed, the callback you specify will just be executed at the next opportunity.
+To listen for any step failing, call `or(...)` (or alias `onerror(..)`) on your sequence to register a failure callback. You can call `or()` / `onerror(..)` as many times as you would like. If you call it on a sequence that has already been flagged as failed, the callback you specify will just be executed at the next opportunity.
 
 ```js
 ASQ(function(done){
     done.fail("Failed!");
 })
+// could use `or(..)` or `onerror(..)` here
 .or(function(err){
     console.log(err); // Failed!
 });

@@ -1,5 +1,5 @@
 /*! asynquence
-    v0.5.3-a (c) Kyle Simpson
+    v0.5.4-a (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -695,6 +695,8 @@
 			sequence_api = brandIt({
 				then: then,
 				or: or,
+				// alias of `or(..)` to `onerror(..)`
+				onerror: or,
 				gate: gate,
 				// alias of `gate(..)` to `all(..)` for symmetry
 				// with native ES6 promises

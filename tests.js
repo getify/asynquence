@@ -60,7 +60,7 @@
 				clearTimeout(timeout);
 				PASS(testDone,label);
 			})
-			.or(function(){
+			.onerror(function(){
 				clearTimeout(timeout);
 				var args = ARRAY_SLICE.call(arguments);
 				args.unshift(testDone,label);
