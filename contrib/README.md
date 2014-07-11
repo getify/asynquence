@@ -1,6 +1,6 @@
 # asynquence Contrib
 
-Optional *asynquence* plugin helpers. The full bundle of plugins (`contrib.js`) is **~3k** minzipped.
+Optional *asynquence* plugin helpers. The full bundle of plugins (`contrib.js`) is **~3.1k** minzipped.
 
 ## Function-wrapping Adapter
 
@@ -45,8 +45,36 @@ better("val 1","val 2")
 });
 ```
 
+You also may want to specify a specific `this` binding to use with the underlying function/method call. You can do such with the normal JS `.bind(..)` utility, like `ASQ.wrap( fn.bind(obj) )`, but that gives you permanent *hard-binding* that can't be overriden, which may or may not be suitable.
+
+If you want the more flexible "soft binding" (an alternate default `this` binding -- instead of `window` / `global` -- that can still be overriden), you can specify a `this` in the options object, like so:
+
+```js
+function doSomething(cb) {
+	cb(this.id);
+}
+
+var o1 = { id: 42 };
+var o2 = { id: "foobar" };
+
+var better = ASQ.wrap(doSomething,{ this: o1 });
+
+// use `o1` as default soft-bound `this`
+better()
+.val(function(id){
+	id; // 42
+});
+
+// `this` is still overridable
+better.call(o2)
+.val(function(id){
+	id; // "foobar"
+});
+```
+
 The complete list of options you can pass:
 
+* `this`: (default: `{ }`) specifies a *soft-binding* (aka, alternate default) for `this` for the underlying function call being wrapped
 * `params_first`: (default: `true`) signals "parameters first" style signature
 * `params_last`: (default: `false`) signals "parameters last" style signature
 * `errfcb`: (default: `true`) signals "error-first" style callback expected

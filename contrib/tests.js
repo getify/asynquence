@@ -2289,7 +2289,8 @@
 		});
 		tests.push(function(testDone){
 			var label = "Contrib Test #22", timeout, isnan,
-				_f1, _f1b, _f1c, _f1d, _f2, _f2b, _f3, _f4, _f5, _f6
+				_f1, _f1b, _f1c, _f1d, _f2, _f2b, _f3, _f4, _f5, _f6, _f7, _f7b,
+				o1 = { asq_value: 42 }, o2 = { asq_value: "foobar" }
 			;
 
 			isnan = Number.isNaN ? Number.isNaN : function(x) {
@@ -2327,6 +2328,13 @@
 				},25);
 			}
 			function f6(simpleCB,p1,p2) { return f5(p1,p2,simpleCB); }
+			function f7(errfcb) {
+				/*jshint validthis:true */
+				var self = this;
+				setTimeout(function(){
+					errfcb(void 0,self.asq_value);
+				},25);
+			}
 
 			try {
 				ASQ.wrap( f1, { errfcb: true, splitcb: true });
@@ -2370,6 +2378,8 @@
 			_f4 = ASQ.wrap( f4, { splitcb:true, params_last:true } );
 			_f5 = ASQ.wrap( f5, { simplecb:true } ); // assumes params_first:true
 			_f6 = ASQ.wrap( f6, { simplecb:true, params_last:true } );
+			_f7 = ASQ.wrap( f7 );
+			_f7b = ASQ.wrap( f7, { this: o1 });
 
 			// alternate forms of the params-first/last logic
 			_f1b = ASQ.wrap( f1, { params_first: true });
@@ -2395,6 +2405,25 @@
 					msg4 === 150 &&
 					msg5 === 190 &&
 					msg6 === 230
+				)) {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			})
+			.gate(
+				_f7(),
+				_f7.call(o1),
+				_f7b(),
+				_f7b.call(o2)
+			)
+			.val(function(msg1,msg2,msg3,msg4){
+				if (!(
+					arguments.length === 4 &&
+					msg1 === undefined &&
+					msg2 === 42 &&
+					msg3 === 42 &&
+					msg4 === "foobar"
 				)) {
 					var args = ARRAY_SLICE.call(arguments);
 					args.unshift(testDone,label);
