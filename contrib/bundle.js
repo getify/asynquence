@@ -8,6 +8,13 @@ function printHelp() {
 	console.log("--wrapper=filename        wrapper filename (\"contrib-wrapper.js\")");
 	console.log("--bundle=filename         bundle filename (\"contrib.src.js\")");
 	console.log("--min-bundle=filename     minified-bundle filename (\"contrib.js\")");
+	console.log("--exclude={PLUGIN-NAME}   exclude a plugin from bundling");
+	console.log("");
+	console.log("If you don't pass any {PLUGIN-NAME} parameters, all available plugins");
+	console.log("(except any that are --exclude omitted) will be bundled.");
+	console.log("");
+	console.log("If you pass one or more {PLUGIN-NAME} parameters, only the ones");
+	console.log("specified (except any that are --exclude omitted) will be bundled.");
 	console.log("");
 }
 
@@ -15,7 +22,7 @@ function printHelp() {
 function bundlePlugins(dir) {
 	var files = fs.readdirSync(dir);
 
-	files.forEach(function(file){
+	files.forEach(function __forEach__(file){
 		var st = fs.statSync(path.join(dir,file)),
 			contents, collection_id,
 			plugin_name = file.replace(/plugin\.(.*)\.js/,"$1")
@@ -28,13 +35,23 @@ function bundlePlugins(dir) {
 				~which_plugins.indexOf(plugin_name)
 			)
 		) {
-			console.log("Including plugin: " + plugin_name);
+			if (!exclude_plugins ||
+				!~exclude_plugins.indexOf(plugin_name)
+			) {
+				console.log("Including plugin: " + plugin_name);
 
-			bundle_str += fs.readFileSync(path.join(dir,file),{ encoding: "utf8" });
+				bundle_str += fs.readFileSync(path.join(dir,file),{ encoding: "utf8" });
+			}
+			else {
+				console.log(" (excluding): " + plugin_name);
+			}
 
 			// remove plugin from specified list
-			if (which_plugins) {
+			if (which_plugins && ~which_plugins.indexOf(plugin_name)) {
 				which_plugins.splice(which_plugins.indexOf(plugin_name),1);
+			}
+			if (exclude_plugins && ~exclude_plugins.indexOf(plugin_name)) {
+				exclude_plugins.splice(exclude_plugins.indexOf(plugin_name),1);
 			}
 		}
 		else if (st.isDirectory() && !/node_modules/.test(file)) {
@@ -43,7 +60,10 @@ function bundlePlugins(dir) {
 	});
 
 	if (which_plugins && which_plugins.length > 0) {
-		console.error("Requested plugins not found: " + which_plugins.join(" "));
+		console.error("** Warning ** Requested plugins not found: " + which_plugins.join(" "));
+	}
+	if (exclude_plugins && exclude_plugins.length > 0) {
+		console.error("** Warning ** Excluded plugins not found: " + exclude_plugins.join(" "));
 	}
 }
 
@@ -52,7 +72,7 @@ var path = require("path"),
 	ugly = require("uglify-js"),
 	argv = require("minimist")(
 		process.argv.slice(2),
-		{ "string": ["wrapper","bundle","min-bundle"] }
+		{ "string": ["wrapper","bundle","min-bundle","exclude"] }
 	),
 
 	bundle_name = "contrib.src.js",
@@ -61,7 +81,8 @@ var path = require("path"),
 
 	bundle_wrapper_code,
 	bundle_str = "",
-	which_plugins
+	which_plugins,
+	exclude_plugins
 ;
 
 // want help?
@@ -84,8 +105,9 @@ if (argv.wrapper) {
 if (argv._.length > 0) {
 	which_plugins = argv._.slice();
 }
-
-console.log("Bundling plugins into: " + bundle_name);
+if (argv.exclude && argv.exclude.length > 0) {
+	exclude_plugins = Array.isArray(argv.exclude) ? argv.exclude.slice() : [argv.exclude];
+}
 
 bundlePlugins(
 	/*dir=*/path.join(__dirname)
@@ -96,7 +118,7 @@ bundle_wrapper_code = fs.readFileSync(
 	{ encoding: "utf8" }
 );
 
-bundle_wrapper_code = bundle_wrapper_code.replace(/\/\*PLUGINS\*\//,function(){ return bundle_str; });
+bundle_wrapper_code = bundle_wrapper_code.replace(/\/\*PLUGINS\*\//,function __replace__(){ return bundle_str; });
 
 fs.writeFileSync(
 	path.join(__dirname,bundle_name),

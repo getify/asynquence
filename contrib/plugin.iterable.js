@@ -1,5 +1,5 @@
 // "ASQ.iterable()"
-(function(){
+(function IIFE(){
 	var template;
 
 	ASQ.iterable = function __iterable__() {

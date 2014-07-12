@@ -7,8 +7,8 @@ ASQ.extend("failAfter",function __extend__(api,internals){
 		;
 		num = +num || 0;
 
-		api.then(function(done){
-			setTimeout(function(){
+		api.then(function __then__(done){
+			setTimeout(function __setTimeout__(){
 				done.fail.apply(ø,args);
 			},num);
 		});

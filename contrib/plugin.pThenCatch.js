@@ -8,7 +8,7 @@ ASQ.extend("pThen",function __extend__(api,internals){
 		var ignore_success_handler = false, ignore_failure_handler = false;
 
 		if (typeof success === "function") {
-			api.then(function(done){
+			api.then(function __then__(done){
 				if (!ignore_success_handler) {
 					var ret, msgs = ASQ.messages.apply(ø,arguments);
 					msgs.shift();
@@ -57,7 +57,7 @@ ASQ.extend("pThen",function __extend__(api,internals){
 			});
 		}
 		if (typeof failure === "function") {
-			api.or(function(){
+			api.or(function __or__(){
 				if (!ignore_failure_handler) {
 					var ret, msgs = ASQ.messages.apply(ø,arguments), smgs,
 						or_queue = ARRAY_SLICE.call(internals("or_queue"))
@@ -95,7 +95,7 @@ ASQ.extend("pThen",function __extend__(api,internals){
 					internals("or_queue").length = 0;
 
 					// make sure to schedule success-procession on the chain
-					api.val(function(){
+					api.val(function __val__(){
 						// pass thru messages
 						return ASQ.messages.apply(ø,arguments);
 					});

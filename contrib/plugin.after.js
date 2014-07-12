@@ -7,10 +7,10 @@ ASQ.extend("after",function __extend__(api,internals){
 		;
 		num = +num || 0;
 
-		api.then(function(done){
+		api.then(function __then__(done){
 			args = args || ARRAY_SLICE.call(arguments,1);
 
-			setTimeout(function(){
+			setTimeout(function __setTimeout__(){
 				done.apply(ø,args);
 			},num);
 		});

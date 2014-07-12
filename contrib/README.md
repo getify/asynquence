@@ -484,6 +484,13 @@ bundle.js usage:
 --wrapper=filename        wrapper filename ("contrib-wrapper.js")
 --bundle=filename         bundle filename ("contrib.src.js")
 --min-bundle=filename     minified-bundle filename ("contrib.js")
+--exclude={PLUGIN-NAME}   exclude a plugin from bundling
+
+If you don't pass any {PLUGIN-NAME} parameters, all available plugins
+(except any that are --exclude omitted) will be bundled.
+
+If you pass one or more {PLUGIN-NAME} parameters, only the ones
+specified (except any that are --exclude omitted) will be bundled.
 ```
 
 `bundle.js` by default builds the unminified bundle `contrib.src.js`, and then builds (minifies) `contrib.js`. The recommended way to invoke this utility is via npm:

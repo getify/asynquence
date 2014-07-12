@@ -8,7 +8,7 @@ ASQ.react = function __react__(setup) {
 			sq.unpause.apply(ø,arguments);
 			return sq;
 		}
-		return ASQ().val(function(){ throw "Disabled Sequence"; });
+		return ASQ().val(function __val__(){ throw "Disabled Sequence"; });
 	}
 
 	proceed.onStream = function onStream() {
@@ -30,7 +30,7 @@ ASQ.react = function __react__(setup) {
 	function teardown() {
 		if (template) {
 			template = null;
-			teardowns.forEach(function(fn){ fn(); });
+			teardowns.forEach(function __forEach__(fn){ fn(); });
 			teardowns.length = 0;
 		}
 	}

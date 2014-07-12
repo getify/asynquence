@@ -16,7 +16,7 @@ ASQ.extend("runner",function __extend__(api,internals){
 			token.messages = ARRAY_SLICE.call(arguments,1);
 
 			// map co-routines to round-robin list of iterators
-			iterators = routines.map(function(fn){
+			iterators = routines.map(function __map__(fn){
 				var it = fn;
 
 				// generator function?
@@ -37,7 +37,7 @@ ASQ.extend("runner",function __extend__(api,internals){
 
 				// listen for any sequence failures
 				if (ASQ.isSequence(it)) {
-					it.or(function(){
+					it.or(function __or__(){
 						// signal iteration-error
 						mainDone.fail.apply(ø,arguments);
 					});
@@ -111,7 +111,7 @@ ASQ.extend("runner",function __extend__(api,internals){
 					}
 
 					ret.value
-					.val(function(){
+					.val(function __val__(){
 						if (arguments.length > 0) {
 							// save any return messages for input
 							// to next iteration
@@ -155,7 +155,7 @@ ASQ.extend("runner",function __extend__(api,internals){
 							mainDone();
 						}
 					})
-					.or(function(){
+					.or(function __or__(){
 						// if an error occurs in the step-continuation
 						// promise or sequence, throw it back into the
 						// generator or iterable-sequence

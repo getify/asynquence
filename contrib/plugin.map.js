@@ -6,7 +6,7 @@ ASQ.extend("map",function __extend__(api,internals){
 		}
 
 		api
-		.seq(function(){
+		.seq(function __seq__(){
 			var tmp, args = ARRAY_SLICE.call(arguments);
 
 			// if missing `map(..)` args, use value-messages (if any)
@@ -27,7 +27,7 @@ ASQ.extend("map",function __extend__(api,internals){
 				};
 			}));
 		})
-		.val(function(){
+		.val(function __val__(){
 			// collect all gate segment output into one value-message
 			// Note: return a normal array here, not a message wrapper!
 			return ARRAY_SLICE.call(arguments);
