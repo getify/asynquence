@@ -61,7 +61,7 @@ ASQ.extend("runner",function __extend__(api,internals){
 					if (ASQ.isMessageWrapper(next_val) &&
 						ASQ.isSequence(iter)
 					) {
-						ret = iter.next.apply(ø,next_val);
+						ret = iter.next.apply(iter,next_val);
 					}
 					else {
 						ret = iter.next(next_val);
@@ -159,7 +159,7 @@ ASQ.extend("runner",function __extend__(api,internals){
 						// if an error occurs in the step-continuation
 						// promise or sequence, throw it back into the
 						// generator or iterable-sequence
-						iter["throw"].apply(ø,arguments);
+						iter["throw"].apply(iter,arguments);
 					});
 				}
 			})();
