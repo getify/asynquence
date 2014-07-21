@@ -347,7 +347,7 @@ ASQ(2)
 
 #### CSP-style Concurrency
 
-`runner(..)` can accept 2 or more generators (or iterable-sequences) that you can cooperatively interleave execution of, which lets you leverage a simple form of CSP-style coroutine concurrency (aka cooperative multitasking").
+`runner(..)` can accept 2 or more generators (or iterable-sequences) that you can cooperatively interleave execution of, which lets you leverage a simple form of CSP-style coroutine concurrency (aka **"cooperative multitasking"**).
 
 Generators/iterable-sequences will receive a *control token* with a messages channel (`.messages` property is a simple array) to use for passing messages back and forth as the coroutines interleave.
 
