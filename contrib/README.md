@@ -359,6 +359,7 @@ With both generators and iterable-sequences, the last *final* non-`undefined` va
 
 To get a better sense of how this advanced functionality works, check out these examples:
 
+* [State Machine](http://jsbin.com/luron/1/edit?js,console) with simple generator co-routines (hidden CSP)
 * [Ping Pong](http://jsbin.com/jecazequ/1) (from [js-csp](https://github.com/ubolonton/js-csp/blob/master/README.md#examples) and the [go ping-pong](http://talks.golang.org/2013/advconc.slide#6) example)
 * [Two generators paired as CSP-style co-routines](https://gist.github.com/getify/10172207)
 
