@@ -447,7 +447,7 @@ var rsq = ASQ.react(function(proceed,registerTeardownHandler){
 });
 ```
 
-For a more real-world type of example, see [reactive sequences + `gate()`](http://jsbin.com/rozipaki/1). Here's [another example](https://gist.github.com/getify/bba5ec0de9d6047b720e), which handles http request/response streams with reactive sequences.
+For a more real-world type of example, see [reactive sequences + `gate()`](http://jsbin.com/rozipaki/6/edit?js,output). Here's [another example](https://gist.github.com/getify/bba5ec0de9d6047b720e), which handles http request/response streams with reactive sequences.
 
 ## Using Contrib Plugins
 
