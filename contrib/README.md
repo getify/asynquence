@@ -80,8 +80,34 @@ The complete list of options you can pass:
 * `errfcb`: (default: `true`) signals "error-first" style callback expected
 * `splitcb`: (default: `false`) signals split success and error callbacks expected
 * `simplecb`: (default: `false`) signals simple (success-only) callback expected, which assumes an error is either passed opaquely (inaccessible to *asynquence* handling) to the callback in some way (which you must handle), or an error is `throw`n to be `try..catch` caught (which *asynquence* will handle)
+* `gen`: (default: `false`) signals that you've passed in a generator (ES6) to wrap (see below).
 
 Obviously, there's several mutually exclusive combinations of these options which would be ambiguous, and are thus not allowed (will result in an immediately-thrown error upon calling `wrap(..)`), such as `errfcb: false`, `params_first: true, params_last: true`, etc. **Just avoid these.** Also, `params_first: false` is allowed, and just means `params_last: true`, but the latter is more preferable to the former.
+
+### Wrapping A Generator
+
+If you pass `gen:true` as an option, it overrides all other options, and instead returns back a function that creates a new *asynquence* sequence with the `runner(..)` plugin (see below) wired to run the generator you passed in. Whatever arguments you pass to the wrapper will pass into the generator (accessed via `token.messages` -- again, see `runner(..)` plugin below).
+
+```js
+var g = ASQ.wrap(function*(token){
+	var x = 1;
+	for (var i=0; i < token.messages.length; i++) {
+		x = yield (x * token.messages[i]);
+	}
+},{ gen:true });
+
+g(2,3,4)
+.val(function(msg){
+	console.log(msg);	// 24
+});
+
+g(2,3,4,5)
+.val(function(msg){
+	console.log(msg);	// 120
+});
+```
+
+The wrapper can be called one or many times, and each time will create and return a new sequence to run the generator.
 
 ## Gate-step Variations
 
@@ -288,14 +314,32 @@ readFile("meaningoflife.txt")
 
 ### `runner` Plugin
 
-`runner(..)` takes either an **iterable-sequence** or an ES6 generator function, which will be iterated through step-by-step. `runner(..)` will handle either asynquence sequences, standard promises, or immediate values as the yielded/returned values from the generator or iterable-sequence steps.
+`runner(..)` takes either an **iterable-sequence** or an ES6 generator function, which will be iterated through step-by-step. `runner(..)` will handle either *asynquence* sequences, standard promises/thenables, thunks (see ["thunks" here](http://zef.me/6096/callback-free-harmonious-node-js)), or immediate values as the yielded/returned values from the generator or iterable-sequence steps.
 
 The generator/iterable-sequence will receive any value-messages from the previous sequence step (via the *control token* -- see [CSP-style Concurrency](#csp-style-concurrency) below for explanation), and the final yielded/returned value will be passed along as the success message(s) to the next main sequence step. Error(s) if any will flag the main sequence as error, with error messages passed along as expected.
 
-Examples:
+Using generators:
 
 ```js
-function double(x) {
+function thunkDouble(x) {
+	return function thunk(cb) {
+		setTimeout(function(){
+			// cb is an error-first style callback
+			cb(null,x * 2);
+		},500);
+	};
+}
+
+function promiseDouble(x) {
+	// using ES6 `Promise`s
+	return new Promise(function(resolve,reject){
+		setTimeout(function(){
+			resolve(x * 2);
+		},500);
+	});
+}
+
+function seqDouble(x) {
 	return ASQ(function(done){
 		setTimeout(function(){
 			done(x * 2);
@@ -310,7 +354,15 @@ ASQ(2)
 	var x = token.messages[0];
 
 	while (x < 100) {
-		x = yield double(x);
+		if (x < 10) {
+			x = yield thunkDouble(x);
+		}
+		else if (x < 40) {
+			x = yield promiseDouble(x);
+		}
+		else {
+			x = yield seqDouble(x);
+		}
 	}
 })
 .val(function(num){
@@ -318,12 +370,31 @@ ASQ(2)
 });
 ```
 
+Using iterable-sequences:
+
 ```js
-function double(x) {
-	// standard native Promise
+function thunkDouble(x) {
+	return function thunk(cb) {
+		setTimeout(function(){
+			// cb is an error-first style callback
+			cb(null,x * 2);
+		},500);
+	};
+}
+
+function promiseDouble(x) {
+	// using ES6 `Promise`s
 	return new Promise(function(resolve,reject){
 		setTimeout(function(){
 			resolve(x * 2);
+		},500);
+	});
+}
+
+function seqDouble(x) {
+	return ASQ(function(done){
+		setTimeout(function(){
+			done(x * 2);
 		},500);
 	});
 }
@@ -336,9 +407,9 @@ ASQ(2)
 		// we can operate on it
 		return token.messages[0];
 	})
-	.then(double)
-	.then(double)
-	.then(double)
+	.then(thunkDouble)
+	.then(promiseDouble)
+	.then(seqDouble)
 )
 .val(function(num){
 	console.log(num); // 16

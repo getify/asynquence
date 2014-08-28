@@ -51,7 +51,7 @@ ASQ.extend("runner",function __extend__(api,internals){
 
 			// async iteration of round-robin list
 			(function iterate(){
-				var val_type;
+				var val_type, fn;
 
 				// round-robin: run top co-routine in list
 				iter = iterators.shift();
@@ -83,9 +83,9 @@ ASQ.extend("runner",function __extend__(api,internals){
 				else {
 					// not a recognized ASQ instance returned?
 					if (!ASQ.isSequence(ret.value)) {
-						// received a thenable back? wrap it in a sequence.
-						// NOTE: `then` duck-typing of promises is stupid.
 						val_type = typeof ret.value;
+						// received a thenable/promise back?
+						// NOTE: `then` duck-typing of promises is stupid.
 						if (
 							ret.value !== null &&
 							(
@@ -97,15 +97,26 @@ ASQ.extend("runner",function __extend__(api,internals){
 							// wrap the promise in a sequence
 							ret.value = ASQ().promise(ret.value);
 						}
-						// otherwise, assume immediate value received, so
-						// wrap it in a sequence.
+						// thunk yielded?
+						else if (val_type === "function") {
+							// wrap thunk call in a sequence
+							fn = ret.value;
+							ret.value = ASQ(function __ASQ__(done){
+								fn(done.errfcb);
+							});
+						}
+						// message wrapper returned?
 						else if (ASQ.isMessageWrapper(ret.value)) {
+							// wrap message(s) in a sequence
 							ret.value = ASQ.apply(ø,ret.value);
 						}
+						// non-undefined value returned?
 						else if (typeof ret.value !== "undefined") {
+							// wrap the value in a sequence
 							ret.value = ASQ(ret.value);
 						}
 						else {
+							// make an empty sequence
 							ret.value = ASQ();
 						}
 					}

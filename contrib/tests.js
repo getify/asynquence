@@ -1292,6 +1292,15 @@
 				});
 			}
 
+			function doubleThunk(x) {
+				return function thunk(cb) {
+					setTimeout(function(){
+						// cb is an error-first style callback
+						cb(null,x * 2);
+					},20);
+				};
+			}
+
 			function justValue(x) {
 				return x;
 			}
@@ -1310,7 +1319,7 @@
 					.val(extractTokenMessage)
 					.then(doubleSeq)
 					.then(doublePromise)
-					.then(doubleSeq)
+					.then(doubleThunk)
 					.then(doublePromise)
 					.then(twiceValues) // return the value itself, twice
 			)

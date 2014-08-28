@@ -37,6 +37,11 @@ ASQ.wrap = function __wrap__(fn,opts) {
 		act = "unshift";
 	}
 
+	if (opts.gen) {
+		return function __wrapped_gen__() {
+			return ASQ.apply(ø,arguments).runner(fn);
+		};
+	}
 	if (errfcb) {
 		return function __wrapped_errfcb__() {
 			var args = ARRAY_SLICE.call(arguments),
