@@ -426,7 +426,47 @@ If you `yield` (or `return` in the case of iterable-sequences) that *control tok
 
 Otherwise, yielding/returning of any other type of value, **including a sequence/promise**, will retain control with the current generator/iterator-step.
 
-With both generators and iterable-sequences, the last *final* non-`undefined` value that is yielded/returned from the concurrency-grouping run will be the forward-passed message(s) to the next step in your main *asynquence* chain. If you want to pass on the channel messages from your generator run, end your last generator by `yield`ing out the `.messages` property of the *control token*. Likewise with iterable-sequences, `return` the channel messages from the last iterable-sequence step.
+You can also call `.add(..)` on the *control token* to add one or more generators/iterable-sequences to the concurrency-grouping:
+
+```js
+// promise to double `v` in 1000 ms
+function double(v) {
+   return new Promise(function(resolve,reject){
+      setTimeout(function(){
+         resolve(v * 2);
+      },1000);
+   });
+}
+
+function makeGen(x,y) {
+   return function*(token){
+      token.messages.push( yield double(x) );
+      yield token;
+      token.messages.push( yield double(y) );
+   };
+}
+
+ASQ()
+.runner(
+   function*(token) {
+      token.add(
+         makeGen(10,20),
+         makeGen(100,200)
+      );
+      while (token.messages.length < 4) {
+         yield token;
+      }
+      yield token.messages;
+   }
+)
+.val(function(msg){
+   console.log(msg); // [ 20, 200, 40, 400 ]
+});
+```
+
+With both generators and iterable-sequences, the last *final* non-`undefined` value that is yielded/returned from the concurrency-grouping run will be the forward-passed message(s) to the next step in your main *asynquence* chain.
+
+If you want to pass on the channel messages from your generator run, end your last generator by `yield`ing out the `.messages` property of the *control token* (see above snippet). Likewise with iterable-sequences, `return` the channel messages from the last iterable-sequence step.
 
 To get a better sense of how this advanced functionality works, check out these examples:
 

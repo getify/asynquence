@@ -1514,19 +1514,27 @@
 			ASQ(2)
 			.runner(
 				ASQ.iterable()
-					.val(extractTokenMessage)
-					.then(doubleSeq)
-					.then(doublePromise)
-					.then(doubleSeq)
-					.then(doublePromise),
-				ASQ.iterable()
-					.then(doublePromise)
-					.then(doubleSeq),
-				ASQ.iterable()
-					.then(doubleSeq)
-					.then(doublePromise)
-					.then(doubleSeq)
-					.then(twiceValues)
+					.val(function(token){
+						// dynamically add these to the run
+						token.add(
+							ASQ.iterable()
+								.val(extractTokenMessage)
+								.then(doubleSeq)
+								.then(doublePromise)
+								.then(doubleSeq)
+								.then(doublePromise),
+							ASQ.iterable()
+								.then(doublePromise)
+								.then(doubleSeq),
+							ASQ.iterable()
+								.then(doubleSeq)
+								.then(doublePromise)
+								.then(doubleSeq)
+								.then(twiceValues)
+						);
+
+						return token;
+					})
 			)
 			.val(function(msg1,msg2){
 				if (!(

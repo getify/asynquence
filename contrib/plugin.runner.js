@@ -7,16 +7,12 @@ ASQ.extend("runner",function __extend__(api,internals){
 			return api;
 		}
 
-		var routines = ARRAY_SLICE.call(arguments), token = {};
+		var iterators = ARRAY_SLICE.call(arguments);
 
 		api
 		.then(function __then__(mainDone){
-			var iterators, iter, ret, next_val = token;
 
-			token.messages = ARRAY_SLICE.call(arguments,1);
-
-			// map co-routines to round-robin list of iterators
-			iterators = routines.map(function __map__(fn){
+			function wrap(fn){
 				var it = fn;
 
 				// generator function?
@@ -44,10 +40,24 @@ ASQ.extend("runner",function __extend__(api,internals){
 				}
 
 				return it;
-			});
+			}
 
-			// forget original list of routines
-			routines = null;
+			function addWrapped() {
+				iterators.push.apply(
+					iterators,
+					ARRAY_SLICE.call(arguments).map(wrap)
+				);
+			}
+
+			var token = {
+					messages: ARRAY_SLICE.call(arguments,1),
+					add: addWrapped
+				},
+				iter, ret, next_val = token
+			;
+
+			// map co-routines to round-robin list of iterators
+			iterators = iterators.map(wrap);
 
 			// async iteration of round-robin list
 			(function iterate(){
