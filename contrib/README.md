@@ -431,36 +431,36 @@ You can also call `.add(..)` on the *control token* to add one or more generator
 ```js
 // promise to double `v` in 1000 ms
 function double(v) {
-   return new Promise(function(resolve,reject){
-      setTimeout(function(){
-         resolve(v * 2);
-      },1000);
-   });
+	return new Promise(function(resolve,reject){
+		setTimeout(function(){
+			resolve(v * 2);
+		},1000);
+	});
 }
 
 function makeGen(x,y) {
-   return function*(token){
-      token.messages.push( yield double(x) );
-      yield token;
-      token.messages.push( yield double(y) );
-   };
+	return function*(token){
+		token.messages.push( yield double(x) );
+		yield token;
+		token.messages.push( yield double(y) );
+	};
 }
 
 ASQ()
 .runner(
-   function*(token) {
-      token.add(
-         makeGen(10,20),
-         makeGen(100,200)
-      );
-      while (token.messages.length < 4) {
-         yield token;
-      }
-      yield token.messages;
-   }
+	function*(token) {
+		token.add(
+			makeGen(10,20),
+			makeGen(100,200)
+		);
+		while (token.messages.length < 4) {
+			yield token;
+		}
+		yield token.messages;
+	}
 )
 .val(function(msg){
-   console.log(msg); // [ 20, 200, 40, 400 ]
+	console.log(msg); // [ 20, 200, 40, 400 ]
 });
 ```
 
