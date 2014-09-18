@@ -118,7 +118,12 @@ ASQ.extend("runner",function __extend__(api,internals){
 						// message wrapper returned?
 						else if (ASQ.isMessageWrapper(ret.value)) {
 							// wrap message(s) in a sequence
-							ret.value = ASQ.apply(ø,ret.value);
+							ret.value = ASQ.apply(ø,
+								// don't let `apply(..)` discard an empty message
+								// wrapper! instead, pass it along as its own value
+								// itself.
+								ret.value.length > 0 ? ret.value : ASQ.messages(undefined)
+							);
 						}
 						// non-undefined value returned?
 						else if (typeof ret.value !== "undefined") {

@@ -1388,6 +1388,15 @@
 					.runner(
 						ASQ.iterable()
 							.then(function(){ return 42; })
+							.then(function(){ return ASQ.messages(); })
+					)
+					.pipe(done);
+				},
+				function(done){
+					ASQ()
+					.runner(
+						ASQ.iterable()
+							.then(function(){ return 42; })
 							.then(function(){ return ASQ.messages(undefined); })
 					)
 					.pipe(done);
@@ -1402,16 +1411,17 @@
 					.pipe(done);
 				}
 			)
-			.val(function(msg1,msg2,msg3,msg4){
+			.val(function(msg1,msg2,msg3,msg4,msg5){
 				if (!(
-					arguments.length === 4 &&
+					arguments.length === 5 &&
 					msg1 === 42 &&
 					msg2 === null &&
 					msg3 === undefined &&
-					Array.isArray(msg4) &&
-					msg4.length === 2 &&
-					msg4[0] === undefined &&
-					msg4[1] === 43
+					msg4 === undefined &&
+					Array.isArray(msg5) &&
+					msg5.length === 2 &&
+					msg5[0] === undefined &&
+					msg5[1] === 43
 				)) {
 					var args = ARRAY_SLICE.call(arguments);
 					args.unshift(testDone,label);
