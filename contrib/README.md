@@ -161,30 +161,36 @@ ASQ(21)
 		},100);
 	});
 })
-.pThen(
-	function(msg){
-		throw msg.toUpperCase();
-	},
-	function(){} // never called
-)
-// sequence is now in error state here!
-.pCatch(
+// sequence is now in error state!
+.pThen( // or .pCatch(...
 	null,
+	function(err) {
+		return err.toUpperCase();
+	}
+)
+// sequence no longer in error state since
+// `pThen`/`pCatch` registered an error handler
+// which handled the sequence error.
+.pThen(
+	function(msg) {
+		throw msg;
+	}
+)
+// sequence is now in error state again!
+.pCatch( // or .pThen(null, ...
 	function(err){
 		console.log(err); // "OOPS:42"
 		return "Cool";
 	}
 )
-// sequence no longer in error state since
-// `pCatch`/`pThen` registered an error handler
-// which handled the sequence error!
+// sequence no longer in error state
 .val(function(msg){
 	console.log(msg); // "Cool"
 })
 .or(function(){}); // never called
 ```
 
-You'll notice differences from the *asynquence* core `then(..)`, and how they match Promise `then(..)` behaviors:
+You'll notice differences from the *asynquence* core `then(..)`, and how they match Promise `then(..)` behaviors instead:
 
 1. `pThen(..)` takes a `success` and/or `failure` handler (both optional), rather than multiple `then` handlers.
 2. The `success` handler is not provided the `done` trigger.
