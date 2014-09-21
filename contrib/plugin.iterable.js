@@ -30,7 +30,6 @@
 						}
 						else {
 							sequence_errors.push(err);
-							if (err.stack) { sequence_errors.push(err.stack); }
 						}
 						if (or_queue.length === 0) {
 							throwSequenceErrors();
@@ -91,9 +90,6 @@
 			catch (err) {
 				if (ASQ.isMessageWrapper(err)) {
 					$throw$.apply(ø,err);
-				}
-				else if (err.stack) {
-					$throw$(err,err.stack);
 				}
 				else {
 					$throw$(err);
