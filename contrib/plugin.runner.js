@@ -88,7 +88,7 @@ ASQ.extend("runner",function __extend__(api,internals){
 					// again on next loop-iteration
 					iterators.push(iter);
 					next_val = token;
-					ASQ(iterate); // async recurse
+					ASQ.__schedule(iterate); // async recurse
 				}
 				else {
 					// not a recognized ASQ instance returned?
