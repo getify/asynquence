@@ -480,6 +480,47 @@ To get a better sense of how this advanced functionality works, check out these 
 * [Ping Pong](http://jsbin.com/qutabu/1/edit?js,output) (from [js-csp](https://github.com/ubolonton/js-csp/blob/master/README.md#examples) and the [go ping-pong](http://talks.golang.org/2013/advconc.slide#6) example)
 * [Two generators paired as CSP-style co-routines](https://gist.github.com/getify/10172207)
 
+#### go-Style CSP API Emulation
+
+If you've heard of go-style CSP concurrency, such as in [Clojure's core.async](https://clojure.github.io/core.async/), or in various JS ports such as [@jlongster](http://github.com/jlongster)'s [js-csp fork](https://github.com/jlongster/js-csp) (also, [read his blog post](http://jlongster.com/Taming-the-Asynchronous-Beast-with-CSP-in-JavaScript)) of [ubolonton's js-csp](https://github.com/ubolonton/js-csp), *asynquence* has a (nearly-identical) API emulation layer that you can drop on top of *asynquence*'s CSP-flavored `runner(..)` mechanism described above to express channel-based concurrency.
+
+For example:
+
+```js
+ASQ()
+.runner(
+	ASQ.csp.go(function*(ch){
+		yield ASQ.csp.put(ch,42);
+	}),
+	ASQ.csp.go(function*(ch){
+		yield ASQ.csp.take( ASQ.csp.timeout(1000) );
+		console.log( yield ASQ.csp.take(ch) ); // 42
+	})
+)
+.val(function(){
+	console.log("all done");
+});
+```
+
+To use the go-style API emulation layer, you'll need (at least) the `iterable()` and `pThen()`/`pCatch()` contrib plugins.
+
+In the browser:
+```html
+<script src="asq.js"></script>
+<script src="contrib.js"></script>
+<script src="asq-go-csp.js"></script>
+```
+
+In node:
+```js
+var ASQ = require("asynquence");
+
+require("asynquence-contrib");
+require("asynquence-contrib/asq-go-csp.js");
+```
+
+go-style CSP can be a very powerful abstraction for certain concurrency tasks, so using this API emulation layer gives you even more choices for expressing and managing async flow control in your JS programs.
+
 ### `react` Plugin
 
 Consider this kind of ugly code:
