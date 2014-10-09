@@ -2,7 +2,7 @@
 	"name": "asynquence",
 	"version": "0.5.4-a",
 	"description": "asynquence: promise-style async sequence flow-control",
-	"main": "./asq.js",
+	"main": "./asq.src.js",
 	"scripts": {
 		"test": "./node-tests.js",
 		"build-core": "./build-core.js"

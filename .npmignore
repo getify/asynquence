@@ -1,3 +1,6 @@
 .gitignore
-node_modules
 contrib
+build-core.js
+asq.js
+*tests*
+legacy.js
