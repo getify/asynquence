@@ -102,7 +102,7 @@ ASQ.extend("runner",function __extend__(api,internals){
 								val_type === "object" ||
 								val_type === "function"
 							) &&
-							"then" in ret.value
+							typeof ret.value.then === "function"
 						) {
 							// wrap the promise in a sequence
 							ret.value = ASQ().promise(ret.value);

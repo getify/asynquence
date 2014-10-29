@@ -451,7 +451,7 @@
 					if (!ASQ.isSequence(ret) &&
 						ret != null &&
 						(type == "object" || type == "function") &&
-						"then" in ret
+						typeof ret.then == "function"
 					) {
 						ret = ASQ().promise(ret);
 					}

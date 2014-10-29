@@ -42,7 +42,7 @@ ASQ.extend("pThen",function __extend__(api,internals){
 					// NOTE: `then` duck-typing of promises is stupid.
 					else if (
 						(typeof ret === "object" || typeof ret === "function") &&
-						"then" in ret
+						typeof ret.then === "function"
 					) {
 						ret.then(done,done.fail);
 					}
