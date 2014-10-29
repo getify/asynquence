@@ -1,5 +1,5 @@
 /*! asynquence
-    v0.5.4-a (c) Kyle Simpson
+    v0.5.5-a (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -552,7 +552,7 @@
 					// check if this argument is a non-thenable function, and
 					// if so, assume we shold invoke it to return a promise
 					// NOTE: `then` duck-typing of promises is stupid.
-					if (typeof pr === "function" && !("then" in pr)) {
+					if (typeof pr === "function" && typeof pr.then !== "function") {
 						_pr = pr.apply(ø,ARRAY_SLICE.call(arguments,1));
 					}
 					// now, hook up the promise to the sequence
