@@ -1,5 +1,5 @@
 /*! asynquence
-    v0.5.5-a (c) Kyle Simpson
+    v0.5.5-b (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -745,7 +745,7 @@
 	}
 
 	function checkBranding(val) {
-		return val != null && typeof val === "object" && val[brand];
+		return !!(val != null && typeof val === "object" && val[brand]);
 	}
 
 

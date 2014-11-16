@@ -1,14 +1,17 @@
 # asynquence
 
-A tiny (**~2.2k** minzipped) lib for promise-style async sequence flow-control.
+A tiny (**~2.3k** minzipped) lib for promise-style async sequence flow control.
 
 ## Explanation
 
-*asynquence* is a thin wrapper/abstraction on top of promises that makes using them for async flow control easier and more powerful.
+*asynquence* ("async" + "sequence") is an abstraction on top of promises (promise chains) that lets you express flow control steps with callbacks, promises, or generators.
 
 -----
 
-**For an in-depth discussion of *asynquence*, check out this [two-part](http://davidwalsh.name/asynquence-part-1) blog [post series](http://davidwalsh.name/asynquence-part-2), graciously hosted on [David Walsh](http://twitter.com/davidwalshblog)'s site.**
+If you're interested in detailed discussion about *asynquence*, here's some reading to check out:
+
+* ["You Don't Know JS: Async & Performance", Appendix A](https://github.com/getify/You-Dont-Know-JS/blob/master/async%20%26%20performance/apA.md#appendix-a-asynquence-library) and [Appendix B](https://github.com/getify/You-Dont-Know-JS/blob/master/async%20%26%20performance/apB.md#appendix-b-advanced-async-patterns).
+* [Two-part](http://davidwalsh.name/asynquence-part-1) blog [post series](http://davidwalsh.name/asynquence-part-2) on [David Walsh](http://twitter.com/davidwalshblog)'s site.
 
 -----
 
