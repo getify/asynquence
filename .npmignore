@@ -1,6 +1,2 @@
 .gitignore
 contrib
-build-core.js
-asq.js
-*tests*
-legacy.js
