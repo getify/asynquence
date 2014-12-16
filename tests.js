@@ -1428,6 +1428,44 @@
 			},2000);
 		});
 
+		tests.push(function(testDone){
+			var label = "Core Test  #25 - all excepts array", timeout;
+
+			ASQ()
+				.all([
+					function (done) {
+						setTimeout(
+							function (){
+								done();
+							},
+							1
+						);
+					},
+					function (done) {
+						setTimeout(
+							function (){
+								done();
+							},
+							2
+						);
+					}
+				])
+				.then(function(){
+					clearTimeout(timeout);
+					PASS(testDone,label);
+				})
+				.onerror(function(){
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				});
+
+			timeout = setTimeout(function(){
+				FAIL(testDone,label + " (from timeout)");
+			},2000);
+		});
+
 		return tests;
 	}
 

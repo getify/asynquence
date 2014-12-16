@@ -443,20 +443,30 @@
 			}
 
 			var fns = ARRAY_SLICE.call(arguments)
-			// map any sequences to gate segments
-			.map(function __map__(fn){
-				var def;
+			// reduce any sequences/arrays to gate segments
+			.reduce(
+				function __reduce__(fns, fn){
+					var def;
 
-				// is `fn` a sequence or iterable-sequence?
-				if (isSequence(fn)) {
-					def = { fn: fn };
-					tapSequence(def);
-					return function __segment__(done) {
-						def.fn.pipe(done);
-					};
-				}
-				else return fn;
-			});
+					// is `fn` a sequence or iterable-sequence?
+					if (isSequence(fn)) {
+						def = { fn: fn };
+						tapSequence(def);
+						fns.push(function __segment__(done) {
+							def.fn.pipe(done);
+						});
+					// is `fn` an array of fn's
+					} else if (fn instanceof Array) {
+						fn.map(function __map__(f){
+							fns.push(f);
+						})
+					}
+					else fns.push(fn);
+
+					return fns;
+				},
+				[]
+			);
 
 			then(function __then__(done){
 				var args = ARRAY_SLICE.call(arguments,1);
