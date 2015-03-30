@@ -102,7 +102,7 @@ ASQ.extend("pThen",function __extend__(api,internals){
 
 					// at next cycle, reinstate the or-queue (if any)
 					if (or_queue.length > 0) {
-						ASQ.__schedule(function __schedule__(){
+						schedule(function __schedule__(){
 							api.or.apply(ø,or_queue);
 						});
 					}

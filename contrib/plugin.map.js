@@ -1,13 +1,14 @@
 // "map"
 ASQ.extend("map",function __extend__(api,internals){
-	return function __map__(arr,each) {
+	return function __map__(pArr,pEach) {
 		if (internals("seq_error") || internals("seq_aborted")) {
 			return api;
 		}
 
 		api
 		.seq(function __seq__(){
-			var tmp, args = ARRAY_SLICE.call(arguments);
+			var tmp, args = ARRAY_SLICE.call(arguments),
+				arr = pArr, each = pEach;
 
 			// if missing `map(..)` args, use value-messages (if any)
 			if (!each) each = args.shift();

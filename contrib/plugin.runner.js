@@ -7,7 +7,7 @@ ASQ.extend("runner",function __extend__(api,internals){
 			return api;
 		}
 
-		var iterators = ARRAY_SLICE.call(arguments);
+		var args = ARRAY_SLICE.call(arguments);
 
 		api
 		.then(function __then__(mainDone){
@@ -15,12 +15,10 @@ ASQ.extend("runner",function __extend__(api,internals){
 			function wrap(fn){
 				var it = fn;
 
-				// generator function?
-				if (typeof fn === "function" &&
-					fn.constructor &&
-					fn.constructor.name === "GeneratorFunction"
-				) {
-					// initialize the generator, passing in
+				// function? expected to produces an iterator
+				// (like a generator)
+				if (typeof fn === "function") {
+					// retrieve the iterator, passing in
 					// the control token
 					it = fn.call(ø,next_val);
 				}
@@ -49,7 +47,8 @@ ASQ.extend("runner",function __extend__(api,internals){
 				);
 			}
 
-			var token = {
+			var iterators = args,
+				token = {
 					messages: ARRAY_SLICE.call(arguments,1),
 					add: addWrapped
 				},
@@ -88,7 +87,7 @@ ASQ.extend("runner",function __extend__(api,internals){
 					// again on next loop-iteration
 					iterators.push(iter);
 					next_val = token;
-					ASQ.__schedule(iterate); // async recurse
+					schedule(iterate); // async recurse
 				}
 				else {
 					// not a recognized ASQ instance returned?
