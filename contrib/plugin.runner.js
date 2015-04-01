@@ -181,10 +181,18 @@ ASQ.extend("runner",function __extend__(api,internals){
 						}
 					})
 					.or(function __or__(){
-						// if an error occurs in the step-continuation
-						// promise or sequence, throw it back into the
-						// generator or iterable-sequence
-						iter["throw"].apply(iter,arguments);
+						try {
+							// if an error occurs in the step-continuation
+							// promise or sequence, throw it back into the
+							// generator or iterable-sequence
+							iter["throw"].apply(iter,arguments);
+						}
+						catch (err) {
+							// if an error comes back out of after the throw,
+							// pass it out to the main sequence, as iteration
+							// must now be complete
+							mainDone.fail(err);
+						}
 					});
 				}
 			})();
