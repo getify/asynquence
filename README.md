@@ -23,8 +23,9 @@ If you're interested in detailed discussion about *asynquence*, here's some read
 * More advanced example of ["nested" composition of sequences](https://gist.github.com/getify/10273f3de07dda27ebce)
 * [Iterable sequences](#iterable-sequences): [sync loop](https://gist.github.com/getify/8211148#file-ex1-sync-iteration-js) and [async loop](https://gist.github.com/getify/8211148#file-ex2-async-iteration-js) and [async batch iteration of list](https://gist.github.com/getify/8464917)
 * ["State Machine" with generator coroutines](http://jsbin.com/luron/1/edit?js,console)
-* ["Ping Pong", CSP-style](http://jsbin.com/qutabu/1/edit?js,output) coroutine concurrency, via [`runner(..)` contrib plugin](https://github.com/getify/asynquence/blob/master/contrib/README.md#runner-plugin). Also [another example](https://gist.github.com/getify/10172207) showing message passing.
-* Reactive Sequences ([example 1](http://jsbin.com/rozipaki/6/edit?js,output), [example 2](https://gist.github.com/getify/bba5ec0de9d6047b720e)) (via [`react(..)` plugin](https://github.com/getify/asynquence/blob/master/contrib/README.md#react-plugin)) inspired by [RxJS's Reactive Observables](http://rxjs.codeplex.com/)
+* ["Ping Pong", CSP-flavored](http://jsbin.com/qutabu/1/edit?js,output) coroutine concurrency, via [`runner(..)` contrib plugin](https://github.com/getify/asynquence/blob/master/contrib/README.md#runner-plugin). Also [another example](https://gist.github.com/getify/10172207) showing message passing.
+* [go-Style CSP](https://github.com/getify/asynquence/blob/master/contrib/README.md#go-style-csp-api-emulation) emulating goroutines with generator wrappers and [`runner(..)` contrib plugin](https://github.com/getify/asynquence/blob/master/contrib/README.md#runner-plugin).
+* Event-Reactive Sequences ([example 1](http://jsbin.com/rozipaki/6/edit?js,output), [example 2](https://gist.github.com/getify/bba5ec0de9d6047b720e)) (via [`react(..)` plugin](https://github.com/getify/asynquence/blob/master/contrib/README.md#react-plugin)) inspired by [RxJS's Reactive Observables](http://rxjs.codeplex.com/)
 * API [Usage Examples](#usage-examples)
 
 ### Sequences
