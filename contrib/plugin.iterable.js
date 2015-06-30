@@ -188,7 +188,7 @@
 		// useful for ES6 `for..of` loops,
 		// add `@@iterator` to simply hand back
 		// our iterable sequence itself!
-		sequence_api[(typeof Symbol === "object" && Symbol != null && Symbol.iterator) || "@@iterator"] = function __iter__() {
+		sequence_api[(typeof Symbol == "function" && Symbol.iterator) || "@@iterator"] = function __iter__() {
 			return sequence_api;
 		};
 
