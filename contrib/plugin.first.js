@@ -7,55 +7,62 @@ ASQ.extend("first",function __extend__(api,internals){
 			return api;
 		}
 
-		function reset() {
-			error_messages.length = 0;
-		}
+		var fns = ARRAY_SLICE.call(arguments);
 
-		function success(trigger,idx,args) {
-			if (!finished) {
-				finished = true;
+		api.then(function __then__(done){
 
-				// first successful segment triggers
-				// main sequence to proceed as success
-				trigger(
-					args.length > 1 ?
-					ASQ.messages.apply(ø,args) :
-					args[0]
-				);
-
-				reset();
+			function reset() {
+				error_messages.length = 0;
 			}
-		}
 
-		function failure(trigger,idx,args) {
-			if (!finished &&
-				!(idx in error_messages)
-			) {
-				completed++;
-				error_messages[idx] =
-					args.length > 1 ?
-					ASQ.messages.apply(ø,args) :
-					args[0]
-				;
-
-				// all segments complete without success?
-				if (completed === fns.length) {
+			function success(trigger,idx,args) {
+				if (!finished) {
 					finished = true;
 
-					// send errors into main sequence
-					error_messages.length = fns.length;
-					trigger.fail.apply(ø,error_messages);
+					// first successful segment triggers
+					// main sequence to proceed as success
+					trigger(
+						args.length > 1 ?
+						ASQ.messages.apply(ø,args) :
+						args[0]
+					);
 
 					reset();
 				}
 			}
-		}
 
-		var completed = 0, error_messages = [], finished = false, fns;
+			function failure(trigger,idx,args) {
+				if (!finished &&
+					!(idx in error_messages)
+				) {
+					completed++;
+					error_messages[idx] =
+						args.length > 1 ?
+						ASQ.messages.apply(ø,args) :
+						args[0]
+					;
 
-		fns = ARRAY_SLICE.call(arguments);
+					// all segments complete without success?
+					if (completed === fns.length) {
+						finished = true;
 
-		wrapGate(api,fns,success,failure,reset);
+						// send errors into main sequence
+						error_messages.length = fns.length;
+						trigger.fail.apply(ø,error_messages);
+
+						reset();
+					}
+				}
+			}
+
+			var completed = 0, error_messages = [], finished = false,
+				sq = ASQ.apply(ø,ARRAY_SLICE.call(arguments,1))
+			;
+
+			wrapGate(sq,fns,success,failure,reset);
+
+			sq.pipe(done);
+		});
 
 		return api;
 	};
