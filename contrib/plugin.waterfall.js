@@ -7,17 +7,25 @@ ASQ.extend("waterfall",function __extend__(api,internals){
 			return api;
 		}
 
-		var msgs = ASQ.messages();
+		var fns = ARRAY_SLICE.call(arguments);
 
-		ARRAY_SLICE.call(arguments)
-		.forEach(function __forEach__(fn){
-			api
-			.then(fn)
-			.val(function __val__(){
-				var args = ASQ.messages.apply(ø,arguments);
-				msgs.push(args.length > 1 ? args : args[0]);
-				return msgs;
+		api.then(function __then__(done){
+
+			var msgs = ASQ.messages(),
+				sq = ASQ.apply(ø,ARRAY_SLICE.call(arguments,1))
+			;
+
+			fns.forEach(function __forEach__(fn){
+				sq
+				.then(fn)
+				.val(function __val__(){
+					var args = ASQ.messages.apply(ø,arguments);
+					msgs.push(args.length > 1 ? args : args[0]);
+					return msgs;
+				});
 			});
+
+			sq.pipe(done);
 		});
 
 		return api;
