@@ -22,10 +22,12 @@ ASQ.extend("runner",function __extend__(api,internals){
 					// the control token
 					it = fn.call(ø,next_val);
 				}
+				// an iterable sequence? duplicate it (in case of multiple runs)
+				else if (ASQ.isSequence(fn) && "next" in fn) {
+					it = fn.duplicate();
+				}
 				// not an iterable sequence? wrap it.
-				else if (!(
-					ASQ.isSequence(fn) && "next" in fn
-				)) {
+				else {
 					it = ASQ.iterable().val(fn);
 				}
 
