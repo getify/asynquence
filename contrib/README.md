@@ -540,8 +540,8 @@ Each time the button is clicked, a new sequence is defined and executed to "reac
 The `react` plugin separates the capabilities of listening for events and of responding to them, providing first-class syntactic support for the *asynquence* "reactive sequence" pattern, inspired by [RxJS Reactive Observables](http://rxjs.codeplex.com/). It essentially combines *asynquence*'s flow-control with repeatable event handling.
 
 1. `react(..)` accepts a listener setup handler, which will receive a reactive trigger (called `proceed` in the snippet below) that event listener(s) "react" with by invoking. It will also receive a function you can call one or more times to register a *teardown* handler (to unbind event handlers, etc).
-
-2. The rest of the chain sets up a normal *asynquence* sequence, which will then be repeat-executed each time the reactive trigger is fired. The reactive sequence also has an added `stop()` method, which you can use to trigger any registered teardown handlers and stop all reactive sequence handling.
+2. The rest of the chain sets up a (mostly) normal *asynquence* sequence, which will then be repeat-executed each time the reactive trigger is fired. The reactive sequence also has an added `stop()` method, which you can use to trigger any registered teardown handlers and stop all reactive sequence handling.
+	- **Note:** The following sequence methods and plugins should *not* be used on a reactive sequence, as such behavior will be undefined and/or unpredictable: `pipe(..)`, `fork(..)`, `errfcb(..)`, `pThen(..)`/`pCatch(..)`, and `toPromise(..)`.
 
 The `react` plugin reverses the paradigm of the first snippet, providing a way to specify the sequence externally and once, and have it be re-triggered each time an event fires.
 
