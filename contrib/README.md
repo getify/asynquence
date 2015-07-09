@@ -1,12 +1,12 @@
 # asynquence Contrib
 
-Optional *asynquence* plugin helpers. The full bundle of plugins (`contrib.js`) is **~3.1k** minzipped.
+Optional *asynquence* plugin helpers. The full bundle of plugins (`contrib.js`) is **~3.2k** minzipped.
 
 ## Function-wrapping Adapter
 
 To integrate *asynquence* into standard callback-oriented code bases, sometimes it's preferable to create wrappers around commonly used callback-oriented functions, to be used in place of the original functions. The wrapper automatically constructs an *asynquence* instance when called, and wires up the underlying call to the original callback-oriented function so that it maps its output behavior to the *asynquence* instance.
 
-For example, in node.js, we can call `ASQ.wrap(..)` to wrap `fs.readFile(..)`, suppressing the callback in its signature and turning it into an *asynquence*-returning function:
+For example, we can call `ASQ.wrap(..)` to wrap `fs.readFile(..)` in Node.js, suppressing the callback in its signature and turning it into an *asynquence*-returning function:
 
 ```js
 var readfile = ASQ.wrap(fs.readFile);
@@ -22,7 +22,7 @@ readfile("something.txt",{ encoding: "utf8" })
 
 **Note:** `ASQ.wrap(..)` creates a function which will automatically be async in nature, even if the underlying function would normally have called its callback immediately/synchronously. **DO NOT RELY** on ordered side-effects of such wrapped functions.
 
-Most of node.js's standard functions expect an "error-first" style callback, and they also expect it to be at the end of the arguments list (aka "parameters first"). The default settings for `ASQ.wrap(..)` assume that sort of function signature.
+Most of Node.js's standard functions expect an "error-first" style callback, and they also expect it to be at the end of the arguments list (aka "parameters first"). The default settings for `ASQ.wrap(..)` assume that sort of function signature.
 
 However, you may need to use *asynquence* with other sorts of function signatures.
 
@@ -298,13 +298,13 @@ If the "error-first" callback is then invoked with the first ("error") parameter
 Example:
 
 ```js
-// node.js: fs.readFile wrapper
+// Node.js: fs.readFile(..) wrapper
 function readFile(filename) {
 	// setup an empty sequence (much like an empty
 	// promise)
 	var sq = ASQ();
 
-	// call node.js `fs.readFile(..), but pass in
+	// call Node.js' `fs.readFile(..), but pass in
 	// an error-first callback that is automatically
 	// wired into a sequence
 	fs.readFile( filename, sq.errfcb() );
@@ -611,7 +611,7 @@ For a more real-world type of example, see [reactive sequences + `gate()`](http:
 
 In the browser, include the `contrib.js` file along with the *asynquence* library file (`asq.js`). Doing so automatically extends the API with the plugins.
 
-In node.js, you install the `asynquence-contrib` package alongside the `asynquence` package. **Note:** The *asynquence-contrib* package will return the *asynquence* instance for you, so you technically only need this if using both:
+In Node.js, you install the `asynquence-contrib` package alongside the `asynquence` package. **Note:** The *asynquence-contrib* package will return the *asynquence* instance for you, so you technically only need this if using both:
 
 ```js
 // Note: requiring "asynquence" not strictly needed here,
