@@ -113,6 +113,16 @@
 			return sequence_api;
 		}
 
+		function $return$(val) {
+			if (seq_error || seq_aborted) {
+				val = void 0;
+			}
+
+			abort();
+
+			return { done: true, value: val };
+		}
+
 		function abort() {
 			if (seq_error || seq_aborted) {
 				return;
@@ -180,6 +190,7 @@
 			pipe: pipe,
 			next: next,
 			"throw": $throw$,
+			"return": $return$,
 			abort: abort,
 			duplicate: duplicate,
 			defer: defer

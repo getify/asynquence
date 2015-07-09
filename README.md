@@ -286,7 +286,7 @@ One of the contrib plugins provided is `iterable-sequence`. Unlike other plugins
 
 An iterable sequence works similarly to normal *asynquence* sequences, but a bit different. `then(..)` still registers steps on the sequence, but it's basically just an alias of `val(..)`, because the most important difference is that steps of an iterable sequence **are not passed completion triggers**.
 
-Instead, an iterable sequence instance API has a `next(..)` method on it, which will allow the sequence to be externally iterated, one step at a time. Whatever is passed to `next(..)` is sent as step messages to the current step in the sequence. `next(..)` always returns an object like:
+Instead, an iterable sequence instance API has a `next(..)` method on it, which will allow the sequence to be externally iterated, one step at a time. Whatever is passed to `next(..)` is sent as step messages to the current step in the sequence. `next(..)` always returns an *iterator result* object like:
 
 ```js
 {
@@ -301,7 +301,7 @@ Instead, an iterable sequence instance API has a `next(..)` method on it, which 
 
 Just like with normal *asynquence* sequences, register one or more error listeners on the iterable sequence by calling `or(..)`. If a step results in some error (either accidentally or manually via `throw ..`), the iterable sequence is flagged in the error state, and any error messages are passed to the registered `or(..)` listeners.
 
-Also, just like `next(..)` externally controls the normal iteration flow of the sequence, `throw(..)` externally "throws" an error into the iterable sequence, triggering the `or(..)` flow as above. Iterable sequences can be `abort()`d just as normal *asynquence* sequences.
+Also, just like `next(..)` externally controls the normal iteration flow of the sequence, `throw(..)` externally "throws" an error into the iterable sequence, triggering the `or(..)` flow as above. Iterable sequences can be `abort()`d just as normal *asynquence* sequences. You can also call `return(..)` (just like on normal iterators), which `abort()`s the sequence and returns an *iterator result* with the value passed in, if any, and `done: true`.
 
 Iterable sequences are a special subset of sequences, and as such, some of the normal *asynquence* API variations do not exist, such as `gate(..)`, `seq(..)`, and `promise(..)`.
 
