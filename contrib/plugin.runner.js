@@ -82,10 +82,13 @@ ASQ.extend("runner",function __extend__(api,internals){
 					return mainDone.fail(err);
 				}
 
+				// bail on run in aborted sequence
+				if (internals("seq_aborted")) return;
+
 				// was the control token yielded?
 				if (ret.value === token) {
 					// round-robin: put co-routine back into the list
-					// at the end, so that the the next iterator where it was so it can be processed
+					// at the end where it was so it can be processed
 					// again on next loop-iteration
 					iterators.push(iter);
 					next_val = token;
@@ -139,6 +142,9 @@ ASQ.extend("runner",function __extend__(api,internals){
 
 					ret.value
 					.val(function __val__(){
+						// bail on run in aborted sequence
+						if (internals("seq_aborted")) return;
+
 						if (arguments.length > 0) {
 							// save any return messages for input
 							// to next iteration
@@ -183,6 +189,9 @@ ASQ.extend("runner",function __extend__(api,internals){
 						}
 					})
 					.or(function __or__(){
+						// bail on run in aborted sequence
+						if (internals("seq_aborted")) return;
+
 						try {
 							// if an error occurs in the step-continuation
 							// promise or sequence, throw it back into the
