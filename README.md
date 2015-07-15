@@ -1,6 +1,6 @@
 # asynquence
 
-A tiny (**~2.3k** minzipped) lib for promise-style async sequence flow control.
+Promise-style async sequence flow control.
 
 ## Explanation
 

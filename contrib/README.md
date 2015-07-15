@@ -1,6 +1,6 @@
 # asynquence Contrib
 
-Optional *asynquence* plugin helpers. The full bundle of plugins (`contrib.js`) is **~3.2k** minzipped.
+Optional *asynquence* plugin helpers.
 
 ## Function-wrapping Adapter
 
@@ -490,17 +490,35 @@ For example:
 ASQ()
 .runner(
 	ASQ.csp.go(function*(ch){
+		console.log("sending value");
 		yield ASQ.csp.put(ch,42);
+		console.log("send complete");
 	}),
 	ASQ.csp.go(function*(ch){
+		console.log("waiting...");
 		yield ASQ.csp.take( ASQ.csp.timeout(1000) );
-		console.log( yield ASQ.csp.take(ch) ); // 42
+		console.log(
+			"received value:",
+			yield ASQ.csp.take(ch)
+		);
 	})
 )
 .val(function(){
 	console.log("all done");
 });
+
+// sending value
+// waiting...
+// received value: 42
+// send complete
+// all done
 ```
+
+As you can see, by calling `yield ASQ.csp.put(..)`, you're blocking that coroutine (aka "goroutine") while it attempts to send the value on the channel. The other coroutine doesn't take the value right away (it waits 1000ms). Then `yield ASQ.csp.take(..)` blocks until a value can be taken from the channel.
+
+In this case, `42` is already waiting to be sent, but if there were no value yet, that coroutine would block and wait. Once the value is taken and the second coroutine finishes, the first coroutine is unblocked and it finishes as well.
+
+The main concept with go-style CSP -- channel-based concurrency -- is that you use `put(..)`s and `take(..)`s on a shared channel (like a message stream) to coordinate interactions across multiple coroutines -- implicit transfers of control. Both `put(..)` and `take(..)` block, so that regardless of which action is taken "first", both must pair before the message can be sent across the channel.
 
 To use the go-style API emulation layer, you'll need (at least) the `iterable()` and `pThen()`/`pCatch()` contrib plugins.
 
