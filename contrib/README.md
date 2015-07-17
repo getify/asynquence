@@ -539,6 +539,8 @@ require("asynquence-contrib/asq-go-csp.js");
 
 go-style CSP can be a very powerful abstraction for certain concurrency tasks, so using this API emulation layer gives you even more choices for expressing and managing async flow control in your JS programs.
 
+Check out [several more examples of go-style CSP](https://gist.github.com/getify/e0d04f1f5aa24b1947ae).
+
 ### `react` Plugin
 
 Consider this kind of ugly code:
