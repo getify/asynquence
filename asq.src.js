@@ -1,5 +1,5 @@
 /*! asynquence
-    v0.6.0-b (c) Kyle Simpson
+    v0.7.0-a (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -12,7 +12,7 @@
 
 	var cycle, scheduling_queue,
 		timer = (typeof setImmediate !== "undefined") ?
-			function timer(fn) { return setImmediate(fn); } :
+			function $$timer(fn) { return setImmediate(fn); } :
 			setTimeout
 	;
 
@@ -26,7 +26,7 @@
 		}
 
 		return {
-			add: function add(fn) {
+			add: function $$add(fn) {
 				item = new Item(fn);
 				if (last) {
 					last.next = item;
@@ -37,7 +37,7 @@
 				last = item;
 				item = void 0;
 			},
-			drain: function drain() {
+			drain: function $$drain() {
 				var f = first;
 				first = last = cycle = null;
 
@@ -59,43 +59,43 @@
 	}
 
 	function tapSequence(def) {
-		var trigger;
+		// temporary `trigger` which, if called before being replaced
+		// above, creates replacement proxy sequence with the
+		// success/error message(s) pre-injected
+		function trigger() {
+			def.seq = createSequence.apply(ø,arguments).defer();
+		}
+
+		// fail trigger
+		trigger.fail = function $$trigger$fail() {
+			var args = ARRAY_SLICE.call(arguments);
+			def.seq = createSequence(function $$create$sequence(done){
+				done.fail.apply(ø,args);
+			})
+			.defer();
+		};
 
 		// listen for signals from the sequence
-		def.fn
-		// note: cannot use `fn.pipe(trigger)` because we
+		def.seq
+		// note: cannot use `seq.pipe(trigger)` because we
 		// need to be able to update the shared closure
 		// to change `trigger`
-		.val(function __val__(){
+		.val(function $$val(){
 			trigger.apply(ø,arguments);
 			return ASQmessages.apply(ø,arguments);
 		})
-		.or(function __or__(){
+		.or(function $$or(){
 			trigger.fail.apply(ø,arguments);
 		});
 
 		// make a sequence to act as a proxy to the original
 		// sequence
-		def.fn = createSequence(function __create_sequence__(done){
+		def.seq = createSequence(function $$create$sequence(done){
 			// replace the temporary trigger (created below)
 			// with this proxy's trigger
 			trigger = done;
 		})
 		.defer();
-
-		// temporary `trigger` which, if called before being replaced
-		// above, creates replacement proxy sequence with the
-		// success/error message(s) pre-injected
-		trigger = function __trigger__() {
-			def.fn = createSequence.apply(ø,arguments).defer();
-		};
-		trigger.fail = function __trigger_fail__() {
-			var args = ARRAY_SLICE.call(arguments);
-			def.fn = createSequence(function __create_sequence__(done){
-				done.fail.apply(ø,args);
-			})
-			.defer();
-		};
 	}
 
 	function createSequence() {
@@ -189,7 +189,7 @@
 				scheduleSequenceTick();
 			}
 
-			done.fail = function step$fail(){
+			done.fail = function $$step$fail(){
 				// ignore this call?
 				if (seq_error || seq_aborted || then_ready) {
 					return;
@@ -202,7 +202,7 @@
 				scheduleSequenceTick();
 			};
 
-			done.abort = function step$abort(){
+			done.abort = function $$step$abort(){
 				if (seq_error || seq_aborted) {
 					return;
 				}
@@ -215,7 +215,7 @@
 			};
 
 			// handles "error-first" (aka "node-style") callbacks
-			done.errfcb = function step$errfcb(err){
+			done.errfcb = function $$step$errfcb(err){
 				if (err) {
 					done.fail(err);
 				}
@@ -269,7 +269,7 @@
 
 					// collect all the messages from the gate segments
 					segment_completion
-					.forEach(function __foreach__(sc,i){
+					.forEach(function $$each(sc,i){
 						msgs.push(segment_messages["s" + i]);
 					});
 
@@ -286,7 +286,7 @@
 
 				var fulfilled = true;
 
-				segment_completion.some(function __some__(segcom){
+				segment_completion.some(function $$some(segcom){
 					if (segcom === null) {
 						fulfilled = false;
 						return true; // break
@@ -320,7 +320,7 @@
 
 				var segment_completion_idx = segment_completion.length;
 
-				done.fail = function segment$fail(){
+				done.fail = function $$segment$fail(){
 					// ignore this call?
 					if (seq_error || seq_aborted || gate_error ||
 						gate_aborted || gate_completed ||
@@ -335,7 +335,7 @@
 					scheduleGateTick();
 				};
 
-				done.abort = function segment$abort(){
+				done.abort = function $$segment$abort(){
 					if (seq_error || seq_aborted || gate_error ||
 						gate_aborted || gate_completed
 					) {
@@ -349,7 +349,7 @@
 				};
 
 				// handles "error-first" (aka "node-style") callbacks
-				done.errfcb = function segment$errfcb(err){
+				done.errfcb = function $$segment$errfcb(err){
 					if (err) {
 						done.fail(err);
 					}
@@ -378,7 +378,7 @@
 				gate_tick
 			;
 
-			segments.some(function __some__(seg){
+			segments.some(function $$some(seg){
 				if (gate_error || gate_aborted) {
 					return true; // break
 				}
@@ -411,12 +411,12 @@
 			}
 
 			wrapArgs(arguments,thenWrapper)
-			.forEach(function __foreach__(fn){
-				if (isSequence(fn)) {
-					seq(fn);
+			.forEach(function $$each(v){
+				if (isSequence(v)) {
+					seq(v);
 				}
 				else {
-					then_queue.push(fn);
+					then_queue.push(v);
 				}
 			});
 
@@ -444,21 +444,21 @@
 
 			var fns = ARRAY_SLICE.call(arguments)
 			// map any sequences to gate segments
-			.map(function __map__(fn){
+			.map(function $$map(v){
 				var def;
 
-				// is `fn` a sequence or iterable-sequence?
-				if (isSequence(fn)) {
-					def = { fn: fn };
+				// is `v` a sequence or iterable-sequence?
+				if (isSequence(v)) {
+					def = { seq: v };
 					tapSequence(def);
-					return function __segment__(done) {
-						def.fn.pipe(done);
+					return function $$segment(done) {
+						def.seq.pipe(done);
 					};
 				}
-				else return fn;
+				else return v;
 			});
 
-			then(function __then__(done){
+			then(function $$then(done){
 				var args = ARRAY_SLICE.call(arguments,1);
 				createGate(done,fns,args);
 			});
@@ -472,12 +472,12 @@
 			}
 
 			ARRAY_SLICE.call(arguments)
-			.forEach(function __foreach__(fn){
-				then(function __then__(done){
-					fn.apply(ø,ARRAY_SLICE.call(arguments,1));
+			.forEach(function $$each(trigger){
+				then(function $$then(done){
+					trigger.apply(ø,ARRAY_SLICE.call(arguments,1));
 					done();
 				})
-				.or(fn.fail);
+				.or(trigger.fail);
 			});
 
 			return sequence_api;
@@ -489,24 +489,24 @@
 			}
 
 			ARRAY_SLICE.call(arguments)
-			.forEach(function __foreach__(fn){
-				var def = { fn: fn };
+			.forEach(function $$each(v){
+				var def = { seq: v };
 
 				// is `fn` a sequence or iterable-sequence?
-				if (isSequence(fn)) {
+				if (isSequence(v)) {
 					tapSequence(def);
 				}
 
-				then(function __then__(done){
-					var _fn = def.fn;
+				then(function $$then(done){
+					var _v = def.seq;
 					// check if this argument is not already a sequence?
 					// if not, assume a function to invoke that will return
 					// a sequence.
-					if (!isSequence(def.fn)) {
-						_fn = def.fn.apply(ø,ARRAY_SLICE.call(arguments,1));
+					if (!isSequence(_v)) {
+						_v = def.seq.apply(ø,ARRAY_SLICE.call(arguments,1));
 					}
 					// pipe the provided sequence into our current sequence
-					_fn.pipe(done);
+					_v.pipe(done);
 				});
 			});
 
@@ -521,8 +521,8 @@
 			ARRAY_SLICE.call(
 				wrapArgs(arguments,valWrapper)
 			)
-			.forEach(function __foreach__(fn){
-				then(function __then__(done){
+			.forEach(function $$each(fn){
+				then(function $$then(done){
 					var msgs = fn.apply(ø,ARRAY_SLICE.call(arguments,1));
 					if (!isMessageWrapper(msgs)) {
 						msgs = ASQmessages(msgs);
@@ -536,7 +536,7 @@
 
 		function promise() {
 			function wrap(fn) {
-				return function __fn__(){
+				return function $$fn(){
 					fn.apply(ø,isMessageWrapper(arguments[0]) ? arguments[0] : arguments);
 				};
 			}
@@ -546,8 +546,8 @@
 			}
 
 			ARRAY_SLICE.call(arguments)
-			.forEach(function __foreach__(pr){
-				then(function __then__(done){
+			.forEach(function $$each(pr){
+				then(function $$then(done){
 					var _pr = pr;
 					// check if this argument is a non-thenable function, and
 					// if so, assume we shold invoke it to return a promise
@@ -570,7 +570,7 @@
 			var trigger;
 
 			// listen for success at this point in the sequence
-			val(function __val__(){
+			val(function $$val(){
 				if (trigger) {
 					trigger.apply(ø,arguments);
 				}
@@ -580,13 +580,13 @@
 				return ASQmessages.apply(ø,arguments);
 			});
 			// listen for error at this point in the sequence
-			or(function __or__(){
+			or(function $$or(){
 				if (trigger) {
 					trigger.fail.apply(ø,arguments);
 				}
 				else {
 					var args = ARRAY_SLICE.call(arguments);
-					trigger = createSequence().then(function __then__(done){
+					trigger = createSequence().then(function $$then(done){
 						done.fail.apply(ø,args);
 					})
 					.defer();
@@ -596,7 +596,7 @@
 			// create the forked sequence which will receive
 			// the success/error stream from the main sequence
 			return createSequence()
-			.then(function __then__(done){
+			.then(function $$then(done){
 				if (!trigger) {
 					trigger = done;
 				}
@@ -672,7 +672,7 @@
 
 		function includeExtensions() {
 			Object.keys(extensions)
-			.forEach(function __foreach__(name){
+			.forEach(function $$each(name){
 				sequence_api[name] =
 					extensions[name](sequence_api,internals);
 			});
@@ -830,12 +830,12 @@
 	// ***********************************************
 	// Setup the public API
 	// ***********************************************
-	createSequence.failed = function publicAPI$failed() {
+	createSequence.failed = function $$public$failed() {
 		var args = ASQmessages.apply(ø,arguments);
-		return createSequence(function $failed$(){ throw args; }).defer();
+		return createSequence(function $$failed(){ throw args; }).defer();
 	};
 
-	createSequence.extend = function publicAPI$extend(name,build) {
+	createSequence.extend = function $$public$extend(name,build) {
 		// reserved API override not allowed
 		if (!~["then","or","gate","all","pipe","seq","val","promise","fork","abort","duplicate","defer"]
 			.indexOf(name)
@@ -846,26 +846,26 @@
 		return createSequence;
 	};
 
-	createSequence.messages = ASQmessages = function publicAPI$messages() {
+	createSequence.messages = ASQmessages = function $$public$messages() {
 		var ret = ARRAY_SLICE.call(arguments);
 		// brand the message wrapper so we can detect
 		return brandIt(ret);
 	};
 
-	createSequence.isSequence = isSequence = function publicAPI$isSequence(val) {
+	createSequence.isSequence = isSequence = function $$public$isSequence(val) {
 		return checkBranding(val) && !Array.isArray(val);
 	};
 
-	createSequence.isMessageWrapper = isMessageWrapper = function publicAPI$isMessageWrapper(val) {
+	createSequence.isMessageWrapper = isMessageWrapper = function $$public$isMessageWrapper(val) {
 		return checkBranding(val) && Array.isArray(val);
 	};
 
-	createSequence.unpause = function publicAPI$unpause(sq) {
+	createSequence.unpause = function $$public$unpause(sq) {
 		if (sq.unpause) sq.unpause();
 		return sq;
 	};
 
-	createSequence.noConflict = function publicAPI$noConflict() {
+	createSequence.noConflict = function $$public$noConflict() {
 		if (context) {
 			context[name] = old_public_api;
 		}
@@ -874,7 +874,7 @@
 
 	// create a clone of the *asynquence* API
 	// Note: does *not* include any registered extensions
-	createSequence.clone = function publicAPI$clone() {
+	createSequence.clone = function $$public$clone() {
 		return DEF(name,context);
 	};
 

@@ -12,8 +12,12 @@ console.log("Minifying to asq.js.");
 
 try {
 	result = ugly.minify(path.join(__dirname,"asq.src.js"),{
-		mangle: true,
-		compress: true,
+		mangle: {
+			keep_fnames: true
+		},
+		compress: {
+			keep_fnames: true
+		},
 		output: {
 			comments: /^!/
 		}

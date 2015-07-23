@@ -1,14 +1,14 @@
 {
 	"name": "asynquence",
-	"version": "0.6.0-b",
-	"description": "asynquence: promise-style async sequence flow-control",
+	"version": "0.7.0-a",
+	"description": "promise-style async sequence flow-control",
 	"main": "./asq.src.js",
 	"scripts": {
 		"test": "./node-tests.js",
 		"build-core": "./build-core.js"
 	},
 	"devDependencies": {
-		"uglify-js": "~2.4.8",
+		"uglify-js": "~2.4.24",
 		"native-promise-only": "latest"
 	},
 	"repository": {
