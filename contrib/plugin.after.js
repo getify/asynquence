@@ -1,16 +1,16 @@
 // "after"
-ASQ.extend("after",function __extend__(api,internals){
-	return function __after__(num) {
+ASQ.extend("after",function $$extend(api,internals){
+	return function $$after(num) {
 		var orig_args = arguments.length > 1 ?
 			ARRAY_SLICE.call(arguments,1) :
 			void 0
 		;
 		num = +num || 0;
 
-		api.then(function __then__(done){
+		api.then(function $$then(done){
 			var args = orig_args || ARRAY_SLICE.call(arguments,1);
 
-			setTimeout(function __setTimeout__(){
+			setTimeout(function $$set$timeout(){
 				done.apply(ø,args);
 			},num);
 		});
@@ -19,6 +19,6 @@ ASQ.extend("after",function __extend__(api,internals){
 	};
 });
 
-ASQ.after = function ASQ$after() {
+ASQ.after = function $$after() {
 	return ASQ().after.apply(ø,arguments);
 };

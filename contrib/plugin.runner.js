@@ -1,6 +1,6 @@
 // "runner"
-ASQ.extend("runner",function __extend__(api,internals){
-	return function __runner__() {
+ASQ.extend("runner",function $$extend(api,internals){
+	return function $$runner() {
 		if (internals("seq_error") || internals("seq_aborted") ||
 			arguments.length === 0
 		) {
@@ -10,7 +10,7 @@ ASQ.extend("runner",function __extend__(api,internals){
 		var args = ARRAY_SLICE.call(arguments);
 
 		api
-		.then(function __then__(mainDone){
+		.then(function $$then(mainDone){
 
 			function wrap(fn){
 				var it = fn;
@@ -33,7 +33,7 @@ ASQ.extend("runner",function __extend__(api,internals){
 
 				// listen for any sequence failures
 				if (ASQ.isSequence(it)) {
-					it.or(function __or__(){
+					it.or(function $$or(){
 						// signal iteration-error
 						mainDone.fail.apply(ø,arguments);
 					});
@@ -115,7 +115,7 @@ ASQ.extend("runner",function __extend__(api,internals){
 						else if (val_type === "function") {
 							// wrap thunk call in a sequence
 							fn = ret.value;
-							ret.value = ASQ(function __ASQ__(done){
+							ret.value = ASQ(function $$ASQ(done){
 								fn(done.errfcb);
 							});
 						}
@@ -141,7 +141,7 @@ ASQ.extend("runner",function __extend__(api,internals){
 					}
 
 					ret.value
-					.val(function __val__(){
+					.val(function $$val(){
 						// bail on run in aborted sequence
 						if (internals("seq_aborted")) return;
 
@@ -188,7 +188,7 @@ ASQ.extend("runner",function __extend__(api,internals){
 							mainDone();
 						}
 					})
-					.or(function __or__(){
+					.or(function $$or(){
 						// bail on run in aborted sequence
 						if (internals("seq_aborted")) return;
 

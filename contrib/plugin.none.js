@@ -1,6 +1,6 @@
 // "none"
-ASQ.extend("none",function __extend__(api,internals){
-	return function __none__() {
+ASQ.extend("none",function $$extend(api,internals){
+	return function $$none() {
 		if (internals("seq_error") || internals("seq_aborted") ||
 			arguments.length === 0
 		) {
@@ -9,8 +9,7 @@ ASQ.extend("none",function __extend__(api,internals){
 
 		var fns = ARRAY_SLICE.call(arguments);
 
-		api.then(function __then__(done){
-
+		api.then(function $$then(done){
 			function reset() {
 				finished = true;
 				error_messages.length = 0;

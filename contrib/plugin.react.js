@@ -1,38 +1,12 @@
 // "react" (reactive sequences)
-ASQ.react = function __react__(setup) {
-	var template, teardowns = [];
-
-	function proceed() {
+ASQ.react = function $$react(reactor) {
+	function next() {
 		if (template) {
 			var sq = template.duplicate();
 			sq.unpause.apply(ø,arguments);
 			return sq;
 		}
-		return ASQ().val(function __val__(){ throw "Disabled Sequence"; });
-	}
-
-	proceed.onStream = function onStream() {
-		ARRAY_SLICE.call(arguments)
-		.forEach(function $forEach$(stream){
-			stream.on("data",proceed);
-			stream.on("error",proceed);
-		});
-	};
-
-	proceed.unStream = function unStream() {
-		ARRAY_SLICE.call(arguments)
-		.forEach(function $forEach$(stream){
-			stream.removeListener("data",proceed);
-			stream.removeListener("error",proceed);
-		});
-	};
-
-	function teardown() {
-		if (template) {
-			template = null;
-			teardowns.forEach(function __forEach__(fn){ fn(); });
-			teardowns.length = 0;
-		}
+		return ASQ(function $$asq(){ throw "Disabled Sequence"; });
 	}
 
 	function registerTeardown(fn) {
@@ -41,12 +15,39 @@ ASQ.react = function __react__(setup) {
 		}
 	}
 
-	// make sure `fn(..)` is called async
-	ASQ(function __asq__(){
-		setup.call(template,proceed,registerTeardown);
+	var template = ASQ().duplicate(),
+		teardowns = []
+	;
+
+	// add reactive sequence kill switch
+	template.stop = function $$stop() {
+		if (template) {
+			template = null;
+			teardowns.forEach(Function.call,Function.call);
+			teardowns.length = 0;
+		}
+	};
+
+	next.onStream = function $$onStream() {
+		ARRAY_SLICE.call(arguments)
+		.forEach(function $$each(stream){
+			stream.on("data",next);
+			stream.on("error",next);
+		});
+	};
+
+	next.unStream = function $$unStream() {
+		ARRAY_SLICE.call(arguments)
+		.forEach(function $$each(stream){
+			stream.removeListener("data",next);
+			stream.removeListener("error",next);
+		});
+	};
+
+	// make sure `reactor(..)` is called async
+	ASQ.__schedule(function $$schedule(){
+		reactor.call(template,next,registerTeardown);
 	});
 
-	template = ASQ().duplicate();
-	template.stop = teardown;
 	return template;
 };

@@ -22,7 +22,9 @@ function printHelp() {
 function bundlePlugins(dir) {
 	var files = fs.readdirSync(dir);
 
-	files.forEach(function __forEach__(file){
+	files.sort();
+
+	files.forEach(function $$each(file){
 		var st = fs.statSync(path.join(dir,file)),
 			contents, collection_id,
 			plugin_name = file.replace(/plugin\.(.*)\.js/,"$1")
@@ -118,7 +120,7 @@ bundle_wrapper_code = fs.readFileSync(
 	{ encoding: "utf8" }
 );
 
-bundle_wrapper_code = bundle_wrapper_code.replace(/\/\*PLUGINS\*\//,function __replace__(){ return bundle_str; });
+bundle_wrapper_code = bundle_wrapper_code.replace(/\/\*PLUGINS\*\//,function $$replace(){ return bundle_str; });
 
 fs.writeFileSync(
 	path.join(__dirname,bundle_name),
@@ -131,8 +133,12 @@ console.log("Minifying to: " + bundle_min_name);
 
 try {
 	result = ugly.minify(path.join(__dirname,bundle_name),{
-		mangle: true,
-		compress: true,
+		mangle: {
+			keep_fnames: true
+		},
+		compress: {
+			keep_fnames: true
+		},
 		output: {
 			comments: /^!/
 		}

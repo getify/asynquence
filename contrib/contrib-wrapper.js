@@ -1,19 +1,19 @@
 /*! asynquence-contrib
-    v0.10.1-a (c) Kyle Simpson
+    v0.10.2-a (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
 (function UMD(dependency,definition){
 	if (typeof module !== "undefined" && module.exports) {
 		// make dependency injection wrapper first
-		module.exports = function $InjectDependency$(dep) {
+		module.exports = function $$inject$dependency(dep) {
 			// only try to `require(..)` if dependency is a string module path
 			if (typeof dep == "string") {
 				try { dep = require(dep); }
 				catch (err) {
 					// dependency not yet fulfilled, so just return
 					// dependency injection wrapper again
-					return $InjectDependency$;
+					return $$inject$dependency;
 				}
 			}
 			return definition(dep);
@@ -38,52 +38,51 @@
 	;
 
 	function wrapGate(api,fns,success,failure,reset) {
-		fns = fns.map(function __map__(fn,idx){
+		fns = fns.map(function $$map(v,idx){
 			var def;
 			// tap any directly-provided sequences immediately
-			if (ASQ.isSequence(fn)) {
-				def = { fn: fn };
+			if (ASQ.isSequence(v)) {
+				def = { seq: v };
 				tapSequence(def);
-				return function __fn__(trigger) {
-					def.fn
-					.val(function __val__(){
-						success(trigger,idx,ARRAY_SLICE.call(arguments));
+				return function $$fn(next) {
+					def.seq.val(function $$val(){
+						success(next,idx,ARRAY_SLICE.call(arguments));
 					})
-					.or(function __or__(){
-						failure(trigger,idx,ARRAY_SLICE.call(arguments));
+					.or(function $$or(){
+						failure(next,idx,ARRAY_SLICE.call(arguments));
 					});
 				};
 			}
 			else {
-				return function __fn__(trigger) {
+				return function $$fn(next) {
 					var args = ARRAY_SLICE.call(arguments);
-					args[0] = function __trigger__() {
-						success(trigger,idx,ARRAY_SLICE.call(arguments));
+					args[0] = function $$next() {
+						success(next,idx,ARRAY_SLICE.call(arguments));
 					};
-					args[0].fail = function __fail__() {
-						failure(trigger,idx,ARRAY_SLICE.call(arguments));
+					args[0].fail = function $$fail() {
+						failure(next,idx,ARRAY_SLICE.call(arguments));
 					};
-					args[0].abort = function __abort__() {
+					args[0].abort = function $$abort() {
 						reset();
 					};
-					args[0].errfcb = function __errfcb__(err) {
+					args[0].errfcb = function $$errfcb(err) {
 						if (err) {
-							failure(trigger,idx,[err]);
+							failure(next,idx,[err]);
 						}
 						else {
-							success(trigger,idx,ARRAY_SLICE.call(arguments,1));
+							success(next,idx,ARRAY_SLICE.call(arguments,1));
 						}
 					};
 
-					fn.apply(ø,args);
+					v.apply(ø,args);
 				};
 			}
 		});
 
-		api.then(function __then__(){
+		api.then(function $$then(){
 			var args = ARRAY_SLICE.call(arguments);
 
-			fns.forEach(function __forEach__(fn){
+			fns.forEach(function $$each(fn){
 				fn.apply(ø,args);
 			});
 		});

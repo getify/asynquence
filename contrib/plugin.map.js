@@ -1,12 +1,11 @@
 // "map"
-ASQ.extend("map",function __extend__(api,internals){
-	return function __map__(pArr,pEach) {
+ASQ.extend("map",function $$extend(api,internals){
+	return function $$map(pArr,pEach) {
 		if (internals("seq_error") || internals("seq_aborted")) {
 			return api;
 		}
 
-		api
-		.seq(function __seq__(){
+		api.seq(function $$seq(){
 			var tmp, args = ARRAY_SLICE.call(arguments),
 				arr = pArr, each = pEach;
 
@@ -22,13 +21,13 @@ ASQ.extend("map",function __extend__(api,internals){
 			}
 
 			return ASQ.apply(ø,args)
-			.gate.apply(ø,arr.map(function __map__(item){
-				return function __segment__(){
+			.gate.apply(ø,arr.map(function $$map(item){
+				return function $$segment(){
 					each.apply(ø,[item].concat(ARRAY_SLICE.call(arguments)));
 				};
 			}));
 		})
-		.val(function __val__(){
+		.val(function $$val(){
 			// collect all gate segment output into one value-message
 			// Note: return a normal array here, not a message wrapper!
 			return ARRAY_SLICE.call(arguments);

@@ -1,6 +1,5 @@
 // "wrap"
-ASQ.wrap = function __wrap__(fn,opts) {
-
+ASQ.wrap = function $$wrap(fn,opts) {
 	function checkThis(t,o) {
 		return (!t ||
 			(typeof window != "undefined" && t === window) ||
@@ -38,41 +37,41 @@ ASQ.wrap = function __wrap__(fn,opts) {
 	}
 
 	if (opts.gen) {
-		return function __wrapped_gen__() {
+		return function $$wrapped$gen() {
 			return ASQ.apply(ø,arguments).runner(fn);
 		};
 	}
 	if (errfcb) {
-		return function __wrapped_errfcb__() {
+		return function $$wrapped$errfcb() {
 			var args = ARRAY_SLICE.call(arguments),
 				_this = checkThis(this,this_obj)
 			;
 
-			return ASQ(function __asq__(done){
+			return ASQ(function $$asq(done){
 				args[act](done.errfcb);
 				fn.apply(_this,args);
 			});
 		};
 	}
 	if (opts.splitcb) {
-		return function __wrapped_splitcb__() {
+		return function $$wrapped$splitcb() {
 			var args = ARRAY_SLICE.call(arguments),
 				_this = checkThis(this,this_obj)
 			;
 
-			return ASQ(function __asq__(done){
+			return ASQ(function $$asq(done){
 				args[act](done,done.fail);
 				fn.apply(_this,args);
 			});
 		};
 	}
 	if (opts.simplecb) {
-		return function __wrapped_simplecb__() {
+		return function $$wrapped$simplecb() {
 			var args = ARRAY_SLICE.call(arguments),
 				_this = checkThis(this,this_obj)
 			;
 
-			return ASQ(function __asq__(done){
+			return ASQ(function $$asq(done){
 				args[act](done);
 				fn.apply(_this,args);
 			});

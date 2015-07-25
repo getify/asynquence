@@ -1,6 +1,6 @@
 {
 	"name": "asynquence-contrib",
-	"version": "0.10.1-a",
+	"version": "0.10.2-a",
 	"description": "contrib plugins for asynquence",
 	"main": "./contrib.js",
 	"scripts": {
@@ -11,7 +11,7 @@
 		"asynquence": "*"
 	},
 	"devDependencies": {
-		"uglify-js": "~2.4.8",
+		"uglify-js": "~2.4.24",
 		"native-promise-only": "latest",
 		"minimist": "~0.2.0",
 		"freshy": "~0.0.2"

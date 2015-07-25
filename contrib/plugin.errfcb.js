@@ -1,10 +1,10 @@
 // "errfcb"
-ASQ.extend("errfcb",function __extend__(api,internals){
-	return function __errfcb__() {
+ASQ.extend("errfcb",function $$extend(api,internals){
+	return function $$errfcb() {
 		// create a fake sequence to extract the callbacks
 		var sq = {
-			val: function __then__(cb){ sq.val_cb = cb; return sq; },
-			or: function __or__(cb){ sq.or_cb = cb; return sq; }
+			val: function $$then(cb){ sq.val_cb = cb; return sq; },
+			or: function $$or(cb){ sq.or_cb = cb; return sq; }
 		};
 
 		// trick `seq(..)`s checks for a sequence
@@ -15,7 +15,7 @@ ASQ.extend("errfcb",function __extend__(api,internals){
 		api.seq(sq);
 
 		// provide the "error-first" callback
-		return function __errorfirst_callback__(err) {
+		return function $$errorfirst$callback(err) {
 			if (err) {
 				sq.or_cb(err);
 			}

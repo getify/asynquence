@@ -1,14 +1,14 @@
 // "toPromise"
-ASQ.extend("toPromise",function __extend__(api,internals){
-	return function __toPromise__() {
-		return new Promise(function executor(resolve,reject){
+ASQ.extend("toPromise",function $$extend(api,internals){
+	return function $$to$promise() {
+		return new Promise(function $$executor(resolve,reject){
 			api
-			.val(function __val__(){
+			.val(function $$val(){
 				var args = ARRAY_SLICE.call(arguments);
 				resolve.call(ø,args.length > 1 ? args : args[0]);
 				return ASQ.messages.apply(ø,args);
 			})
-			.or(function __or__(){
+			.or(function $$or(){
 				var args = ARRAY_SLICE.call(arguments);
 				reject.call(ø,args.length > 1 ? args : args[0]);
 			});

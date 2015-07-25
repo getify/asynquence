@@ -1,6 +1,6 @@
 // "race"
-ASQ.extend("race",function __extend__(api,internals){
-	return function __race__() {
+ASQ.extend("race",function $$extend(api,internals){
+	return function $$race() {
 		if (internals("seq_error") || internals("seq_aborted") ||
 			arguments.length === 0
 		) {
@@ -8,23 +8,23 @@ ASQ.extend("race",function __extend__(api,internals){
 		}
 
 		var fns = ARRAY_SLICE.call(arguments)
-		.map(function __map__(fn){
+		.map(function $$map(v){
 			var def;
 			// tap any directly-provided sequences immediately
-			if (ASQ.isSequence(fn)) {
-				def = { fn: fn };
+			if (ASQ.isSequence(v)) {
+				def = { seq: v };
 				tapSequence(def);
-				return function __fn__(done) {
-					def.fn.pipe(done);
+				return function $$fn(done) {
+					def.seq.pipe(done);
 				};
 			}
-			else return fn;
+			else return v;
 		});
 
-		api.then(function __then__(done){
+		api.then(function $$then(done){
 			var args = ARRAY_SLICE.call(arguments);
 
-			fns.forEach(function __forEach__(fn){
+			fns.forEach(function $$each(fn){
 				fn.apply(ø,args);
 			});
 		});

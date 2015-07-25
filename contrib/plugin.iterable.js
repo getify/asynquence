@@ -2,7 +2,7 @@
 (function IIFE(){
 	var template;
 
-	ASQ.iterable = function __iterable__() {
+	ASQ.iterable = function $$iterable() {
 		function throwSequenceErrors() {
 			throw (sequence_errors.length === 1 ? sequence_errors[0] : sequence_errors);
 		}
@@ -69,7 +69,7 @@
 			}
 
 			ARRAY_SLICE.call(arguments)
-			.forEach(function __foreach__(fn){
+			.forEach(function $$each(fn){
 				val(fn).or(fn.fail);
 			});
 
@@ -150,7 +150,7 @@
 
 		// opt-out of global error reporting for this sequence
 		function defer() {
-			or_queue.push(function ignored(){});
+			or_queue.push(function $$ignored(){});
 			return sequence_api;
 		}
 
@@ -199,7 +199,7 @@
 		// useful for ES6 `for..of` loops,
 		// add `@@iterator` to simply hand back
 		// our iterable sequence itself!
-		sequence_api[(typeof Symbol == "function" && Symbol.iterator) || "@@iterator"] = function __iter__() {
+		sequence_api[(typeof Symbol == "function" && Symbol.iterator) || "@@iterator"] = function $$iter() {
 			return sequence_api;
 		};
 

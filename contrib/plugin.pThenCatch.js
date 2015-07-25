@@ -1,6 +1,6 @@
 // "pThen"
-ASQ.extend("pThen",function __extend__(api,internals){
-	return function __pThen__(success,failure) {
+ASQ.extend("pThen",function $$extend(api,internals){
+	return function $$pthen(success,failure) {
 		if (internals("seq_aborted")) {
 			return api;
 		}
@@ -8,7 +8,7 @@ ASQ.extend("pThen",function __extend__(api,internals){
 		var ignore_success_handler = false, ignore_failure_handler = false;
 
 		if (typeof success === "function") {
-			api.then(function __then__(done){
+			api.then(function $$then(done){
 				if (!ignore_success_handler) {
 					var ret, msgs = ASQ.messages.apply(ø,arguments);
 					msgs.shift();
@@ -57,7 +57,7 @@ ASQ.extend("pThen",function __extend__(api,internals){
 			});
 		}
 		if (typeof failure === "function") {
-			api.or(function __or__(){
+			api.or(function $$or(){
 				if (!ignore_failure_handler) {
 					var ret, msgs = ASQ.messages.apply(ø,arguments), smgs,
 						or_queue = ARRAY_SLICE.call(internals("or_queue"))
@@ -95,14 +95,14 @@ ASQ.extend("pThen",function __extend__(api,internals){
 					internals("or_queue").length = 0;
 
 					// make sure to schedule success-procession on the chain
-					api.val(function __val__(){
+					api.val(function $$val(){
 						// pass thru messages
 						return ASQ.messages.apply(ø,arguments);
 					});
 
 					// at next cycle, reinstate the or-queue (if any)
 					if (or_queue.length > 0) {
-						schedule(function __schedule__(){
+						schedule(function $$schedule(){
 							api.or.apply(ø,or_queue);
 						});
 					}
@@ -112,9 +112,10 @@ ASQ.extend("pThen",function __extend__(api,internals){
 		return api;
 	};
 });
+
 // "pCatch"
-ASQ.extend("pCatch",function __extend__(api,internals){
-	return function __pCatch__(failure) {
+ASQ.extend("pCatch",function $$extend(api,internals){
+	return function $$pcatch(failure) {
 		if (internals("seq_aborted")) {
 			return api;
 		}
