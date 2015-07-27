@@ -672,17 +672,21 @@ If you pass one or more {PLUGIN-NAME} parameters, only the ones
 specified (except any that are --exclude omitted) will be bundled.
 ```
 
-`bundle.js` by default builds the unminified bundle `contrib.src.js`, and then builds (minifies) `contrib.js`. The recommended way to invoke this utility is via npm:
+`bundle.js` by default builds the unminified bundle `contrib.src.js`, and then builds (minifies) `contrib.js`. By default, this build includes all the `contrib/plugin.*.js` plugins.
 
-`npm run-script bundle`
+The recommended way to invoke this utility is via npm:
 
-By default, the build includes all the `contrib/plugin.*.js` plugins. But, you can manually specify which plugins you want, by name. For example, to bundle only the `any`, `none`, and `try` plugins:
+```
+npm run build
+```
+
+The npm package distribution also includes `contrib-common.js` (and `contrib-common.src.js`), which bundles only these commonly used plugins: `iterable`, `race`, `runner`, `toPromise`, and `wrap`.
+
+You can build your own bundle and manually specify which plugins you want, by name. For example, to bundle only the `any`, `none`, and `try` plugins:
 
 ```
 ./bundle.js any none try
 ```
-
-**Note:** `npm run-script ..` [doesn't *currently*](https://github.com/isaacs/npm/issues/3494) support passing any extra command line parameters, so you must use `./bundle.js` **instead of** `npm run-script bundle` if you want to specify parameters to the bundle script.
 
 By passing *option* parameters to the bundle script, you can override the default filenames used for the contrib plugin wrapper (`--wrapper=..`), bundle (`--bundle=..`), and minified-bundle (`--min-bundle=..`). These options are useful for creating multiple variations of the plugin bundle.
 

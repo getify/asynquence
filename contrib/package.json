@@ -1,11 +1,12 @@
 {
 	"name": "asynquence-contrib",
-	"version": "0.10.2-a",
-	"description": "contrib plugins for asynquence",
+	"version": "0.11.0-a",
+	"description": "additional plugins for asynquence",
 	"main": "./contrib.js",
 	"scripts": {
 		"test": "./node-tests.js",
-		"bundle": "./bundle.js"
+		"build": "./bundle.js && ./bundle.js --bundle=contrib-common.src.js --min-bundle=contrib-common.js iterable race runner toPromise wrap",
+		"prepublish": "./bundle.js && ./bundle.js --bundle=contrib-common.src.js --min-bundle=contrib-common.js iterable race runner toPromise wrap"
 	},
 	"peerDependencies": {
 		"asynquence": "*"
