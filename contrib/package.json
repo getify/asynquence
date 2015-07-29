@@ -2,7 +2,7 @@
 	"name": "asynquence-contrib",
 	"version": "0.11.0-a",
 	"description": "additional plugins for asynquence",
-	"main": "./contrib.js",
+	"main": "./contrib.src.js",
 	"scripts": {
 		"test": "./node-tests.js",
 		"build": "./bundle.js && ./bundle.js --bundle=contrib-common.src.js --min-bundle=contrib-common.js iterable race runner toPromise wrap",
@@ -15,7 +15,9 @@
 		"uglify-js": "~2.4.24",
 		"native-promise-only": "latest",
 		"minimist": "~0.2.0",
-		"freshy": "~0.0.2"
+		"freshy": "~0.0.2",
+		"es-feature-tests": "~0.2.1-a",
+		"babel-core": "~5.8.12"
 	},
 	"repository": {
 		"type": "git",

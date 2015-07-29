@@ -2,3 +2,5 @@ node_modules
 asq.js
 contrib.src.js
 contrib.js
+contrib-common.src.js
+contrib-common.js
