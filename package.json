@@ -1,6 +1,6 @@
 {
 	"name": "asynquence",
-	"version": "0.7.0-a",
+	"version": "0.7.0-b",
 	"description": "promise-style async sequence flow-control",
 	"main": "./asq.src.js",
 	"scripts": {
@@ -9,7 +9,9 @@
 	},
 	"devDependencies": {
 		"uglify-js": "~2.4.24",
-		"native-promise-only": "latest"
+		"native-promise-only": "latest",
+		"es-feature-tests": "~0.2.1-a",
+		"babel-core": "~5.8.12"
 	},
 	"repository": {
 		"type": "git",
