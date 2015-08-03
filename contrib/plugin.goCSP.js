@@ -3,13 +3,13 @@
 
 	// filter out already-resolved queue entries
 	function filterResolved(queue) {
-		return queue.filter(function __filter__(entry){
+		return queue.filter(function $$filter(entry){
 			return !entry.resolved;
 		});
 	}
 
 	function closeQueue(queue,finalValue) {
-		queue.forEach(function __forEach__(iter){
+		queue.forEach(function $$each(iter){
 			if (!iter.resolved) {
 				iter.next();
 				iter.next(finalValue);
@@ -20,7 +20,7 @@
 
 	function channel(bufSize) {
 		var ch = {
-			close: function __close__(){
+			close: function $$close(){
 				ch.closed = true;
 				closeQueue(ch.put_queue,false);
 				closeQueue(ch.take_queue,ASQ.csp.CLOSED);
@@ -62,7 +62,7 @@
 			channel.put_queue.push(
 				// make a notifiable iterable for 'put' blocking
 				ASQ.iterable()
-				.then(function __then__(){
+				.then(function $$then(){
 					if (!channel.closed) {
 						channel.messages.push(value);
 						return true;
@@ -110,7 +110,7 @@
 		}
 
 		if (ASQ.isSequence(ret)) {
-			ret.pCatch(function __pcatch__(err){
+			ret.pCatch(function $$pcatch(err){
 				return err;
 			});
 		}
@@ -154,7 +154,7 @@
 			channel.take_queue.push(
 				// make a notifiable iterable for 'take' blocking
 				ASQ.iterable()
-				.then(function __then__(){
+				.then(function $$then(){
 					if (!channel.closed) {
 						var v = channel.messages.shift();
 						if (v instanceof Error) {
@@ -190,7 +190,7 @@
 			ret.pThen(cb,cb);
 		}
 		else {
-			return ret.val(function __val__(v){
+			return ret.val(function $$val(v){
 				if (v instanceof Error) {
 					throw v;
 				}
@@ -212,7 +212,7 @@
 		handlers = [];
 
 		// separate actions by open/closed channel status
-		actions.forEach(function __forEach__(action){
+		actions.forEach(function $$each(action){
 			var channel = Array.isArray(action) ? action[0] : action;
 
 			// remove already-resolved entries
@@ -252,7 +252,7 @@
 
 		// setup channel action handlers
 		for (i=0; i<open.length; i++) {
-			(function(action,channel,value){
+			(function iteration(action,channel,value){
 				// put action?
 				if (Array.isArray(action)) {
 					channel = action[0];
@@ -261,11 +261,11 @@
 					// define put handler
 					handlers.push(
 						ASQ.iterable()
-						.then(function __then__(){
+						.then(function $$then(){
 							resolved = true;
 
 							// mark all handlers across this `alts(..)` as resolved now
-							handlers = handlers.filter(function __filter__(handler){
+							handlers = handlers.filter(function $$filter(handler){
 								return !(handler.resolved = true);
 							});
 
@@ -286,7 +286,7 @@
 
 					// take waiting on this queued put?
 					if (channel.take_queue.length > 0) {
-						ASQ.__schedule(function handleUnblocking(){
+						schedule(function handleUnblocking(){
 							if (!resolved) {
 								unblock(channel.put_queue.shift());
 								unblock(channel.take_queue.shift());
@@ -301,11 +301,11 @@
 					// define take handler
 					handlers.push(
 						ASQ.iterable()
-						.then(function __then__(){
+						.then(function $$then(){
 							resolved = true;
 
 							// mark all handlers across this `alts(..)` as resolved now
-							handlers = handlers.filter(function __filter__(handler){
+							handlers = handlers.filter(function $$filter(handler){
 								return !(handler.resolved = true);
 							});
 
@@ -325,7 +325,7 @@
 
 					// put waiting on this queued take?
 					if (channel.put_queue.length > 0) {
-						ASQ.__schedule(function handleUnblocking(){
+						schedule(function handleUnblocking(){
 							if (!resolved) {
 								unblock(channel.put_queue.shift());
 								unblock(channel.take_queue.shift());
@@ -367,31 +367,29 @@
 			args = [];
 		}
 
-		return function *__go__(token) {
-			function extract() {
-				ret = null;
-				msg = arguments.length > 1 ?
-					ASQ.messages.apply(null,arguments) :
-					arguments[0]
-				;
-			}
-
+		return function *$$go(token) {
 			var ret, msg, err, type, done = false, it;
 
-			// need to create a default channel for these goroutines?
-			if (!token.channel) {
+			// keep track of how many goroutines are running
+			// so we can infer when we're done go'ing
+			token.go_count = (token.go_count || 0) + 1;
+
+			// need to initialize a set of goroutines?
+			if (token.go_count === 1) {
+				// create a default channel for these goroutines
 				token.channel = channel();
 				token.channel.messages = token.messages;
-				token.channel.go = function __go__(){
-					token.add(go.apply(null,arguments));
+				token.channel.go = function $$go(){
+					token.wait = false;
+					token.add(go.apply(ø,arguments));
 				};
 				// starting out with initial channel messages?
 				if (token.channel.messages.length > 0) {
 					// fake back-pressure blocking for each
-					token.channel.put_queue = token.channel.messages.map(function __map__(){
+					token.channel.put_queue = token.channel.messages.map(function $$map(){
 						// make a notifiable iterable for 'put' blocking
 						return ASQ.iterable()
-						.then(function __then__(){
+						.then(function $$then(){
 							unblock(token.channel.take_queue.shift());
 							return !token.channel.closed;
 						});
@@ -399,20 +397,39 @@
 				}
 			}
 
-			// keep track of how many goroutines are running
-			// so we can imply when we're done go'ing
-			token.go_count = (token.go_count || 0) + 1;
-
 			// initialize the generator
-			it = gen.apply(null,[token.channel].concat(args));
+			it = gen.apply(ø,[token.channel].concat(args));
 
-			while (!done) {
-				if (!ret) {
-					if (err) {
-						ret = it.throw(err);
+			(function iterate(){
+				function next() {
+					if (!done) {
+						iterate();
 					}
-					else {
-						ret = it.next(msg);
+				}
+
+				function extract() {
+					ret = null;
+					msg = arguments.length > 1 ?
+						ASQ.messages.apply(ø,arguments) :
+						arguments[0]
+					;
+				}
+
+				if (!ret) {
+					try {
+						if (err) {
+							ret = it.throw(err);
+							err = null;
+						}
+						else {
+							ret = it.next(msg);
+						}
+					}
+					catch (e) {
+						done = true;
+						err = e;
+						msg = null;
+						return;
 					}
 					done = ret.done;
 					ret = ret.value;
@@ -430,25 +447,45 @@
 
 					// wait for the value?
 					if (ASQ.isSequence(ret)) {
-						ret.val(extract)
-						.or(function(){
-							extract.apply(null,arguments);
+						ret.val(function $$val(){
+							extract.apply(ø,arguments);
+							next();
+						})
+						.or(function $$or(){
+							extract.apply(ø,arguments);
 							if (msg instanceof Error) {
 								err = msg;
 								msg = null;
 							}
+							next();
 						});
 					}
 					// immediate value, prepare it to go right back in
 					else {
 						msg = ret;
 						ret = null;
-						continue;
+						next();
 					}
 				}
+			})();
 
-				// transfer control to next goroutine
+			while (!done) {
+				// transfer control to another goroutine
 				yield token;
+
+				// upon resuming control, should we wait
+				// here (asynchronously)?
+				if (!token.wait) {
+					token.wait = true;
+
+					// wait until done or until new goroutine
+					// needs control
+					while (!done && token.wait) {
+						yield ASQ();
+					}
+
+					token.wait = false;
+				}
 			}
 
 			// this goroutine is done now
@@ -457,7 +494,7 @@
 			// all goroutines done now?
 			if (token.go_count === 0) {
 				// capture any untaken messages
-				msg = ASQ.messages.apply(null,token.messages);
+				msg = ASQ.messages.apply(ø,token.messages);
 
 				// need to implicitly force-close channel?
 				if (token.channel && !token.channel.closed) {
@@ -466,8 +503,14 @@
 					token.channel.close = token.channel.go = token.channel.messages = null;
 				}
 				token.channel = null;
+			}
 
-				// make sure leftover messages (if any) are passed along
+			// make sure leftover error or message are
+			// passed along
+			if (err) {
+				throw err;
+			}
+			else if (token.go_count === 0) {
 				yield msg;
 			}
 		};
