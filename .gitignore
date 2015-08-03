@@ -4,3 +4,4 @@ contrib.src.js
 contrib.js
 contrib-common.src.js
 contrib-common.js
+contrib-es6.src.js

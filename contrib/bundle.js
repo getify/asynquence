@@ -3,9 +3,12 @@
 var path = require("path"),
 	fs = require("fs"),
 	ugly = require("uglify-js"),
-	argv = require("minimist")(
+	args = require("minimist")(
 		process.argv.slice(2),
-		{ "string": ["wrapper","bundle","min-bundle","exclude"] }
+		{
+			"boolean": ["keep-es6"],
+			"string": ["wrapper","bundle","min-bundle","exclude"]
+		}
 	),
 	testify = require("es-feature-tests/testify"),
 	babel = require("babel-core"),
@@ -23,27 +26,27 @@ var path = require("path"),
 // **********************************************
 
 // want help?
-if (argv.help) {
+if (args.help) {
 	printHelp();
 	process.exit(1);
 }
 
 // pull in any override options
-if (argv.bundle) {
-	bundle_name = argv.bundle;
+if (args.bundle) {
+	bundle_name = args.bundle;
 }
-if (argv["min-bundle"]) {
-	bundle_min_name = argv["min-bundle"];
+if (args["min-bundle"]) {
+	bundle_min_name = args["min-bundle"];
 }
-if (argv.wrapper) {
-	bundle_wrapper_name = argv.wrapper;
+if (args.wrapper) {
+	bundle_wrapper_name = args.wrapper;
 }
 
-if (argv._.length > 0) {
-	which_plugins = argv._.slice();
+if (args._.length > 0) {
+	which_plugins = args._.slice();
 }
-if (argv.exclude && argv.exclude.length > 0) {
-	exclude_plugins = Array.isArray(argv.exclude) ? argv.exclude.slice() : [argv.exclude];
+if (args.exclude && args.exclude.length > 0) {
+	exclude_plugins = Array.isArray(args.exclude) ? args.exclude.slice() : [args.exclude];
 }
 
 bundlePlugins(
@@ -64,32 +67,35 @@ fs.writeFileSync(
 );
 
 console.log("Bundling complete.");
-console.log("Minifying to: " + bundle_min_name);
 
-try {
-	result = ugly.minify(path.join(__dirname,bundle_name),{
-		mangle: {
-			keep_fnames: true
-		},
-		compress: {
-			keep_fnames: true
-		},
-		output: {
-			comments: /^!/
-		}
-	});
+if (!args["keep-es6"]) {
+	console.log("Minifying to: " + bundle_min_name);
 
-	fs.writeFileSync(
-		path.join(__dirname,bundle_min_name),
-		result.code + "\n",
-		{ encoding: "utf8" }
-	);
+	try {
+		result = ugly.minify(path.join(__dirname,bundle_name),{
+			mangle: {
+				keep_fnames: true
+			},
+			compress: {
+				keep_fnames: true
+			},
+			output: {
+				comments: /^!/
+			}
+		});
 
-	console.log("Complete.");
-}
-catch (err) {
-	console.error(err);
-	process.exit(1);
+		fs.writeFileSync(
+			path.join(__dirname,bundle_min_name),
+			result.code + "\n",
+			{ encoding: "utf8" }
+		);
+
+		console.log("Complete.");
+	}
+	catch (err) {
+		console.error(err);
+		process.exit(1);
+	}
 }
 
 function printHelp() {
@@ -101,6 +107,7 @@ function printHelp() {
 	console.log("--bundle=filename         bundle filename (\"contrib.src.js\")");
 	console.log("--min-bundle=filename     minified-bundle filename (\"contrib.js\")");
 	console.log("--exclude={PLUGIN-NAME}   exclude a plugin from bundling");
+	console.log("--keep-es6={PLUGIN-NAME}  no ES6 transpilation, skips minification");
 	console.log("");
 	console.log("If you don't pass any {PLUGIN-NAME} parameters, all available plugins");
 	console.log("(except any that are --exclude omitted) will be bundled.");
@@ -150,7 +157,9 @@ function bundlePlugins(dir) {
 				console.log("Including plugin: " + plugin_name);
 
 				contents = fs.readFileSync(path.join(dir,file),{ encoding: "utf8" });
-				contents = checkES6(contents);
+				if (!args["keep-es6"]) {
+					contents = checkES6(contents);
+				}
 
 				bundle_str += contents;
 			}
