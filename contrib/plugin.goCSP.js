@@ -368,6 +368,15 @@
 		}
 
 		return function *$$go(token) {
+
+			// unblock the overall goroutine handling
+			function unblock() {
+				if (token.block && !token.block.marked) {
+					token.block.marked = true;
+					token.block.next();
+				}
+			}
+
 			var ret, msg, err, type, done = false, it;
 
 			// keep track of how many goroutines are running
@@ -380,10 +389,10 @@
 				token.channel = channel();
 				token.channel.messages = token.messages;
 				token.channel.go = function $$go(){
-					if (token.wait && !token.wait.marked) {
-						token.wait.marked = true;
-						token.wait.next();
-					}
+					// unblock the goroutine handling for these
+					// new goroutine(s)?
+					unblock();
+					// add the goroutine(s) to the handling queue
 					token.add(go.apply(ø,arguments));
 				};
 				// starting out with initial channel messages?
@@ -405,53 +414,50 @@
 
 			(function iterate(){
 
-				function unwait() {
-					if (token.wait && !token.wait.marked) {
-						token.wait.marked = true;
-						token.wait.next();
-					}
-				}
-
 				function next() {
+					// keep going with next step in goroutine?
 					if (!done) {
 						iterate();
 					}
+					// unblock overall goroutine handling to
+					// continue with other goroutines
 					else {
-						unwait();
+						unblock();
 					}
 				}
 
-				function extract() {
-					ret = null;
-					msg = arguments.length > 1 ?
-						ASQ.messages.apply(ø,arguments) :
-						arguments[0]
-					;
-				}
-
+				// has a resumption value been achieved yet?
 				if (!ret) {
+					// try to resume the goroutine
 					try {
+						// resume with injected exception?
 						if (err) {
 							ret = it.throw(err);
 							err = null;
 						}
+						// resume normally
 						else {
 							ret = it.next(msg);
 						}
 					}
+					// resumption failed, so bail
 					catch (e) {
 						done = true;
 						err = e;
 						msg = null;
-						unwait();
+						unblock();
 						return;
 					}
+
+					// keep track of the result of the resumption
 					done = ret.done;
 					ret = ret.value;
 					type = typeof ret;
 
+					// if this goroutine is complete, unblock the
+					// overall goroutine handling
 					if (done) {
-						unwait();
+						unblock();
 					}
 
 					// received a thenable/promise back?
@@ -467,11 +473,19 @@
 					// wait for the value?
 					if (ASQ.isSequence(ret)) {
 						ret.val(function $$val(){
-							extract.apply(ø,arguments);
+							ret = null;
+							msg = arguments.length > 1 ?
+								ASQ.messages.apply(ø,arguments) :
+								arguments[0]
+							;
 							next();
 						})
 						.or(function $$or(){
-							extract.apply(ø,arguments);
+							ret = null;
+							msg = arguments.length > 1 ?
+								ASQ.messages.apply(ø,arguments) :
+								arguments[0]
+							;
 							if (msg instanceof Error) {
 								err = msg;
 								msg = null;
@@ -488,31 +502,28 @@
 				}
 			})();
 
+			// keep this goroutine alive until completion
 			while (!done) {
 				// transfer control to another goroutine
 				yield token;
 
-				// upon resuming control, should we wait
-				// here (asynchronously)?
-				if (!done && !token.wait) {
-					// wait until this goroutine is done or
-					// until a new goroutine needs control
-					yield (token.wait = ASQ.iterable());
+				// need to block overall goroutine handling
+				// while idle?
+				if (!done && !token.block) {
+					// wait here while idle
+					yield (token.block = ASQ.iterable());
 
-					token.wait = false;
+					token.block = false;
 				}
 			}
 
 			// this goroutine is done now
 			token.go_count--;
 
-			// all goroutines done now?
+			// all goroutines done?
 			if (token.go_count === 0) {
-				if (token.wait && !token.wait.marked) {
-					token.wait.marked = true;
-					token.wait.next();
-					token.wait = false;
-				}
+				// any lingering blocking need to be cleaned up?
+				unblock();
 
 				// capture any untaken messages
 				msg = ASQ.messages.apply(ø,token.messages);
