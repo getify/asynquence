@@ -380,7 +380,10 @@
 				token.channel = channel();
 				token.channel.messages = token.messages;
 				token.channel.go = function $$go(){
-					token.wait = false;
+					if (token.wait && !token.wait.marked) {
+						token.wait.marked = true;
+						token.wait.next();
+					}
 					token.add(go.apply(ø,arguments));
 				};
 				// starting out with initial channel messages?
@@ -401,9 +404,20 @@
 			it = gen.apply(ø,[token.channel].concat(args));
 
 			(function iterate(){
+
+				function unwait() {
+					if (token.wait && !token.wait.marked) {
+						token.wait.marked = true;
+						token.wait.next();
+					}
+				}
+
 				function next() {
 					if (!done) {
 						iterate();
+					}
+					else {
+						unwait();
 					}
 				}
 
@@ -429,11 +443,16 @@
 						done = true;
 						err = e;
 						msg = null;
+						unwait();
 						return;
 					}
 					done = ret.done;
 					ret = ret.value;
 					type = typeof ret;
+
+					if (done) {
+						unwait();
+					}
 
 					// received a thenable/promise back?
 					// NOTE: `then` duck-typing of promises is stupid.
@@ -475,14 +494,10 @@
 
 				// upon resuming control, should we wait
 				// here (asynchronously)?
-				if (!token.wait) {
-					token.wait = true;
-
-					// wait until done or until new goroutine
-					// needs control
-					while (!done && token.wait) {
-						yield ASQ();
-					}
+				if (!done && !token.wait) {
+					// wait until this goroutine is done or
+					// until a new goroutine needs control
+					yield (token.wait = ASQ.iterable());
 
 					token.wait = false;
 				}
@@ -493,6 +508,12 @@
 
 			// all goroutines done now?
 			if (token.go_count === 0) {
+				if (token.wait && !token.wait.marked) {
+					token.wait.marked = true;
+					token.wait.next();
+					token.wait = false;
+				}
+
 				// capture any untaken messages
 				msg = ASQ.messages.apply(ø,token.messages);
 
@@ -511,7 +532,10 @@
 				throw err;
 			}
 			else if (token.go_count === 0) {
-				yield msg;
+				return msg;
+			}
+			else {
+				return token;
 			}
 		};
 	}
