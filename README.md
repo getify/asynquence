@@ -280,6 +280,8 @@ The `/contrib/` directory includes a variety of [optional contrib plugins](https
 
 For browser usage, simply include the `asq.js` library file and then the `contrib.js` file. For node.js, these contrib plugins are available as a separate npm package: `asynquence-contrib`.
 
+There are also other bundle options included with the npm package, such as `contrib-es6.src.js` and `contrib-common.js`. See [Building Contrib Bundle](https://github.com/getify/asynquence/blob/master/contrib/README.md#building-contrib-bundle) for more information.
+
 #### Iterable Sequences
 
 One of the contrib plugins provided is `iterable-sequence`. Unlike other plugins, which add methods onto the sequence instance API, this plugin adds a new method directly onto the main module API: `ASQ.iterable(..)`. Calling `ASQ.iterable(..)` creates a special iterable sequence, as compared to calling `ASQ(..)` to create a normal *asynquence* sequence.
