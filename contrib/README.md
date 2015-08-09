@@ -680,7 +680,9 @@ The recommended way to invoke this utility is via npm:
 npm run build
 ```
 
-The npm package distribution also includes `contrib-common.js` (and `contrib-common.src.js`), which bundles only these commonly used plugins: `iterable`, `race`, `runner`, `toPromise`, and `wrap`.
+Some plugins, like `goCSP`, use ES6 features that are transpiled to ES5 using [Babel](http://babeljs.io) for the `contrib.src.js` and `contrib.js` bundles. So, to use `goCSP` in a browser for example, you'll need to also load the Babel browser polyfill, which is available at `./node_modules/babel-core/browser-polyfill.min.js` (and use `polyfill.js` in Node).
+
+The npm package distribution also includes `contrib-es6.src.js`, which is the unminified and non-transpiled (original native ES6 code) bundle. Also included in the package is `contrib-common.js` (and `contrib-common.src.js`), which include only these commonly used plugins: `iterable`, `race`, `runner`, `toPromise`, and `wrap`.
 
 You can build your own bundle and manually specify which plugins you want, by name. For example, to bundle only the `any`, `none`, and `try` plugins:
 
