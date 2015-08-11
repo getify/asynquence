@@ -627,6 +627,22 @@ var rsq = ASQ.react(function(proceed,registerTeardownHandler){
 
 For a more real-world type of example, see [reactive sequences + `gate()`](http://jsbin.com/rozipaki/6/edit?js,output). Here's [another example](https://gist.github.com/getify/bba5ec0de9d6047b720e), which handles http request/response streams with reactive sequences.
 
+#### `react` Helpers
+
+The `reactHelpers` plugin includes several very useful helpers for the `react(..)` utility.
+
+First, some utilities for interoperating between asynquence reactive sequences and RxJS Observables:
+
+* `toObservable(..)` sequence method on a normal asynquence sequence, or a reactive sequence, which produces an RxJS Observable (requires RxJS to be present)
+* `ASQ.react.fromObservable(..)` static utility that receives an RxJS Observable and turns it into a reactive sequence as if produced by `react(..)` (requires RxJS to be present)
+
+Second, some utilities for combining multiple reactive sequences (in very much the same way as you can with Observables):
+
+* `ASQ.react.all(..)` (alias: `ASQ.react.zip(..)`) works similar to RxJS `zip(..)`. Produces a new reactive sequence (as if created by `react(..)`) that listens to one or more reactive sequences, and fires an event (with all messages) whenever *all* observed sequences have fired an event. Each sequence's stream of event messages are buffered in case the sequences are producing at different frequencies.
+* `ASQ.react.latest(..)` (alias: `ASQ.react.combine(..)`) works similar to RxJS `combine(..)`. The same as `ASQ.react.all(..)`, except no buffering is done -- only the *latest* message from each sequence is kept.
+* `ASQ.react.any(..)` (alias: `ASQ.react.merge(..)`) works similar to RxJS `merge(..)`. Produces a new reactive sequence (as if created by `react(..)`) that listens to one or more reactive sequences, and fires (with just one message) as soon as *any* observed sequence fires an event.
+* `ASQ.react.distinct(..)` works similar to RxJS `distinct(..)`. Produces a new reactive sequence (as if created by `react(..)`) that listens to a reactive sequence, and only fires whenever a *distinct* event message comes through from the observed sequence events.
+
 ## Using Contrib Plugins
 
 In the browser, include the `contrib.js` file along with the *asynquence* library file (`asq.js`). Doing so automatically extends the API with the plugins.
