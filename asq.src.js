@@ -1,11 +1,11 @@
 /*! asynquence
-    v0.8.0 (c) Kyle Simpson
+    v0.8.1 (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
 (function UMD(name,context,definition){
-	if (typeof module !== "undefined" && module.exports) { module.exports = definition(); }
-	else if (typeof define === "function" && define.amd) { define(definition); }
+	if (typeof define === "function" && define.amd) { define(definition); }
+	else if (typeof module !== "undefined" && module.exports) { module.exports = definition(); }
 	else { context[name] = definition(name,context); }
 })("ASQ",this,function DEF(name,context){
 	"use strict";
