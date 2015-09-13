@@ -202,7 +202,7 @@ You'll notice differences from the *asynquence* core `then(..)`, and how they ma
 
 `after` plugin provides a sequence instance method `after(..)` which inserts a delay into a sequence at that step. The first parameter is a number of milliseconds to wait. (Optional) additional parameters provide sequence messages to pass along (overriding previous sequence messages). Otherwise, previous sequence messages pass-through the delay automatically.
 
-`after` plugin also provides a static method version `ASQ.after(..)` which is the same as `ASQ().after(..)`.
+`after` plugin also provides a static function version `ASQ.after(..)` which is the same as using the `ASQ().after(..)` method.
 
 
 ```js
@@ -218,7 +218,7 @@ ASQ.after(500)
 });
 ```
 
-`failAfter` plugin provides both the sequence method `failAfter(..)` and the static method `ASQ.failAfter(..)`, which work exactly like the `after` plugin methods above, but result in failure rather than success.
+`failAfter` plugin provides both the sequence method `failAfter(..)` and the static function `ASQ.failAfter(..)`, which work exactly like the `after` plugin methods above, but result in failure rather than success.
 
 The most common usage of the `failAfter` plugin is likely in combination with the `race(..)` plugin, to create "timeout" behavior:
 
@@ -291,7 +291,7 @@ As long as either the native `Promise` is there, or that global has been spec-co
 
 ### `errfcb` Plugin
 
-`errfcb` plugin provides `errfcb()` on the main sequence instance API. Calling `errfcb()` returns an "error-first" style (aka "node-style") callback that can be used with any method that expects such a callback.
+`errfcb` plugin provides `errfcb()` on the main sequence instance API. Calling `errfcb()` returns an "error-first" style (aka "node-style") callback that can be used with any function that expects such a callback.
 
 If the "error-first" callback is then invoked with the first ("error") parameter set, the main sequence is flagged for error as usual. Otherwise, the main sequence proceeds as success. Messages sent to the callback are passed through to the main sequence as success/error as expected.
 

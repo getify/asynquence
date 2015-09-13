@@ -182,11 +182,11 @@ There are a few convenience methods on the API, as well:
 
 * `fork()` creates a new sequence that forks off of the main sequence. Success or Error message(s) stream along to the forked sequence as expected, but the main sequence continues as its own sequence beyond the fork point, and neither sequence will have any further effect on the other.
 
-    This API method is primarily useful to create multiple "listeners" at the same point of a sequence. For example: `sq = ASQ()...; sq2 = sq.fork().then(..); sq3 = sq.fork().then(..); sq.then(..)`. In that snippet, there'd be 3 `then(..)` listeners that would be equally and simultaneously triggered when the main `sq` sequence reached that point.
+    This API method is primarily useful to create multiple "listeners" at the same point of a sequence. For example: `Sq = ASQ()...; Sq2 = Sq.fork().then(..); Sq3 = Sq.fork().then(..); Sq.then(..)`. In that snippet, there'd be 3 `then(..)` listeners that would be equally and simultaneously triggered when the main `Sq` sequence reached that point.
 
-    **Note:** Unlike most other API methods, `fork()` returns a new sequence instance, so chaining after `fork()` would not be chaining off of the main sequence but off of the forked sequence.
+    **Note:** Unlike most other API methods, `fork()` returns a new sequence instance, so chaining after `fork()` would not be chaining off of the main sequence but off the forked sequence.
 
-    `sq.fork()` is (sort-of) sugar short-hand for `ASQ().seq(sq)`.
+    `Sq.fork()` is (sort-of) sugar short-hand for `ASQ().seq(Sq)`.
 
 * `duplicate()` creates a separate copy of the current sequence (as it is at that moment). The duplicated sequence is "paused", meaning it won't automatically run, even if the original sequence is already running.
 
@@ -206,7 +206,7 @@ There are a few convenience methods on the API, as well:
 
 You can also `abort()` a sequence at any time, which will prevent any further actions from occurring on that sequence (all callbacks will be ignored). The call to `abort()` can happen on the sequence API itself, or using the `abort` flag on a completion trigger in any step (see example below).
 
-#### Static Methods
+#### API Static Functions
 
 `ASQ.failed(..)` produces a sequence which is already in the failed state. If you pass messages along to `failed(..)`, they will be the error messages for the sequence.
 
@@ -284,7 +284,7 @@ There are also other bundle options included with the npm package, such as `cont
 
 #### Iterable Sequences
 
-One of the contrib plugins provided is `iterable-sequence`. Unlike other plugins, which add methods onto the sequence instance API, this plugin adds a new method directly onto the main module API: `ASQ.iterable(..)`. Calling `ASQ.iterable(..)` creates a special iterable sequence, as compared to calling `ASQ(..)` to create a normal *asynquence* sequence.
+One of the contrib plugins provided is `iterable-sequence`. Unlike other plugins, which add methods onto the sequence instance API, this plugin adds a new static function directly onto the main module API: `ASQ.iterable(..)`. Calling `ASQ.iterable(..)` creates a special iterable sequence, as compared to calling `ASQ(..)` to create a normal *asynquence* sequence.
 
 An iterable sequence works similarly to normal *asynquence* sequences, but a bit different. `then(..)` still registers steps on the sequence, but it's basically just an alias of `val(..)`, because the most important difference is that steps of an iterable sequence **are not passed completion triggers**.
 
@@ -334,7 +334,10 @@ Just like regular sequences, iterable sequences have a `duplicate()` method (see
 
 ### Multiple parameters
 
-API methods take one or more functions as their parameters. `gate(..)` treats multiple functions as segments in the same gate. The other API methods (`then(..)`, `or(..)`, `pipe(..)`, `seq(..)`, and `val(..)`) treat multiple parameters as just separate subsequent steps in the respective sequence. These methods don't accept arrays of functions (that you might build up programatically), but since they take multiple parameters, you can use `.apply(..)` to spread those out.
+API methods take one or more functions as their parameters:
+
+* `gate(..)` treats multiple functions as segments in the same gate.
+* The other API methods (`then(..)`, `or(..)`, `pipe(..)`, `seq(..)`, and `val(..)`) treat multiple parameters as just separate subsequent steps in the respective sequence. These methods don't accept arrays of functions (that you might build up programatically), but since they take multiple parameters, you can use `.apply(..)` to spread an array of values out.
 
 ### Promises/A+ Compliance
 
@@ -388,7 +391,7 @@ For browser usage, simply include the `asq.js` library file. For node.js usage, 
 var ASQ = require("asynquence");
 ```
 
-**Note:** The `ASQ.noConflict()` method really only makes sense when used in a normal browser global namespace environment. It **should not** be used when the node.js or AMD style modules are your method of inclusion.
+**Note:** The `ASQ.noConflict()` static function really only makes sense when used in a normal browser global namespace environment. It **should not** be used when the node.js or AMD style modules are your method of inclusion.
 
 ## Usage Examples
 
