@@ -320,7 +320,7 @@ readFile("meaningoflife.txt")
 
 ### `runner` Plugin
 
-`runner(..)` takes either an **iterable-sequence** or an ES6 generator function, which will be iterated through step-by-step. `runner(..)` will handle either *asynquence* sequences, standard promises/thenables, thunks (see ["thunks" here](http://zef.me/6096/callback-free-harmonious-node-js)), or immediate values as the yielded/returned values from the generator or iterable-sequence steps.
+`runner(..)` takes any combination of **iterable-sequence** or ES6 generator function (which will be iterated through step-by-step) or promise-producing function (like an ES7/ES2016 `async function`!). `runner(..)` can handle receiving either *asynquence* sequences, standard promises/thenables, thunks (see ["thunks" here](http://zef.me/6096/callback-free-harmonious-node-js)), or immediate values as the yielded/returned/resolved values.
 
 The generator/iterable-sequence will receive any value-messages from the previous sequence step (via the *control token* -- see [CSP-style Concurrency](#csp-style-concurrency) below for explanation), and the final yielded/returned value will be passed along as the success message(s) to the next main sequence step. Error(s) if any will flag the main sequence as error, with error messages passed along as expected.
 
@@ -421,6 +421,35 @@ ASQ(2)
 	console.log(num); // 16
 });
 ```
+
+Using promise-production functions (like ES7 `async function`):
+
+```js
+function promiseDouble(x) {
+	// using ES6 `Promise`s
+	return new Promise(function(resolve,reject){
+		setTimeout(function(){
+			resolve(x * 2);
+		},500);
+	});
+}
+
+ASQ(2)
+.runner(
+	// ES7 `async function`
+	async function step(token) {
+		var x = token.messages[0];
+		x = await promiseDouble(x);
+		x = await promiseDouble(x);
+		return (await promiseDouble(x));
+	}
+)
+.val(function(num){
+	console.log(num); // 16
+});
+```
+
+**Note:** Any promise-returning function will work the same way here, but illustrated above is the ES7 `async function` syntax since it's convenient to demonstrate.
 
 #### CSP-style Concurrency
 
