@@ -1,5 +1,5 @@
 /*! asynquence-contrib
-    v0.12.0 (c) Kyle Simpson
+    v0.12.1 (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -92,12 +92,12 @@
 		var val_type = typeof v;
 
 		return (
-			!ASQ.isSequence(v) &&
 			v !== null &&
 			(
 				val_type == "object" ||
 				val_type == "function"
 			) &&
+			!ASQ.isSequence(v) &&
 			// NOTE: `then` duck-typing of promises is stupid
 			typeof v.then == "function"
 		);

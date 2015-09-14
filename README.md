@@ -288,7 +288,7 @@ One of the contrib plugins provided is `iterable-sequence`. Unlike other plugins
 
 An iterable sequence works similarly to normal *asynquence* sequences, but a bit different. `then(..)` still registers steps on the sequence, but it's basically just an alias of `val(..)`, because the most important difference is that steps of an iterable sequence **are not passed completion triggers**.
 
-Instead, an iterable sequence instance API has a `next(..)` method on it, which will allow the sequence to be externally iterated, one step at a time. Whatever is passed to `next(..)` is sent as step messages to the current step in the sequence. `next(..)` always returns an *iterator result* object like:
+Instead, an iterable sequence instance API has a `next(..)` method on it, which will allow the sequence to be externally iterated, one step at a time. Whatever is passed to `next(..)` is sent as step message(s) to the current step in the sequence. `next(..)` always returns an *iterator result* object like:
 
 ```js
 {
@@ -297,7 +297,7 @@ Instead, an iterable sequence instance API has a `next(..)` method on it, which 
 }
 ```
 
-**Note:** The return value will strictly either have a `value` property or a `done` property, but not both at the same time.
+**Note:** If the `value` property is absent, it's assumed to be `undefined`, and if the `done` property is absent, it's assumed to be `false`.
 
 `value` is any return message(s) from the `next(..)` invocation (`undefined` otherwise). `done` is `true` if the previously iterated step was (so far) the last registered step in the iterable sequence, or `false` if there's still more sequence steps queued up.
 
@@ -328,7 +328,23 @@ for (var i=0, ret;
 // Step 3
 ```
 
-This example shows sync iteration with a `for` loop, but of course, `next(..)` can be called in various [async fashions to iterate](https://gist.github.com/getify/8211148#file-ex2-async-iteration-js) the sequence over time.
+This example shows sync iteration with a `for` loop, but of course, `next(..)` can be called in various [async ways to iterate](https://gist.github.com/getify/8211148#file-ex2-async-iteration-js) the sequence over time.
+
+Iterable sequence steps can either be a function that produces a value, or a direct (non-function) value itself:
+
+```js
+var sq = ASQ.iterable()
+    .then(42)
+    .then(function(x){
+        return x * 2;
+    })
+    .then("hello world");
+
+sq.next();      // { value: 42 }
+sq.next(5);     // { value: 10 }
+sq.next();      // { value: "hello world" }
+sq.next();      // { done: true }
+```
 
 Just like regular sequences, iterable sequences have a `duplicate()` method (see ASQ's instance API above) which makes a copy of the sequence *at that moment*. However, iterable sequences are already "paused" at each step anyway, so unlike regular sequences, there's no `unpause()` (nor is there any reason to use the `ASQ.unpause(..)` helper!), because it's unnecessary. You just call `next()` on an iterable sequence (even if it's a copy of another) when you want to advance it one step.
 

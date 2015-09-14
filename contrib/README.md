@@ -322,9 +322,9 @@ readFile("meaningoflife.txt")
 
 `runner(..)` takes any combination of **iterable-sequence** or ES6 generator function (which will be iterated through step-by-step) or promise-producing function (like an ES7/ES2016 `async function`!). `runner(..)` can handle receiving either *asynquence* sequences, standard promises/thenables, thunks (see ["thunks" here](http://zef.me/6096/callback-free-harmonious-node-js)), or immediate values as the yielded/returned/resolved values.
 
-The generator/iterable-sequence will receive any value-messages from the previous sequence step (via the *control token* -- see [CSP-style Concurrency](#csp-style-concurrency) below for explanation), and the final yielded/returned value will be passed along as the success message(s) to the next main sequence step. Error(s) if any will flag the main sequence as error, with error messages passed along as expected.
+The generator/iterable-sequence/promise-producer will receive any value-messages from the previous sequence step (via the *control token* -- see [CSP-style Concurrency](#csp-style-concurrency) below for explanation), and the final yielded/returned/resolved value will be passed along as the success message(s) to the next main sequence step. Error(s) if any will flag the main sequence as error, with error messages passed along as expected.
 
-Using generators:
+#### Using a generator:
 
 ```js
 function thunkDouble(x) {
@@ -354,29 +354,29 @@ function seqDouble(x) {
 }
 
 ASQ(2)
-.runner(function*(token){
+.runner(function *step(token){
 	// extract message from control-token so
 	// we can operate on it
-	var x = token.messages[0];
+	var x = token.messages[0];				// 2
 
 	while (x < 100) {
 		if (x < 10) {
-			x = yield thunkDouble(x);
+			x = yield thunkDouble(x);		// 4 8 16
 		}
 		else if (x < 40) {
-			x = yield promiseDouble(x);
+			x = yield promiseDouble(x);		// 32
 		}
 		else {
-			x = yield seqDouble(x);
+			x = yield seqDouble(x);			// 64 128
 		}
 	}
 })
 .val(function(num){
-	console.log(num); // 128
+	console.log(num);						// 128
 });
 ```
 
-Using iterable-sequences:
+#### Using an iterable-sequence:
 
 ```js
 function thunkDouble(x) {
@@ -411,18 +411,18 @@ ASQ(2)
 	.then(function(token){
 		// extract message from control-token so
 		// we can operate on it
-		return token.messages[0];
+		return token.messages[0];			// 2
 	})
-	.then(thunkDouble)
-	.then(promiseDouble)
-	.then(seqDouble)
+	.then(thunkDouble)						// 4
+	.then(promiseDouble)					// 8
+	.then(seqDouble)						// 16
 )
 .val(function(num){
-	console.log(num); // 16
+	console.log(num);						// 16
 });
 ```
 
-Using promise-production functions (like ES7 `async function`):
+#### Using a promise-producing function:
 
 ```js
 function promiseDouble(x) {
@@ -438,18 +438,19 @@ ASQ(2)
 .runner(
 	// ES7 `async function`
 	async function step(token) {
-		var x = token.messages[0];
-		x = await promiseDouble(x);
-		x = await promiseDouble(x);
-		return (await promiseDouble(x));
+		var x = token.messages[0];			// 2
+		x = await promiseDouble(x);			// 4
+		x = await promiseDouble(x);			// 8
+		x = await promiseDouble(x);			// 16
+		return x;
 	}
 )
 .val(function(num){
-	console.log(num); // 16
+	console.log(num);						// 16
 });
 ```
 
-**Note:** Any promise-returning function will work the same way here, but illustrated above is the ES7 `async function` syntax since it's convenient to demonstrate.
+**Note:** Any promise-returning function will work the same way here, but the ES7 `async function` syntax is illustrated above.
 
 #### CSP-style Concurrency
 
@@ -731,7 +732,7 @@ npm run build
 
 Some plugins, like `goCSP`, use ES6 features that are transpiled to ES5 using [Babel](http://babeljs.io) for the `contrib.src.js` and `contrib.js` bundles. So, to use `goCSP` in a browser for example, you'll need to also load the Babel browser polyfill, which is available at `./node_modules/babel-core/browser-polyfill.min.js` (and use `polyfill.js` in Node).
 
-The npm package distribution also includes `contrib-es6.src.js`, which is the unminified and non-transpiled (original native ES6 code) bundle. Also included in the package is `contrib-common.js` (and `contrib-common.src.js`), which include only these commonly used plugins: `iterable`, `race`, `runner`, `toPromise`, and `wrap`.
+The npm package distribution also includes `contrib-es6.src.js`, which is the unminified and non-transpiled (original native ES6 code) bundle. Also included in the package is `contrib-common.js` (and `contrib-common.src.js`), which includes only these commonly used plugins: `after`, `iterable`, `race`, `runner`, `toPromise`, and `wrap`.
 
 You can build your own bundle and manually specify which plugins you want, by name. For example, to bundle only the `any`, `none`, and `try` plugins:
 
