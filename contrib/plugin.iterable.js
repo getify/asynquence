@@ -44,7 +44,12 @@
 				return sequence_api;
 			}
 
-			val_queue.push.apply(val_queue,arguments);
+			var args = ARRAY_SLICE.call(arguments).map(function mapper(arg){
+				if (typeof arg != "function") return function $$val() { return arg; };
+				else return arg;
+			});
+
+			val_queue.push.apply(val_queue,args);
 
 			return sequence_api;
 		}

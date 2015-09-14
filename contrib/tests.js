@@ -1377,9 +1377,7 @@
 				function(done){
 					ASQ()
 					.runner(
-						ASQ.iterable()
-							.then(function(){ return 42; })
-							.then(function(){ return null; })
+						ASQ.iterable(42,null)
 					)
 					.pipe(done);
 				},
@@ -1422,6 +1420,24 @@
 					msg5.length === 2 &&
 					msg5[0] === undefined &&
 					msg5[1] === 43
+				)) {
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			})
+			.runner(
+				/*async*/function asyncFn1(){
+					return ASQ.after(100,"a").toPromise();
+				},
+				/*async*/function asyncFn2(){
+					return ASQ.after(50,"b").toPromise();
+				}
+			)
+			.val(function(msg1){
+				if (!(
+					arguments.length === 1 &&
+					msg1 === "b"
 				)) {
 					var args = ARRAY_SLICE.call(arguments);
 					args.unshift(testDone,label);
@@ -1939,70 +1955,68 @@
 				FAIL(testDone,label + " (from timeout)");
 			},2000);
 		});
-		tests.push(function(testDone){
-			var label = "Contrib Test #20", timeout,
-				rsq1, rsq2, rsq3, rsq4, rsq5, rsq6,
-				text1 = "", text2 = "", text3 = "",
-				text4 = "", text5 = "", text6 = ""
-			;
+		// tests.push(function(testDone){
+		// 	var label = "Contrib Test #20", timeout,
+		// 		rsq1, rsq2, rsq3, rsq4, rsq5, rsq6,
+		// 		text1 = "", text2 = "", text3 = "",
+		// 		text4 = "", text5 = "", text6 = ""
+		// 	;
 
-			// make a fake stream that pumps `data` at `interval` ms,
-			// until `limit` events sent
-			function setupFakeStream(fn,data,interval,limit) {
-				var count = 0, intv;
+		// 	// make a fake stream that pumps `data` at `interval` ms,
+		// 	// until `limit` events sent
+		// 	function setupFakeStream(fn,data,interval,limit) {
+		// 		var count = 0, intv;
 
-				intv = setInterval(function(){
-					if (++count > limit) {
-						clearInterval(intv);
-						return;
-					}
+		// 		intv = setInterval(function(){
+		// 			if (++count > limit) {
+		// 				clearInterval(intv);
+		// 				return;
+		// 			}
 
-					fn(data);
-				},interval);
+		// 			fn(data);
+		// 		},interval);
+		// 	}
 
-				return stream;
-			}
+		// 	rsq1 = ASQ.react(function(proceed){
+		// 		setupFakeStream(proceed,"A",25,10);
+		// 	});
+		// 	rsq2 = ASQ.react(function(proceed){
+		// 		setupFakeStream(proceed,"B",30,6);
+		// 	});
 
-			rsq1 = ASQ.react(function(proceed){
-				setupFakeStream(proceed,"A",25,10);
-			});
-			rsq2 = ASQ.react(function(proceed){
-				setupFakeStream(proceed,"B",30,6);
-			});
+		// 	rsq3 = ASQ.react.all(rsq1,rsq2);
+		// 	rsq4 = ASQ.react.any(rsq1,rsq2);
 
-			rsq3 = ASQ.react.all(rsq1,rsq2);
-			rsq4 = ASQ.react.any(rsq1,rsq2);
+		// 	// duplicate `rsq4` reactive sequence
+		// 	rsq5 = ASQ.react.all(rsq4);
 
-			// duplicate `rsq4` reactive sequence
-			rsq5 = ASQ.react.all(rsq4);
+		// 	rsq6 = ASQ.react.distinct(
+		// 		ASQ.react.any(rsq1,rsq2,rsq3,rsq4,rsq5)
+		// 	);
 
-			rsq6 = ASQ.react.distinct(
-				ASQ.react.any(rsq1,rsq2,rsq3,rsq4,rsq5)
-			);
+		// 	rsq1
+		// 	.val(function(v){
+		// 		if (arguments.length === 1) {
+		// 			text += v;
+		// 		}
+		// 		else {
+		// 			clearTimeout(timeout);
+		// 			var args = ARRAY_SLICE.call(arguments);
+		// 			args.unshift(testDone,label);
+		// 			FAIL.apply(FAIL,args);
+		// 		}
+		// 	})
+		// 	.or(function(){
+		// 		clearTimeout(timeout);
+		// 		var args = ARRAY_SLICE.call(arguments);
+		// 		args.unshift(testDone,label);
+		// 		FAIL.apply(FAIL,args);
+		// 	});
 
-			rsq1
-			.val(function(v){
-				if (arguments.length === 1) {
-					text += v;
-				}
-				else {
-					clearTimeout(timeout);
-					var args = ARRAY_SLICE.call(arguments);
-					args.unshift(testDone,label);
-					FAIL.apply(FAIL,args);
-				}
-			})
-			.or(function(){
-				clearTimeout(timeout);
-				var args = ARRAY_SLICE.call(arguments);
-				args.unshift(testDone,label);
-				FAIL.apply(FAIL,args);
-			});
-
-			timeout = setTimeout(function(){
-				FAIL(testDone,label + " (from timeout)");
-			},2000);
-		});
+		// 	timeout = setTimeout(function(){
+		// 		FAIL(testDone,label + " (from timeout)");
+		// 	},2000);
+		// });
 		tests.push(function(testDone){
 			var label = "Contrib Test #21", timeout;
 

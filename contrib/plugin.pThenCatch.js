@@ -39,11 +39,7 @@ ASQ.extend("pThen",function $$extend(api,internals){
 						done.apply(ø,ret);
 					}
 					// returned a promise/thenable?
-					// NOTE: `then` duck-typing of promises is stupid.
-					else if (
-						(typeof ret === "object" || typeof ret === "function") &&
-						typeof ret.then === "function"
-					) {
+					else if (isPromise(ret)) {
 						ret.then(done,done.fail);
 					}
 					// just a normal value to pass along

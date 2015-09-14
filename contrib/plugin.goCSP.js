@@ -461,12 +461,7 @@
 					}
 
 					// received a thenable/promise back?
-					// NOTE: `then` duck-typing of promises is stupid.
-					if (!ASQ.isSequence(ret) &&
-						ret != null &&
-						(type == "object" || type == "function") &&
-						typeof ret.then == "function"
-					) {
+					if (isPromise(ret)) {
 						ret = ASQ().promise(ret);
 					}
 

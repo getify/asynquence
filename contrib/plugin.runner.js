@@ -1,5 +1,6 @@
 // "runner"
 ASQ.extend("runner",function $$extend(api,internals){
+
 	return function $$runner() {
 		if (internals("seq_error") || internals("seq_aborted") ||
 			arguments.length === 0
@@ -12,34 +13,40 @@ ASQ.extend("runner",function $$extend(api,internals){
 		api
 		.then(function $$then(mainDone){
 
-			function wrap(fn){
-				var it = fn;
+			function wrap(v) {
+				// function? expected to produce an iterator
+				// (like a generator) or a promise
+				if (typeof v === "function") {
+					// call function passing in the control token
+					// note: neutralize `this` in call to prevent
+					// unexpected behavior
+					v = v.call(ø,next_val);
 
-				// function? expected to produces an iterator
-				// (like a generator)
-				if (typeof fn === "function") {
-					// retrieve the iterator, passing in
-					// the control token
-					it = fn.call(ø,next_val);
+					// promise returned (ie, from async function)?
+					if (isPromise(v)) {
+						// wrap it in iterable sequence
+						v = ASQ.iterable(v);
+					}
 				}
 				// an iterable sequence? duplicate it (in case of multiple runs)
-				else if (ASQ.isSequence(fn) && "next" in fn) {
-					it = fn.duplicate();
+				else if (ASQ.isSequence(v) && "next" in v) {
+					v = v.duplicate();
 				}
-				// not an iterable sequence? wrap it.
+				// wrap anything else in iterable sequence
 				else {
-					it = ASQ.iterable().val(fn);
+					v = ASQ.iterable(v);
 				}
 
-				// listen for any sequence failures
-				if (ASQ.isSequence(it)) {
-					it.or(function $$or(){
+				// a sequence to tap for errors?
+				if (ASQ.isSequence(v)) {
+					// listen for any sequence failures
+					v.or(function $$or(){
 						// signal iteration-error
 						mainDone.fail.apply(ø,arguments);
 					});
 				}
 
-				return it;
+				return v;
 			}
 
 			function addWrapped() {
@@ -62,13 +69,13 @@ ASQ.extend("runner",function $$extend(api,internals){
 
 			// async iteration of round-robin list
 			(function iterate(){
-				var val_type, fn;
-
-				// round-robin: run top co-routine in list
+				// get next co-routine in list
 				iter = iterators.shift();
 
 				// process the iteration
 				try {
+					// multiple messages to send to an iterable
+					// sequence?
 					if (ASQ.isMessageWrapper(next_val) &&
 						ASQ.isSequence(iter)
 					) {
@@ -97,24 +104,15 @@ ASQ.extend("runner",function $$extend(api,internals){
 				else {
 					// not a recognized ASQ instance returned?
 					if (!ASQ.isSequence(ret.value)) {
-						val_type = typeof ret.value;
 						// received a thenable/promise back?
-						// NOTE: `then` duck-typing of promises is stupid.
-						if (
-							ret.value !== null &&
-							(
-								val_type === "object" ||
-								val_type === "function"
-							) &&
-							typeof ret.value.then === "function"
-						) {
-							// wrap the promise in a sequence
+						if (isPromise(ret.value)) {
+							// wrap in a sequence
 							ret.value = ASQ().promise(ret.value);
 						}
 						// thunk yielded?
-						else if (val_type === "function") {
+						else if (typeof ret.value === "function") {
 							// wrap thunk call in a sequence
-							fn = ret.value;
+							var fn = ret.value;
 							ret.value = ASQ(function $$ASQ(done){
 								fn(done.errfcb);
 							});
@@ -159,8 +157,8 @@ ASQ.extend("runner",function $$extend(api,internals){
 							// was the control token passed along?
 							if (next_val === token) {
 								// round-robin: put co-routine back into the list
-								// at the end, so that the the next iterator where it was so it can be processed
-								// again on next loop-iteration
+								// at the end, so that the the next iterator can be
+								// processed on next loop-iteration
 								iterators.push(iter);
 							}
 							else {
@@ -175,17 +173,23 @@ ASQ.extend("runner",function $$extend(api,internals){
 						if (iterators.length > 0) {
 							iterate(); // async recurse
 						}
-						// signal done with all co-routine runs
-						else if (typeof next_val !== "undefined") {
-							if (ASQ.isMessageWrapper(next_val)) {
-								mainDone.apply(ø,next_val);
+						// all done!
+						else {
+							// previous value message?
+							if (typeof next_val !== "undefined") {
+								// not a message wrapper array?
+								if (!ASQ.isMessageWrapper(next_val)) {
+									// wrap value for the subsequent `apply(..)`
+									next_val = [next_val];
+								}
 							}
 							else {
-								mainDone(next_val);
+								// nothing to affirmatively pass along
+								next_val = [];
 							}
-						}
-						else {
-							mainDone();
+
+							// signal done with all co-routine runs
+							mainDone.apply(ø,next_val);
 						}
 					})
 					.or(function $$or(){

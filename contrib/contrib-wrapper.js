@@ -1,5 +1,5 @@
 /*! asynquence-contrib
-    v0.11.0 (c) Kyle Simpson
+    v0.12.0 (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -86,6 +86,21 @@
 				fn.apply(ø,args);
 			});
 		});
+	}
+
+	function isPromise(v) {
+		var val_type = typeof v;
+
+		return (
+			!ASQ.isSequence(v) &&
+			v !== null &&
+			(
+				val_type == "object" ||
+				val_type == "function"
+			) &&
+			// NOTE: `then` duck-typing of promises is stupid
+			typeof v.then == "function"
+		);
 	}
 
 /*PLUGINS*/
