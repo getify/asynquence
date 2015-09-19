@@ -143,33 +143,45 @@
 	};
 
 	ASQ.react.distinct = function $$react$distinct(seq){
-		function reactor(next,registerTeardown){
-			function trigger(){
-				function isDuplicate(msgs){
-					return (
-						msgs.length == messages.length &&
-						msgs.every(function $$every(val,idx){
-							return val === messages[idx];
-						})
-					);
+		function filterer() {
+			function isDuplicate(msgs) {
+				return (
+					msgs.length == messages.length &&
+					msgs.every(function $$every(val,idx){
+						return val === messages[idx];
+					})
+				);
+			}
+
+			var messages = ASQ.messages.apply(ø,arguments);
+
+			// any messages to check against?
+			if (messages.length > 0) {
+				// messages already sent before?
+				if (prev_messages.some(isDuplicate)) {
+					// bail on duplicate messages
+					return false;
 				}
 
+				// save messages for future distinct checking
+				prev_messages.push(messages);
+			}
+
+			// allow distinct non-duplicate value through
+			return true;
+		}
+
+		var prev_messages = [];
+
+		return ASQ.react.filter(seq,filterer);
+	};
+
+	ASQ.react.filter = function $$react$filter(seq,filterer){
+		function reactor(next,registerTeardown) {
+			function trigger(){
 				var messages = ASQ.messages.apply(ø,arguments);
 
-				// still observing?
-				if (prev_messages) {
-					// any messages to check against?
-					if (messages.length > 0) {
-						// messages already sent before?
-						if (prev_messages.some(isDuplicate)) {
-							// bail on duplicate messages
-							return messages;
-						}
-
-						// save messages for future distinct checking
-						prev_messages.push(messages);
-					}
-
+				if (filterer && filterer.apply(ø,messages)) {
 					// fire off reactive sequence instance
 					next.apply(ø,messages);
 				}
@@ -183,14 +195,12 @@
 
 			// listen for stop() of reactive sequence
 			registerTeardown(function $$teardown(){
-				def = prev_messages = null;
+				def = filterer = null;
 			});
 		}
 
-		var prev_messages = [],
-			// observe sequence-stream
-			def = tapSequences(seq)[0]
-		;
+		// observe sequence-stream
+		var def = tapSequences(seq)[0];
 
 		if (!def) return;
 
