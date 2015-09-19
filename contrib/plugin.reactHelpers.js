@@ -39,7 +39,7 @@
 			.filter(Boolean);
 	}
 
-	function createReactOperator(buffer) {
+	function createReactOperator(buffer,keep) {
 		return function $$react$operator(){
 			function reactor(next,registerTeardown){
 				function processSequence(def) {
@@ -49,10 +49,10 @@
 						// still observing sequence-streams?
 						if (seqs && seqs.length > 0) {
 							// store event message(s), if any
-							seq_events[seq_id] = [].concat(
-								buffer ? seq_events[seq_id] : [],
-								args.length > 0 ? [args] : undefined
-							);
+							seq_events[seq_id] =
+								(buffer ? seq_events[seq_id] : []).concat(
+									args.length > 0 ? [args] : undefined
+								);
 
 							// collect event message(s) across the
 							// sequence-stream sources
@@ -68,10 +68,12 @@
 								// fire off reactive sequence instance
 								next.apply(ø,messages);
 
-								// discard stored event message(s)
-								seq_events.forEach(function $$each(eventList){
-									eventList.shift();
-								});
+								// discard stored event message(s)?
+								if (!keep) {
+									seq_events.forEach(function $$each(eventList){
+										eventList.shift();
+									});
+								}
 							}
 						}
 						// keep sequence going
@@ -105,7 +107,9 @@
 
 	ASQ.react.all = ASQ.react.zip = createReactOperator(/*buffer=*/true);
 
-	ASQ.react.latest = ASQ.react.combine = createReactOperator(/*buffer=false*/);
+	ASQ.react.allLatest = createReactOperator(/*buffer=false*/);
+
+	ASQ.react.latest = ASQ.react.combineLatest = createReactOperator(/*buffer=*/false,/*keep=*/true);
 
 	ASQ.react.any = ASQ.react.merge = function $$react$any(){
 		function reactor(next,registerTeardown){
