@@ -51,7 +51,7 @@
 							// store event message(s), if any
 							seq_events[seq_id] =
 								(buffer ? seq_events[seq_id] : []).concat(
-									args.length > 0 ? [args] : undefined
+									args.length > 0 ? (args.length > 1 ? [args] : args[0]) : undefined
 								);
 
 							// collect event message(s) across the
