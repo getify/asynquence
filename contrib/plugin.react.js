@@ -1,12 +1,14 @@
 // "react" (reactive sequences)
 ASQ.react = function $$react(reactor) {
 	function next() {
-		if (template) {
-			var sq = template.duplicate();
-			sq.unpause.apply(ø,arguments);
-			return sq;
+		if (!paused) {
+			if (template) {
+				var sq = template.duplicate();
+				sq.unpause.apply(ø,arguments);
+				return sq;
+			}
+			return ASQ(function $$asq(){ throw "Disabled Sequence"; });
 		}
-		return ASQ(function $$asq(){ throw "Disabled Sequence"; });
 	}
 
 	function registerTeardown(fn) {
@@ -16,7 +18,7 @@ ASQ.react = function $$react(reactor) {
 	}
 
 	var template = ASQ().duplicate(),
-		teardowns = []
+		teardowns = [], paused = false
 	;
 
 	// add reactive sequence kill switch
@@ -25,6 +27,21 @@ ASQ.react = function $$react(reactor) {
 			template = null;
 			teardowns.forEach(Function.call,Function.call);
 			teardowns.length = 0;
+		}
+	};
+
+	template.pause = function $$pause() {
+		if (!paused && template) {
+			paused = true;
+			teardowns.forEach(Function.call,Function.call);
+			teardowns.length = 0;
+		}
+	};
+
+	template.resume = function $$resume() {
+		if (paused && template) {
+			paused = false;
+			reactor.call(template,next,registerTeardown);
 		}
 	};
 

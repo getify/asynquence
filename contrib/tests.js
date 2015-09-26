@@ -1745,10 +1745,11 @@
 			},2000);
 		});
 		tests.push(function(testDone){
-			var label = "Contrib Test #18", timeout, rsq;
+			var label = "Contrib Test #18", timeout, rsq,
+				rsq2, rsq2_intv, rsq2_timer, rsq2_counter = 0;
 
 			rsq = ASQ.react(function(proceed){
-				var sq1, sq2, sq3, sq4, self = this;
+				var sq1, sq2, sq3, sq4, sq5, self = this;
 
 				if (!(
 					self &&
@@ -1756,19 +1757,25 @@
 					self === rsq &&
 					self.stop &&
 					self.stop === rsq.stop &&
-					typeof self.stop === "function"
+					typeof self.stop == "function" &&
+					self.pause &&
+					self.pause === rsq.pause &&
+					typeof self.pause == "function" &&
+					self.resume &&
+					self.resume === rsq.resume &&
+					typeof self.resume == "function"
 				)) {
 					clearTimeout(timeout);
-					FAIL(testDone,label,"rsq.stop !== this.stop");
+					FAIL(testDone,label,"rsq !== this");
 					return;
 				}
 
 				setTimeout(function(){
 					sq1 = proceed();
-				},10);
+				},5);
 				setTimeout(function(){
 					sq2 = proceed(3,4);
-				},10);
+				},15);
 				setTimeout(function(){
 					sq3 = proceed(5,10);
 
@@ -1794,7 +1801,7 @@
 					.then(function(done){
 						setTimeout(function(){
 							sq4 = proceed(50,75).pipe(done);
-						},300);
+						},1300);
 					})
 					.val(function(){
 						clearTimeout(timeout);
@@ -1807,12 +1814,14 @@
 
 						if (
 							arguments.length === 1 &&
-							err === "Disabled Sequence"
+							err === "Disabled Sequence" &&
+							rsq2_counter === 105
 						) {
 							PASS(testDone,label);
 						}
 						else {
-							var args = ARRAY_SLICE.call(arguments);
+							var args = ARRAY_SLICE.call(arguments)
+								.concat(["rsq2_counter: " + rsq_counter]);
 							args.unshift(testDone,label);
 							FAIL.apply(FAIL,args);
 						}
@@ -1821,7 +1830,7 @@
 
 				setTimeout(function(){
 					self.stop(); // stop the reactive sequence
-				},100);
+				},1200);
 			})
 			.val(function(msg1,msg2){
 				return ((msg1 + msg2) || 10);
@@ -1836,6 +1845,38 @@
 				var args = ARRAY_SLICE.call(arguments);
 				args.unshift(testDone,label);
 				FAIL.apply(FAIL,args);
+			});
+
+			rsq2 = ASQ.react(function(proceed,registerTeardown){
+				var self = this;
+
+				if (!rsq2_intv) {
+					rsq2_intv = setInterval(function(){
+						proceed(5);
+					},200);
+				}
+
+				if (!rsq2_timer) {
+					setTimeout(function(){
+						self.pause(); // pause the reactive sequence
+
+						setTimeout(function(){
+							self.resume(); // resume the reactive sequence
+						},400);
+					},500);
+
+					setTimeout(function(){
+						clearInterval(rsq2_intv);
+						self.stop();
+					},1100);
+				}
+
+				registerTeardown(function(){
+					rsq2_counter *= 3;
+				});
+			})
+			.val(function(v){
+				rsq2_counter += v;
 			});
 
 			timeout = setTimeout(function(){
