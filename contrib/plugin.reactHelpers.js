@@ -1,6 +1,145 @@
 // "react" helpers
 (function IIFE(){
 
+	var Ar = ASQ.react;
+
+	Ar.all = Ar.zip = makeReactOperator(/*buffer=*/true);
+	Ar.allLatest = makeReactOperator(/*buffer=false*/);
+	Ar.latest = Ar.combineLatest = makeReactOperator(/*buffer=*/false,/*keep=*/true);
+
+	Ar.any = Ar.merge = function $$react$any(){
+		function reactor(next,registerTeardown){
+			function processSequence(def){
+				function trigger(){
+					var args = ASQ.messages.apply(ø,arguments);
+					// still observing sequence-streams?
+					if (seqs && seqs.length > 0) {
+						// fire off reactive sequence instance
+						next.apply(ø,args);
+					}
+					// keep sequence going
+					return args;
+				}
+
+				// sequence-stream event listener
+				def.seq.val(trigger);
+			}
+
+			// observe all sequence-streams
+			seqs.forEach(processSequence);
+
+			// listen for stop() of reactive sequence
+			registerTeardown(function $$teardown(){
+				seqs = null;
+			});
+		}
+
+		// observe all sequence-streams
+		var seqs = tapSequences.apply(null,arguments);
+
+		if (seqs.length == 0) return;
+
+		return ASQ.react(reactor);
+	};
+
+	Ar.distinct = function $$react$distinct(seq){
+		return Ar.filter(seq,makeDistinctFilterer(/*keepAll=*/true));
+	};
+
+	Ar.distinctConsecutive = Ar.distinctUntilChanged = function $$react$distinct$consecutive(seq) {
+		return Ar.filter(seq,makeDistinctFilterer(/*keepAll=*/false));
+	};
+
+	Ar.filter = function $$react$filter(seq,filterer){
+		function reactor(next,registerTeardown) {
+			function trigger(){
+				var messages = ASQ.messages.apply(ø,arguments);
+
+				if (filterer && filterer.apply(ø,messages)) {
+					// fire off reactive sequence instance
+					next.apply(ø,messages);
+				}
+
+				// keep sequence going
+				return messages;
+			}
+
+			// sequence-stream event listener
+			def.seq.val(trigger);
+
+			// listen for stop() of reactive sequence
+			registerTeardown(function $$teardown(){
+				def = filterer = null;
+			});
+		}
+
+		// observe sequence-stream
+		var def = tapSequences(seq)[0];
+
+		if (!def) return;
+
+		return ASQ.react(reactor);
+	};
+
+	Ar.fromObservable = function $$react$from$observable(obsv){
+		function reactor(next,registerTeardown){
+			// process buffer (if any)
+			buffer.forEach(next);
+			buffer.length = 0;
+
+			// start non-buffered notifications?
+			if (!buffer.complete) {
+				notify = next;
+			}
+
+			registerTeardown(function $$teardown(){
+				obsv.dispose();
+			});
+		}
+
+		function notify(v) {
+			buffer.push(v);
+		}
+
+		var buffer = [];
+
+		obsv.subscribe(
+			function $$on$next(v){
+				notify(v);
+			},
+			function $$on$error(){},
+			function $$on$complete(){
+				buffer.complete = true;
+				obsv.dispose();
+			}
+		);
+
+		return ASQ.react(reactor);
+	};
+
+	ASQ.extend("toObservable",function $$extend(api,internals){
+		return function $$to$observable(){
+			function init(observer) {
+				function define(pair){
+					function listen(){
+						var args = ASQ.messages.apply(ø,arguments);
+						observer[pair[1]].apply(observer,
+							args.length == 1 ? [args[0]] : args
+						);
+						return args;
+					}
+
+					api[pair[0]](listen);
+				}
+
+				[["val","onNext"],["or","onError"]]
+				.forEach(define);
+			}
+
+			return Rx.Observable.create(init);
+		};
+	});
+
 	function tapSequences() {
 		function tapSequence(seq) {
 			// temporary `trigger` which, if called before being replaced
@@ -39,7 +178,7 @@
 			.filter(Boolean);
 	}
 
-	function createReactOperator(buffer,keep) {
+	function makeReactOperator(buffer,keep) {
 		return function $$react$operator(){
 			function reactor(next,registerTeardown){
 				function processSequence(def) {
@@ -105,169 +244,44 @@
 		};
 	}
 
-	ASQ.react.all = ASQ.react.zip = createReactOperator(/*buffer=*/true);
-
-	ASQ.react.allLatest = createReactOperator(/*buffer=false*/);
-
-	ASQ.react.latest = ASQ.react.combineLatest = createReactOperator(/*buffer=*/false,/*keep=*/true);
-
-	ASQ.react.any = ASQ.react.merge = function $$react$any(){
-		function reactor(next,registerTeardown){
-			function processSequence(def){
-				function trigger(){
-					var args = ASQ.messages.apply(ø,arguments);
-					// still observing sequence-streams?
-					if (seqs && seqs.length > 0) {
-						// fire off reactive sequence instance
-						next.apply(ø,args);
-					}
-					// keep sequence going
-					return args;
-				}
-
-				// sequence-stream event listener
-				def.seq.val(trigger);
-			}
-
-			// observe all sequence-streams
-			seqs.forEach(processSequence);
-
-			// listen for stop() of reactive sequence
-			registerTeardown(function $$teardown(){
-				seqs = null;
-			});
-		}
-
-		// observe all sequence-streams
-		var seqs = tapSequences.apply(null,arguments);
-
-		if (seqs.length == 0) return;
-
-		return ASQ.react(reactor);
-	};
-
-	ASQ.react.distinct = function $$react$distinct(seq){
+	function makeDistinctFilterer(keepAll) {
 		function filterer() {
-			function isDuplicate(msgs) {
+			function isDuplicate(msgSet) {
 				return (
-					msgs.length == messages.length &&
-					msgs.every(function $$every(val,idx){
-						return val === messages[idx];
+					msgSet.length == message_set.length &&
+					msgSet.every(function $$every(val,idx){
+						return val === message_set[idx];
 					})
 				);
 			}
 
-			var messages = ASQ.messages.apply(ø,arguments);
+			var message_set = ASQ.messages.apply(ø,arguments);
 
-			// any messages to check against?
-			if (messages.length > 0) {
-				// messages already sent before?
-				if (prev_messages.some(isDuplicate)) {
-					// bail on duplicate messages
+			// any messages in message-set to check against?
+			if (message_set.length > 0) {
+				// duplicate message-set?
+				if (msg_sets.some(isDuplicate)) {
 					return false;
 				}
 
-				// save messages for future distinct checking
-				prev_messages.push(messages);
+				// remember all message-sets for future distinct checking?
+				if (keepAll) {
+					msg_sets.push(message_set);
+				}
+				// only keep the last message-set for distinct-consecutive
+				// checking
+				else {
+					msg_sets[0] = message_set;
+				}
 			}
 
 			// allow distinct non-duplicate value through
 			return true;
 		}
 
-		var prev_messages = [];
+		var msg_sets = [];
 
-		return ASQ.react.filter(seq,filterer);
-	};
-
-	ASQ.react.filter = function $$react$filter(seq,filterer){
-		function reactor(next,registerTeardown) {
-			function trigger(){
-				var messages = ASQ.messages.apply(ø,arguments);
-
-				if (filterer && filterer.apply(ø,messages)) {
-					// fire off reactive sequence instance
-					next.apply(ø,messages);
-				}
-
-				// keep sequence going
-				return messages;
-			}
-
-			// sequence-stream event listener
-			def.seq.val(trigger);
-
-			// listen for stop() of reactive sequence
-			registerTeardown(function $$teardown(){
-				def = filterer = null;
-			});
-		}
-
-		// observe sequence-stream
-		var def = tapSequences(seq)[0];
-
-		if (!def) return;
-
-		return ASQ.react(reactor);
-	};
-
-	ASQ.react.fromObservable = function $$react$from$observable(obsv){
-		function reactor(next,registerTeardown){
-			// process buffer (if any)
-			buffer.forEach(next);
-			buffer.length = 0;
-
-			// start non-buffered notifications?
-			if (!buffer.complete) {
-				notify = next;
-			}
-
-			registerTeardown(function $$teardown(){
-				obsv.dispose();
-			});
-		}
-
-		function notify(v) {
-			buffer.push(v);
-		}
-
-		var buffer = [];
-
-		obsv.subscribe(
-			function $$on$next(v){
-				notify(v);
-			},
-			function $$on$error(){},
-			function $$on$complete(){
-				buffer.complete = true;
-				obsv.dispose();
-			}
-		);
-
-		return ASQ.react(reactor);
-	};
-
-	ASQ.extend("toObservable",function $$extend(api,internals){
-		return function $$to$observable(){
-			function init(observer) {
-				function define(pair){
-					function listen(){
-						var args = ASQ.messages.apply(ø,arguments);
-						observer[pair[1]].apply(observer,
-							args.length == 1 ? [args[0]] : args
-						);
-						return args;
-					}
-
-					api[pair[0]](listen);
-				}
-
-				[["val","onNext"],["or","onError"]]
-				.forEach(define);
-			}
-
-			return Rx.Observable.create(init);
-		};
-	});
+		return filterer;
+	}
 
 })();

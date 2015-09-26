@@ -45,6 +45,8 @@ ASQ.react = function $$react(reactor) {
 		}
 	};
 
+	template.push = next;
+
 	next.onStream = function $$onStream() {
 		ARRAY_SLICE.call(arguments)
 		.forEach(function $$each(stream){

@@ -1753,17 +1753,16 @@
 
 				if (!(
 					self &&
-					rsq &&
 					self === rsq &&
-					self.stop &&
+					typeof self == "object" &&
 					self.stop === rsq.stop &&
 					typeof self.stop == "function" &&
-					self.pause &&
 					self.pause === rsq.pause &&
 					typeof self.pause == "function" &&
-					self.resume &&
 					self.resume === rsq.resume &&
-					typeof self.resume == "function"
+					typeof self.resume == "function" &&
+					self.push === proceed &&
+					typeof self.push == "function"
 				)) {
 					clearTimeout(timeout);
 					FAIL(testDone,label,"rsq !== this");
@@ -1815,13 +1814,13 @@
 						if (
 							arguments.length === 1 &&
 							err === "Disabled Sequence" &&
-							rsq2_counter === 105
+							rsq2_counter === 132
 						) {
 							PASS(testDone,label);
 						}
 						else {
 							var args = ARRAY_SLICE.call(arguments)
-								.concat(["rsq2_counter: " + rsq_counter]);
+								.concat(["rsq2_counter: " + rsq2_counter]);
 							args.unshift(testDone,label);
 							FAIL.apply(FAIL,args);
 						}
@@ -1878,6 +1877,12 @@
 			.val(function(v){
 				rsq2_counter += v;
 			});
+
+			rsq2.push(1);
+
+			setTimeout(function(){
+				rsq2.push(2);
+			},25);
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");
