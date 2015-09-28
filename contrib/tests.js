@@ -1746,7 +1746,8 @@
 		});
 		tests.push(function(testDone){
 			var label = "Contrib Test #18", timeout, rsq,
-				rsq2, rsq2_intv, rsq2_timer, rsq2_counter = 0;
+				rsq2, rsq2_intv, rsq2_timer, rsq2_counter = 0,
+				rsq3, rsq3_intv, rsq3_timer, rsq3_counter = 0;
 
 			rsq = ASQ.react(function(proceed){
 				var sq1, sq2, sq3, sq4, sq5, self = this;
@@ -1814,13 +1815,17 @@
 						if (
 							arguments.length === 1 &&
 							err === "Disabled Sequence" &&
-							rsq2_counter === 132
+							rsq2_counter === 132 &&
+							rsq3_counter === 36
 						) {
 							PASS(testDone,label);
 						}
 						else {
 							var args = ARRAY_SLICE.call(arguments)
-								.concat(["rsq2_counter: " + rsq2_counter]);
+								.concat([
+									"rsq2_counter: " + rsq2_counter,
+									"rsq3_counter: " + rsq3_counter
+								]);
 							args.unshift(testDone,label);
 							FAIL.apply(FAIL,args);
 						}
@@ -1883,6 +1888,28 @@
 			setTimeout(function(){
 				rsq2.push(2);
 			},25);
+
+			rsq3 = ASQ.react.of(3,ASQ.after(200,6),ASQ.after(1000,10),20)
+			.val(function(v){
+				rsq3_counter += v;
+			});
+
+			setTimeout(function(){
+				rsq3.pause();
+			},100);
+
+			setTimeout(function(){
+				rsq3_counter *= 2;
+				rsq3.resume();
+			},400);
+
+			setTimeout(function(){
+				rsq3.pause();
+			},600);
+
+			setTimeout(function(){
+				rsq3.resume();
+			},800);
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");

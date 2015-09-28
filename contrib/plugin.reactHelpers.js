@@ -3,6 +3,28 @@
 
 	var Ar = ASQ.react;
 
+	Ar.of = function $$react$of() {
+		function reactor(next) {
+			if (!started) {
+				started = true;
+				args.shift().val(function val(){
+					next.apply(ø,arguments);
+					if (args.length > 0) {
+						args.shift().val(val);
+					}
+				});
+			}
+		}
+
+		var started, args = ARRAY_SLICE.call(arguments)
+			.map(function wrapper(arg){
+				if (!ASQ.isSequence(arg)) arg = ASQ(arg);
+				return arg;
+			});
+
+		return Ar(reactor);
+	};
+
 	Ar.all = Ar.zip = makeReactOperator(/*buffer=*/true);
 	Ar.allLatest = makeReactOperator(/*buffer=false*/);
 	Ar.latest = Ar.combineLatest = makeReactOperator(/*buffer=*/false,/*keep=*/true);
@@ -39,7 +61,7 @@
 
 		if (seqs.length == 0) return;
 
-		return ASQ.react(reactor);
+		return Ar(reactor);
 	};
 
 	Ar.distinct = function $$react$distinct(seq){
@@ -78,7 +100,7 @@
 
 		if (!def) return;
 
-		return ASQ.react(reactor);
+		return Ar(reactor);
 	};
 
 	Ar.fromObservable = function $$react$from$observable(obsv){
@@ -114,7 +136,7 @@
 			}
 		);
 
-		return ASQ.react(reactor);
+		return Ar(reactor);
 	};
 
 	ASQ.extend("toObservable",function $$extend(api,internals){
@@ -147,7 +169,7 @@
 			// event message(s) re-fired
 			function trigger() {
 				var args = ARRAY_SLICE.call(arguments);
-				def.seq = ASQ.react(function $$react(next){
+				def.seq = Ar(function $$react(next){
 					next.apply(ø,args);
 				});
 			}
@@ -163,7 +185,7 @@
 
 				// make a reactive sequence to act as a proxy to the original
 				// sequence
-				def.seq = ASQ.react(function $$react(next){
+				def.seq = Ar(function $$react(next){
 					// replace the temporary trigger (created above)
 					// with this proxy's trigger
 					trigger = next;
@@ -240,7 +262,7 @@
 
 			if (seqs.length == 0) return;
 
-			return ASQ.react(reactor);
+			return Ar(reactor);
 		};
 	}
 
