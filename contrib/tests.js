@@ -1747,7 +1747,8 @@
 		tests.push(function(testDone){
 			var label = "Contrib Test #18", timeout, rsq,
 				rsq2, rsq2_intv, rsq2_timer, rsq2_counter = 0,
-				rsq3, rsq3_intv, rsq3_timer, rsq3_counter = 0;
+				rsq3, rsq3_intv, rsq3_timer, rsq3_counter = 0,
+				rsq4;
 
 			rsq = ASQ.react(function(proceed){
 				var sq1, sq2, sq3, sq4, sq5, self = this;
@@ -1889,7 +1890,9 @@
 				rsq2.push(2);
 			},25);
 
-			rsq3 = ASQ.react.of(3,ASQ.after(200,6),ASQ.after(1000,10),20)
+			rsq4 = ASQ.react.of();
+
+			rsq3 = ASQ.react.of(3,ASQ.after(200,6),ASQ.after(1000,10),rsq4)
 			.val(function(v){
 				rsq3_counter += v;
 			});
@@ -1910,6 +1913,10 @@
 			setTimeout(function(){
 				rsq3.resume();
 			},800);
+
+			setTimeout(function(){
+				rsq4.push(20);
+			},1100);
 
 			timeout = setTimeout(function(){
 				FAIL(testDone,label + " (from timeout)");

@@ -7,12 +7,14 @@
 		function reactor(next) {
 			if (!started) {
 				started = true;
-				args.shift().val(function val(){
-					next.apply(ø,arguments);
-					if (args.length > 0) {
-						args.shift().val(val);
-					}
-				});
+				if (args.length > 0) {
+					args.shift().val(function val(){
+						next.apply(ø,arguments);
+						if (args.length > 0) {
+							args.shift().val(val);
+						}
+					});
+				}
 			}
 		}
 
