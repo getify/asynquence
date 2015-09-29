@@ -20,7 +20,7 @@ ASQ.extend("runner",function $$extend(api,internals){
 					// call function passing in the control token
 					// note: neutralize `this` in call to prevent
 					// unexpected behavior
-					v = v.call(ø,next_val);
+					v = v.call(ø,token);
 
 					// promise returned (ie, from async function)?
 					if (isPromise(v)) {
