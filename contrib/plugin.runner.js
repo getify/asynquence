@@ -56,6 +56,32 @@ ASQ.extend("runner",function $$extend(api,internals){
 				);
 			}
 
+			function iterateOrQuit(iterFn,now) {
+				// still have some co-routine runs to process?
+				if (iterators.length > 0) {
+					if (now) iterFn();
+					else schedule(iterFn);
+				}
+				// all done!
+				else {
+					// previous value message?
+					if (typeof next_val !== "undefined") {
+						// not a message wrapper array?
+						if (!ASQ.isMessageWrapper(next_val)) {
+							// wrap value for the subsequent `apply(..)`
+							next_val = [next_val];
+						}
+					}
+					else {
+						// nothing to affirmatively pass along
+						next_val = [];
+					}
+
+					// signal done with all co-routine runs
+					mainDone.apply(ø,next_val);
+				}
+			}
+
 			var iterators = args,
 				token = {
 					messages: ARRAY_SLICE.call(arguments,1),
@@ -97,9 +123,11 @@ ASQ.extend("runner",function $$extend(api,internals){
 					// round-robin: put co-routine back into the list
 					// at the end where it was so it can be processed
 					// again on next loop-iteration
-					iterators.push(iter);
+					if (!ret.done) {
+						iterators.push(iter);
+					}
 					next_val = token;
-					schedule(iterate); // async recurse
+					iterateOrQuit(iterate,/*now=*/false);
 				}
 				else {
 					// not a recognized ASQ instance returned?
@@ -169,28 +197,7 @@ ASQ.extend("runner",function $$extend(api,internals){
 							}
 						}
 
-						// still have some co-routine runs to process?
-						if (iterators.length > 0) {
-							iterate(); // async recurse
-						}
-						// all done!
-						else {
-							// previous value message?
-							if (typeof next_val !== "undefined") {
-								// not a message wrapper array?
-								if (!ASQ.isMessageWrapper(next_val)) {
-									// wrap value for the subsequent `apply(..)`
-									next_val = [next_val];
-								}
-							}
-							else {
-								// nothing to affirmatively pass along
-								next_val = [];
-							}
-
-							// signal done with all co-routine runs
-							mainDone.apply(ø,next_val);
-						}
+						iterateOrQuit(iterate,/*now=*/true);
 					})
 					.or(function $$or(){
 						// bail on run in aborted sequence
