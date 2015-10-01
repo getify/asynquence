@@ -371,6 +371,8 @@
 
 			// unblock the overall goroutine handling
 			function unblock() {
+				token.unblock_count++;
+
 				if (token.block && !token.block.marked) {
 					token.block.marked = true;
 					token.block.next();
@@ -378,6 +380,10 @@
 			}
 
 			var ret, msg, err, type, done = false, it;
+
+			// keep track of how many requests for unblocking
+			// have occurred
+			token.unblock_count = (token.unblock_count || 0);
 
 			// keep track of how many goroutines are running
 			// so we can infer when we're done go'ing
@@ -505,12 +511,14 @@
 
 				// need to block overall goroutine handling
 				// while idle?
-				if (!done && !token.block) {
+				if (!done && !token.block && token.unblock_count === 0) {
 					// wait here while idle
 					yield (token.block = ASQ.iterable());
 
 					token.block = false;
 				}
+
+				if (token.unblock_count > 0) token.unblock_count--;
 			}
 
 			// this goroutine is done now
