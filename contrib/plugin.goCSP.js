@@ -340,7 +340,7 @@
 	}
 
 	function altsAsync(chans,cb) {
-		var ret = ASQ(alts(channel));
+		var ret = ASQ(alts(chans));
 
 		if (cb && typeof cb == "function") {
 			ret.pThen(cb,cb);
