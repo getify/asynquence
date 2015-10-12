@@ -7,6 +7,12 @@ ASQ.wrap = function $$wrap(fn,opts) {
 		) ? o : t;
 	}
 
+	function paramSpread(gen) {
+		return function *paramSpread(token) {
+			yield *gen.apply(this,token.messages);
+		};
+	}
+
 	var errfcb, params_first, act, this_obj;
 
 	opts = (opts && typeof opts == "object") ? opts : {};
@@ -16,7 +22,8 @@ ASQ.wrap = function $$wrap(fn,opts) {
 		(opts.errfcb && opts.simplecb) ||
 		(opts.splitcb && opts.simplecb) ||
 		("errfcb" in opts && !opts.errfcb && !opts.splitcb && !opts.simplecb) ||
-		(opts.params_first && opts.params_last)
+		(opts.params_first && opts.params_last) ||
+		(opts.spread && !opts.gen)
 	) {
 		throw Error("Invalid options");
 	}
@@ -37,6 +44,9 @@ ASQ.wrap = function $$wrap(fn,opts) {
 	}
 
 	if (opts.gen) {
+		if (opts.spread) {
+			fn = paramSpread(fn);
+		}
 		return function $$wrapped$gen() {
 			return ASQ.apply(ø,arguments).runner(fn);
 		};

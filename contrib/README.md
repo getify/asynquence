@@ -75,12 +75,13 @@ better.call(o2)
 The complete list of options you can pass:
 
 * `this`: (default: `{ }`) specifies a *soft-binding* (aka, alternate default) for `this` for the underlying function call being wrapped
-* `params_first`: (default: `true`) signals "parameters first" style signature
-* `params_last`: (default: `false`) signals "parameters last" style signature
-* `errfcb`: (default: `true`) signals "error-first" style callback expected
-* `splitcb`: (default: `false`) signals split success and error callbacks expected
-* `simplecb`: (default: `false`) signals simple (success-only) callback expected, which assumes an error is either passed opaquely (inaccessible to *asynquence* handling) to the callback in some way (which you must handle), or an error is `throw`n to be `try..catch` caught (which *asynquence* will handle)
-* `gen`: (default: `false`) signals that you've passed in a generator (ES6) to wrap (see below).
+* `params_first`: (default: `true`) indicates "parameters first" style signature
+* `params_last`: (default: `false`) indicates "parameters last" style signature
+* `errfcb`: (default: `true`) indicates "error-first" style callback expected
+* `splitcb`: (default: `false`) indicates split success and error callbacks expected
+* `simplecb`: (default: `false`) indicates simple (success-only) callback expected, which assumes an error is either passed opaquely (inaccessible to *asynquence* handling) to the callback in some way (which you must handle), or an error is `throw`n to be `try..catch` caught (which *asynquence* will handle)
+* `gen`: (default: `false`) indicates that you've passed in a generator (ES6) to wrap (see below).
+* `spread`: (default: `false`) only in effect for `gen: true`, indicates that `token.messages` should be spread out as arguments to the generator instead of the normal `token` being passed.
 
 Obviously, there's several mutually exclusive combinations of these options which would be ambiguous, and are thus not allowed (will result in an immediately-thrown error upon calling `wrap(..)`), such as `errfcb: false`, `params_first: true, params_last: true`, etc. **Just avoid these.** Also, `params_first: false` is allowed, and just means `params_last: true`, but the latter is more preferable to the former.
 
@@ -108,6 +109,8 @@ g(2,3,4,5)
 ```
 
 The wrapper can be called one or many times, and each time will create and return a new sequence to run the generator.
+
+**Note:** See the `spread` wrapping option to spread out `token.messages` as arguments instead of passing in `token`.
 
 ## Gate-step Variations
 
