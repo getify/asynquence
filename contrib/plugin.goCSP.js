@@ -395,12 +395,12 @@
 				token.channel = channel();
 				token.channel.messages = token.messages;
 				token.channel.go = function $$go(){
-					// unblock the goroutine handling for this
-					// new goroutine
-					unblock();
 					// add the goroutine (called with any args) to
 					// the handling queue
 					token.add( go.apply(ø,arguments) );
+					// unblock the goroutine handling for this
+					// new goroutine
+					unblock();
 				};
 				// starting out with initial channel messages?
 				if (token.channel.messages.length > 0) {
