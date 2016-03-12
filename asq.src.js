@@ -1,5 +1,5 @@
 /*! asynquence
-    v0.8.2 (c) Kyle Simpson
+    v0.9.0 (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -673,7 +673,7 @@
 		function includeExtensions() {
 			Object.keys(extensions)
 			.forEach(function $$each(name){
-				sequence_api[name] =
+				sequence_api[name] = sequence_api[name] ||
 					extensions[name](sequence_api,internals);
 			});
 		}
@@ -836,12 +836,7 @@
 	};
 
 	createSequence.extend = function $$public$extend(name,build) {
-		// reserved API override not allowed
-		if (!~["then","or","gate","all","pipe","seq","val","promise","fork","abort","duplicate","defer"]
-			.indexOf(name)
-		) {
-			extensions[name] = build;
-		}
+		extensions[name] = build;
 
 		return createSequence;
 	};
