@@ -593,8 +593,8 @@ Each time the button is clicked, a new sequence is defined and executed to "reac
 The `react` plugin separates the capabilities of listening for events and of responding to them, providing first-class syntactic support for the *asynquence* "reactive sequence" pattern, inspired by [RxJS Reactive Observables](http://rxjs.codeplex.com/). It essentially combines *asynquence*'s flow-control with repeatable event handling.
 
 1. `react(..)` accepts a listener setup handler, which will receive a reactive trigger (called `proceed` in the snippet below) that event listener(s) "react" with by invoking. It will also receive a function you can call one or more times to register a *teardown* handler (to unbind event handlers, etc).
-2. The rest of the chain sets up a (mostly) normal *asynquence* sequence, which will then be repeat-executed each time the reactive trigger is fired. The reactive sequence also has an added `stop()` method, which you can use to trigger any registered teardown handlers and stop all reactive sequence handling.
-	- **Note:** The following sequence methods and plugins should *not* be used on a reactive sequence, as such behavior will be undefined and/or unpredictable: `pipe(..)`, `fork(..)`, `errfcb(..)`, `pThen(..)`/`pCatch(..)`, and `toPromise(..)`.
+2. The rest of the chain appears as a (mostly) normal *asynquence* sequence, which will then be repeat-executed each time a new sequence message is pumped.
+	- **Note:** The following sequence methods and plugins are not present on a reactive sequence, as their usage would be invalid: `pipe(..)`, `fork(..)`, `errfcb(..)`, `pThen(..)`/`pCatch(..)`, and `toPromise(..)`.
 
 The `react` plugin reverses the paradigm of the first snippet, providing a way to specify the sequence externally and once, and have it be re-triggered each time an event fires.
 
@@ -638,6 +638,10 @@ EVTHUB.on("totally-done",rsq.stop);
 
 Inside the `react(..)` listener setup function, you can set up as many listeners for any kind of events (ajax, timers, click handlers, etc) as you want, and for each, all you need to do to fire off the sequence is call the `proceed(..)` (or whatever you want to name it!) callback. Whatever messages you pass to `proceed(..)` will pass along to the first step of the sequence instance.
 
+Calling `stop()` on a reactive sequence triggers any registered teardown handlers and permanently stops all activity for that sequence. The reactive sequence also has `pause()` and `resume()` methods to temporarily teardown and then restart a sequence's activity. **Note:** A paused sequence emulates a similar notion to a "cold observable", where as a running sequence is like a "hot observable".
+
+The reactive sequence API can be extended with a new instance method by calling `ASQ.react.extend(..)`. The first argument is the API method name and the second argument is a build function that defines the extension. This build function receives the current API as its only argument and must return the newly defined API method. This extensibility works almost identically to extending the main *asynquence* instances, but only affects reactive sequences.
+
 The `proceed` function has two helpers on it for dealing with streams (particularly node streams): `proceed.onStream(..)` and `proceed.unStream(..)`. `onStream(..)` takes one or more streams and subscribes the `data` and `error` events to call the `proceed` function. `unStream(..)` takes one or more streams to unsubscribe, so you would likely use it in a registered teardown handler. For example:
 
 ```js
@@ -662,23 +666,42 @@ For a more real-world type of example, see [reactive sequences + `gate()`](http:
 
 #### `react` Helpers
 
-The `reactHelpers` plugin includes several very useful helpers for the `react(..)` utility.
+The `reactHelpers` plugin includes several very useful helpers for the reactive sequences.
+
+##### Reactive Sequence/RxJS Conversion
 
 Some utilities for interoperating between asynquence reactive sequences and RxJS Observables:
 
-* `toObservable(..)` sequence method on a normal asynquence sequence, or a reactive sequence, which produces an RxJS Observable (requires RxJS to be present)
-* `ASQ.react.fromObservable(..)` static utility that receives an RxJS Observable and turns it into a reactive sequence as if produced by `react(..)` (requires RxJS to be present)
+* `toObservable()` is a sequence method on a normal asynquence sequence or a reactive sequence that produces an RxJS Observable (requires RxJS to be present)
+* `ASQ.react.fromObservable(..)` static utility that receives an RxJS-compatible Observable and turns it into a reactive sequence.
 
-Some utilities for combining (aka composing) multiple reactive sequences (in much the same way you can with Observables):
+##### Directly Pumping Sequence Messages
 
-* `ASQ.react.all(..)` (alias: `ASQ.react.zip(..)`) works similar to RxJS `zip(..)`. Produces a new reactive sequence (as if created by `react(..)`) that listens to one or more reactive sequences, and fires an event (with all messages) whenever *all* observed sequences have fired an event. Each sequence's stream of event messages are buffered in case the sequences are producing at different frequencies.
-* `ASQ.react.latest(..)` (alias: `ASQ.react.combine(..)`) works similar to RxJS `combine(..)`. The same as `ASQ.react.all(..)`, except no buffering is done -- only the *latest* message from each sequence is kept.
-* `ASQ.react.any(..)` (alias: `ASQ.react.merge(..)`) works similar to RxJS `merge(..)`. Produces a new reactive sequence (as if created by `react(..)`) that listens to one or more reactive sequences, and fires (with just one message) as soon as *any* observed sequence fires an event.
-* `ASQ.react.distinct(..)` works similar to RxJS `distinct(..)`. Produces a new reactive sequence (as if created by `react(..)`) that listens to a reactive sequence, and only fires whenever a *distinct* event message comes through from the observed sequence events.
+Similar to RxJS Subjects, reactive sequences can be directly pumped with sequence messages.
+
+* `ASQ.react.of(..)` creates a new reactive sequence as if produced by `ASQ.react(..)`, but if you provide one or more values as arguments, they are pumped as initial messages in the sequence.
+* `push(..)` on a reactive sequence instance will pump new messages into the sequence at any time.
+
+##### Composition
+
+Some utilities for combining (aka composing) multiple reactive sequences:
+
+* `ASQ.react.all(..)` (alias `zip(..)` as with RxJS) creates a new reactive sequence that listens to one or more reactive sequences, and fires an event (with all messages included) whenever *all* observed sequences have fired an event. Each sequence's event messages are buffered in case the sequences are producing at different rates.
+* `ASQ.react.allLatest(..)`: same as `all(..)` except buffer size of 1, so it only keeps the latest message from each sequence.
+* `ASQ.react.latest(..)` (alias `combineLatest(..)` as with RxJS) is the same as `all(..)` except no buffering is done -- only the *latest* message from each sequence is kept.
+* `ASQ.react.any(..)` (alias `merge(..)` as with RxJS) creates a new reactive sequence that listens to one or more reactive sequences, and fires as soon as *any* observed sequence fires an event.
 
 Because of how `ASQ.react.all(..)` and `ASQ.react.any(..)` operate, you can effectively *duplicate* a reactive sequence simply by passing only it to either of the utilities.
 
-A great way to visualize how these different reactive sequence compositions work is [RxMarbles](http://rxmarbles.com/).
+###### Transformation
+
+Some utilities for transforming/mapping/projecting individual reactive sequences to new sequences:
+
+* `ASQ.react.distinct(rsq)`: creates a new reactive sequence that listens to a reactive sequence, and only fires whenever a *distinct* (ignoring duplicates with simple, shallow comparison) event message comes through from the observed sequence events.
+* `ASQ.react.distinctConsecutive(..)` (alias `distinctUntilChanged(..)` as with RxJS): same as `distinct(..)`, but ignores only consecutive duplicate (simple, shallow comparison) event messages from a single sequence.
+* `ASQ.react.filter(..)`: creates a new reactive sequence that listens to a reactive sequence, and only fires whenever an event message is not filtered out.
+
+A great way to visualize how these different reactive sequence compositions/transformations work is [RxMarbles](http://rxmarbles.com/).
 
 ## Using Contrib Plugins
 
