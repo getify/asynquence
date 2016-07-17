@@ -2708,6 +2708,82 @@
 				FAIL(testDone,label + " (from timeout)");
 			},2000);
 		});
+		tests.push(function(testDone){
+			var label = "Contrib Test #24", timeout,
+			rsq1, rsq1counter = 0,
+			rsq2, rsq2counter = 0, rsq2val = [];
+
+			rsq1 = ASQ.react(function (proceed) {
+				setTimeout(function(){
+					++rsq1counter;
+					proceed("First event");
+				}, 0);
+
+				setTimeout(function(){
+					++rsq1counter;
+					proceed("Second event");
+				}, 100);
+			})
+			.debounce(120)
+			.then(function(done,message) {
+
+				if (rsq1counter == 2 && message === "Second event") {
+                    done(message);
+				// 	PASS(testDone, label);
+				} else {
+					done.fail();
+				}
+			})
+				.or(function(){
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				});
+
+			rsq2 = ASQ.react(function(proceed){
+				setTimeout(function(){
+					++rsq2counter;
+					proceed("Third event");
+				},0);
+
+				setTimeout(function(){
+					++rsq2counter;
+					proceed("Fourth event");
+				},100);
+			})
+			.debounce(50)
+			.then(function(done,message){
+				rsq2val.push(message);
+				if (rsq2val.length === 2) {
+					done([rsq2val]);
+				}
+			});
+
+			ASQ.react.all(
+				rsq1, rsq2
+			)
+			.then(function(done, msg1, msg2) {
+				clearTimeout(timeout);
+				if (arguments.length === 3 &&
+						msg1 === "Second event" &&
+						Array.isArray(msg2) &&
+						msg2[0] === "Third event" &&
+						msg2[1] === "Fourth event") {
+					PASS(testDone,label);
+				} else {
+					done.fail();
+				}
+			})
+				.or(function(){
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				});
+
+			timeout = setTimeout(function(){
+				FAIL(testDone,label + " (from timeout)");
+			},500);
+		});
 
 		return tests;
 	}
