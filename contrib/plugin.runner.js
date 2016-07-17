@@ -87,14 +87,16 @@ ASQ.extend("runner",function $$extend(api,internals){
 					messages: ARRAY_SLICE.call(arguments,1),
 					add: addWrapped
 				},
-				iter, ret, next_val = token
+				iter, iter_action, ret, next_val = token
 			;
 
 			// map co-routines to round-robin list of iterators
 			iterators = iterators.map(wrap);
 
 			// async iteration of round-robin list
-			(function iterate(){
+			(function iterate(throwNext){
+				iter_action = throwNext ? "throw" : "next";
+
 				// get next co-routine in list
 				iter = iterators.shift();
 
@@ -105,10 +107,10 @@ ASQ.extend("runner",function $$extend(api,internals){
 					if (ASQ.isMessageWrapper(next_val) &&
 						ASQ.isSequence(iter)
 					) {
-						ret = iter.next.apply(iter,next_val);
+						ret = iter[iter_action].apply(iter,next_val);
 					}
 					else {
-						ret = iter.next(next_val);
+						ret = iter[iter_action](next_val);
 					}
 				}
 				catch (err) {
@@ -203,17 +205,22 @@ ASQ.extend("runner",function $$extend(api,internals){
 						// bail on run in aborted sequence
 						if (internals("seq_aborted")) return;
 
-						try {
-							// if an error occurs in the step-continuation
-							// promise or sequence, throw it back into the
-							// generator or iterable-sequence
-							iter["throw"].apply(iter,arguments);
+						if (!ret.done) {
+							// put co-routine back in where it just
+							// was so it can be processed again on
+							// next loop-iteration
+							iterators.unshift(iter);
+
+							next_val = arguments.length > 1 ?
+								ASQ.messages.apply(ø,arguments) :
+								arguments[0];
+
+							iterate(/*throwNext=*/true);
 						}
-						catch (err) {
-							// if an error comes back out of after the throw,
-							// pass it out to the main sequence, as iteration
-							// must now be complete
-							mainDone.fail(err);
+						else {
+							// if an error is left over but iteration now
+							// complete, pass out to the main sequence
+							mainDone.fail.apply(ø,arguments);
 						}
 					});
 				}
