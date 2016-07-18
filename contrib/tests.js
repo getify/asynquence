@@ -2728,8 +2728,7 @@
 			.then(function(done,message) {
 
 				if (rsq1counter == 2 && message === "Second event") {
-                    done(message);
-				// 	PASS(testDone, label);
+					done(message);
 				} else {
 					done.fail();
 				}
