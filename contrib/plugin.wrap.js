@@ -13,7 +13,7 @@ ASQ.wrap = function $$wrap(fn,opts) {
 		};
 	}
 
-	var errfcb, params_first, act, this_obj;
+	var errfcb, params_first, act, this_obj, spread_gen_params;
 
 	opts = (opts && typeof opts == "object") ? opts : {};
 
@@ -35,6 +35,8 @@ ASQ.wrap = function $$wrap(fn,opts) {
 		(!opts.params_last && !("params_first" in opts || opts.params_first)) ||
 		("params_last" in opts && !opts.params_first && !opts.params_last)
 	;
+	// spread (default: true)
+	spread_gen_params = !!opts.spread || !("spread" in opts);
 
 	if (params_first) {
 		act = "push";
@@ -44,11 +46,11 @@ ASQ.wrap = function $$wrap(fn,opts) {
 	}
 
 	if (opts.gen) {
-		if (opts.spread) {
+		if (spread_gen_params) {
 			fn = paramSpread(fn);
 		}
 		return function $$wrapped$gen() {
-			return ASQ.apply(ø,arguments).runner(fn);
+			return ASQ(ASQ.messages.apply(ø,arguments)).runner(fn);
 		};
 	}
 	if (errfcb) {
