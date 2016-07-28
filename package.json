@@ -5,8 +5,10 @@
 	"main": "./asq.src.js",
 	"scripts": {
 		"test": "./node-tests.js",
-		"build-core": "./build-core.js",
-		"build": "npm run build-core",
+		"build:core": "./build-core.js",
+		"build": "npm run build:core && npm run build:all-contrib",
+		"build:all-contrib": "./contrib/bundle.js",
+		"install-all": "npm install && (cd contrib && npm install)",
 		"prepublish": "npm run build-core"
 	},
 	"devDependencies": {
