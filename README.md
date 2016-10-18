@@ -1,5 +1,7 @@
 # asynquence
 
+[![CDNJS](https://img.shields.io/cdnjs/v/asynquence.svg)](https://cdnjs.com/libraries/asynquence)
+
 Promise-style async sequence flow control.
 
 ## Explanation
