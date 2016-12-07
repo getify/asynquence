@@ -1,5 +1,5 @@
 /*! asynquence
-    v0.9.0 (c) Kyle Simpson
+    v0.10.0 (c) Kyle Simpson
     MIT License: http://getify.mit-license.org
 */
 
@@ -178,10 +178,11 @@
 
 			function done() {
 				// ignore this call?
-				if (seq_error || seq_aborted || then_ready) {
+				if (seq_error || seq_aborted || then_ready || step_completed) {
 					return;
 				}
 
+				step_completed = true;
 				then_ready = true;
 				sequence_messages.push.apply(sequence_messages,arguments);
 				sequence_errors.length = 0;
@@ -191,7 +192,7 @@
 
 			done.fail = function $$step$fail(){
 				// ignore this call?
-				if (seq_error || seq_aborted || then_ready) {
+				if (seq_error || seq_aborted || then_ready || step_completed) {
 					return;
 				}
 
@@ -223,6 +224,8 @@
 					done.apply(ø,ARRAY_SLICE.call(arguments,1));
 				}
 			};
+
+			var step_completed = false;
 
 			return done;
 		}

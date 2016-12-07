@@ -1427,6 +1427,99 @@
 				FAIL(testDone,label + " (from timeout)");
 			},2000);
 		});
+		tests.push(function(testDone){
+			var label = "Core Test #25", timeout;
+
+			ASQ()
+			.then(function(done){
+				var msgs = [];
+
+				ASQ()
+				.gate(
+					function(done1){
+						done1("hello");
+						setTimeout(function(){
+							done1("nope");
+						},20);
+					},
+					function(done2){
+						setTimeout(function(){
+							done2("world");
+						},40);
+						setTimeout(function(){
+							done2.fail("ouch");
+						},60);
+					}
+				)
+				.then(
+					function(){
+						var args = ARRAY_SLICE.call(arguments,1);
+						msgs = msgs.concat(args);
+					},
+					function(){
+						var args = ARRAY_SLICE.call(arguments,1);
+						msgs = msgs.concat(args);
+					}
+				)
+				.or(function(err){
+					msgs.push(err);
+				})
+
+				ASQ(
+					function(done1){
+						done1("42");
+						setTimeout(function(){
+							done1("boo");
+						},80);
+						setTimeout(function(){
+							done1.fail("oops");
+						},100);
+					},
+					function(){
+						var args = ARRAY_SLICE.call(arguments,1);
+						msgs = msgs.concat(args);
+					},
+					function(){
+						var args = ARRAY_SLICE.call(arguments,1);
+						msgs = msgs.concat(args);
+					}
+				)
+				.or(function(err){
+					msgs.push(err);
+				});
+
+				setTimeout(function(){
+					done.apply(ø,msgs);
+				},150);
+			})
+			.val(function(msg1,msg2,msg3){
+				if (!(
+					arguments.length === 3 &&
+					msg1 === "42" &&
+					msg2 === "hello" &&
+					msg3 === "world"
+				)) {
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+				}
+			})
+			.then(function(){
+				clearTimeout(timeout);
+				PASS(testDone,label);
+			})
+			.onerror(function(){
+				clearTimeout(timeout);
+				var args = ARRAY_SLICE.call(arguments);
+				args.unshift(testDone,label);
+				FAIL.apply(FAIL,args);
+			});
+
+			timeout = setTimeout(function(){
+				FAIL(testDone,label + " (from timeout)");
+			},2000);
+		});
 
 		return tests;
 	}
