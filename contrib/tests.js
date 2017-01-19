@@ -13,6 +13,12 @@
 			};
 		}
 
+		function delaySequence(delay) {
+			return ASQ(function(done){
+				setTimeout(done,delay);
+			});
+		}
+
 		function PASS(testDone,testLabel) {
 			doneLogMsg(testLabel + ": PASSED")();
 			testDone();
@@ -1482,7 +1488,7 @@
 			},2000);
 		});
 		tests.push(function(testDone){
-			var label = "Contrib Test #16", timeout, isq;
+			var label = "Contrib Test #16", timeout, isq, runnerSeqMsg = "";
 
 			function doubleSeq(x) {
 				return ASQ(function(done){
@@ -1620,6 +1626,48 @@
 					clearTimeout(timeout);
 					var args = ARRAY_SLICE.call(arguments);
 					args.unshift(testDone,label);
+					FAIL.apply(FAIL,args);
+					return;
+				}
+			})
+			.runner(
+				ASQ.iterable()
+					.then(function(){
+						runnerSeqMsg += "A";
+					})
+					.then(function(){
+						return delaySequence(20);
+					})
+					.then(function(){
+						runnerSeqMsg += "B";
+					}),
+				ASQ.iterable()
+					.then(function(){
+						runnerSeqMsg += "C";
+					})
+					.then(function(){
+						return delaySequence(10);
+					})
+					.then(function(){
+						runnerSeqMsg += "D";
+					}),
+				ASQ.iterable()
+					.then(function(){
+						runnerSeqMsg += "E";
+					})
+					.then(function(){
+						return delaySequence(10);
+					})
+					.then(function(){
+						runnerSeqMsg += "F";
+					})
+			)
+			.val(function(){
+				if (runnerSeqMsg !== "ABCDEF") {
+					clearTimeout(timeout);
+					var args = ARRAY_SLICE.call(arguments);
+					args.unshift(testDone,label);
+					args.push(runnerSeqMsg);
 					FAIL.apply(FAIL,args);
 					return;
 				}
