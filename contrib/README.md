@@ -294,11 +294,11 @@ As long as either the native `Promise` is there, or that global has been spec-co
 
 ### `errfcb` Plugin
 
-The `errfcb` plugin provides `errfcb()` on the main sequence instance API. Calling `errfcb()` returns an "error-first" style (aka "node-style") callback that can be used with any function that expects such a callback.  Calling `errfcb()` also stops the sequence from proceeding until the "error-first" callback is invoked.
+The `errfcb` plugin provides `errfcb()` on the main sequence instance API. Calling `errfcb()` creates a step in the sequence that will wait to proceed, and returns an "error-first" style (aka "node-style") callback to signal this waiting sequence step.  The "error-first" callback is suitable for any utility that expects such a callback.
 
 If the "error-first" callback is then invoked with the first ("error") parameter having a truthy value, the main sequence is flagged for error as usual.  The value of the "error" parameter is provided to `.or()` callbacks as the failure reason.
 
-If the "error" parameter has a falsy value, the main sequence proceeds as success.  Any other values provided to the callback are passed through to the main sequence and can be accessed by later steps.
+If the "error" parameter has a falsy value, the main sequence proceeds as success.  Any other values provided to the callback are passed through as normal messages to the main sequence, and can be accessed by the next step in the sequence.
 
 Example:
 
