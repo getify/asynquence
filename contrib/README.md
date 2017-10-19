@@ -294,9 +294,11 @@ As long as either the native `Promise` is there, or that global has been spec-co
 
 ### `errfcb` Plugin
 
-`errfcb` plugin provides `errfcb()` on the main sequence instance API. Calling `errfcb()` returns an "error-first" style (aka "node-style") callback that can be used with any function that expects such a callback.
+The `errfcb` plugin provides `errfcb()` on the main sequence instance API. Calling `errfcb()` creates a step in the sequence that will wait to proceed, and returns an "error-first" style (aka "node-style") callback to signal this waiting sequence step.  The "error-first" callback is suitable for any utility that expects such a callback.
 
-If the "error-first" callback is then invoked with the first ("error") parameter set, the main sequence is flagged for error as usual. Otherwise, the main sequence proceeds as success. Messages sent to the callback are passed through to the main sequence as success/error as expected.
+If the "error-first" callback is then invoked with the first ("error") parameter having a truthy value, the main sequence is flagged for error as usual.  The value of the "error" parameter is provided to `.or()` callbacks as the failure reason.
+
+If the "error" parameter has a falsy value, the main sequence proceeds as success.  Any other values provided to the callback are passed through as normal messages to the main sequence, and can be accessed by the next step in the sequence.
 
 Example:
 
@@ -307,18 +309,32 @@ function readFile(filename) {
 	// promise)
 	var sq = ASQ();
 
-	// call Node.js' `fs.readFile(..), but pass in
+	// call Node.js' fs.readFile(), but pass in
 	// an error-first callback that is automatically
-	// wired into a sequence
+	// wired into the sequence.
 	fs.readFile( filename, sq.errfcb() );
 
-	// now, return our sequence/promise
+	// now, return our sequence/promise, which is waiting for the
+	// fs.readFile() call to complete.
 	return sq;
 }
 
 readFile("meaningoflife.txt")
-.then(..)
+.then(..)	// will happen after fs.readFile invokes the "error-first" callback
 ..
+```
+
+Low-level (contrived) example, to show how the pieces fit together:
+
+```js
+var seq = ASQ();
+var f =  seq.errfcb();	// now the sequence is waiting --- go ahead and add steps
+seq
+.val( function(message) { console.log(message); } )
+.or( function(err) { console.log('Bogus! ' + err); } );
+
+f(null, "Hello, world!");	// Success (since null is falsy) --- prints `Hello, world!`
+//f("oops")			// Prints `Bogus! oops` if you call this instead of the preceding line
 ```
 
 ### `runner` Plugin
