@@ -100,8 +100,8 @@ ASQ("message")
     }
 )
 .val(function(msg1,msg2){
-   msg1; // "message 1"
-   msg2; // "message 2"
+    msg1; // "message 1"
+    msg2; // "message 2"
 });
 ```
 

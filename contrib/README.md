@@ -13,10 +13,10 @@ var readfile = ASQ.wrap(fs.readFile);
 
 readfile("something.txt",{ encoding: "utf8" })
 .val(function(contents){
-	// file contents
+    // file contents
 })
 .or(function(err){
-	// oops, `err` in reading file!
+    // oops, `err` in reading file!
 });
 ```
 
@@ -30,18 +30,18 @@ For example, some functions are the opposite in parameter order (aka "parameters
 
 ```js
 function doSomething(cb,p1,p2) {
-	// do something with `p1` and `p2`, then later
-	// call `cb` as an error-first cb
+    // do something with `p1` and `p2`, then later
+    // call `cb` as an error-first cb
 }
 
 var better = ASQ.wrap(doSomething,{ params_last: true });
 
 better("val 1","val 2")
 .val(function(result){
-	// result
+    // result
 })
 .or(function(err){
-	// oops, `err` occurred!
+    // oops, `err` occurred!
 });
 ```
 
@@ -51,7 +51,7 @@ If you want the more flexible "soft binding" (an alternate default `this` bindin
 
 ```js
 function doSomething(cb) {
-	cb(this.id);
+    cb(this.id);
 }
 
 var o1 = { id: 42 };
@@ -62,13 +62,13 @@ var better = ASQ.wrap(doSomething,{ this: o1 });
 // use `o1` as default soft-bound `this`
 better()
 .val(function(id){
-	id; // 42
+    id; // 42
 });
 
 // `this` is still overridable
 better.call(o2)
 .val(function(id){
-	id; // "foobar"
+    id; // "foobar"
 });
 ```
 
@@ -91,20 +91,20 @@ If you pass `gen:true` as an option, it overrides all other options, and instead
 
 ```js
 var g = ASQ.wrap(function*(token){
-	var x = 1;
-	for (var i=0; i < token.messages.length; i++) {
-		x = yield (x * token.messages[i]);
-	}
+    var x = 1;
+    for (var i=0; i < token.messages.length; i++) {
+        x = yield (x * token.messages[i]);
+    }
 },{ gen:true });
 
 g(2,3,4)
 .val(function(msg){
-	console.log(msg);	// 24
+    console.log(msg);    // 24
 });
 
 g(2,3,4,5)
 .val(function(msg){
-	console.log(msg);	// 120
+    console.log(msg);    // 120
 });
 ```
 
@@ -148,47 +148,47 @@ Example:
 ```js
 ASQ(21)
 .pThen(function(msg){
-	return msg * 2;
+    return msg * 2;
 })
 .pThen(function(msg){
-	return ASQ(function(done){
-		setTimeout(function(){
-			done(msg);
-		},100);
-	});
+    return ASQ(function(done){
+        setTimeout(function(){
+            done(msg);
+        },100);
+    });
 })
 .pThen(function(msg){
-	return new Promise(function(resolve,reject){
-		setTimeout(function(){
-			reject("Oops:" + msg);
-		},100);
-	});
+    return new Promise(function(resolve,reject){
+        setTimeout(function(){
+            reject("Oops:" + msg);
+        },100);
+    });
 })
 // sequence is now in error state!
 .pThen( // or .pCatch(...
-	null,
-	function(err) {
-		return err.toUpperCase();
-	}
+    null,
+    function(err) {
+        return err.toUpperCase();
+    }
 )
 // sequence no longer in error state since
 // `pThen`/`pCatch` registered an error handler
 // which handled the sequence error.
 .pThen(
-	function(msg) {
-		throw msg;
-	}
+    function(msg) {
+        throw msg;
+    }
 )
 // sequence is now in error state again!
 .pCatch( // or .pThen(null, ...
-	function(err){
-		console.log(err); // "OOPS:42"
-		return "Cool";
-	}
+    function(err){
+        console.log(err); // "OOPS:42"
+        return "Cool";
+    }
 )
 // sequence no longer in error state
 .val(function(msg){
-	console.log(msg); // "Cool"
+    console.log(msg); // "Cool"
 })
 .or(function(){}); // never called
 ```
@@ -212,12 +212,12 @@ You'll notice differences from the *asynquence* core `then(..)`, and how they ma
 ASQ(42) // `42` gets discarded
 .after(500,"Hello","World!")
 .val(function(msg1,msg2){
-	console.log(msg1,msg2); // "Hello"  "World!"
+    console.log(msg1,msg2); // "Hello"  "World!"
 });
 
 ASQ.after(500)
 .val(function(){
-	console.log("Hello World!");
+    console.log("Hello World!");
 });
 ```
 
@@ -229,14 +229,14 @@ The most common usage of the `failAfter` plugin is likely in combination with th
 // make a 2 sec timeout for some action
 ASQ()
 .race(
-	doSomethingAsync(..),
-	ASQ.failAfter(2000,"Timeout!")
+    doSomethingAsync(..),
+    ASQ.failAfter(2000,"Timeout!")
 )
 .val(function(){
-	// success!
+    // success!
 })
 .or(function(err){
-	err; // "Timeout!"
+    err; // "Timeout!"
 });
 ```
 
@@ -255,28 +255,28 @@ Example:
 ```js
 // make an asynquence sequence to use
 var sq = ASQ(function(done){
-	setTimeout(function(){
-		done(42); // send 42 along as success message
-	},100);
+    setTimeout(function(){
+        done(42); // send 42 along as success message
+    },100);
 });
 
 // fork and deal with the native promise
 sq.toPromise()
 .then(
-	// success
-	function(msg){
-		console.log(msg); // 42
-	},
-	// error
-	function(err){
-		console.log(err);
-	}
+    // success
+    function(msg){
+        console.log(msg); // 42
+    },
+    // error
+    function(err){
+        console.log(err);
+    }
 );
 
 // also continue with the original sequence
 sq
 .val(function(msg){
-	console.log(msg); // 42
+    console.log(msg); // 42
 });
 ```
 
@@ -305,22 +305,22 @@ Example:
 ```js
 // Node.js: fs.readFile(..) wrapper
 function readFile(filename) {
-	// setup an empty sequence (much like an empty
-	// promise)
-	var sq = ASQ();
+    // setup an empty sequence (much like an empty
+    // promise)
+    var sq = ASQ();
 
-	// call Node.js' fs.readFile(), but pass in
-	// an error-first callback that is automatically
-	// wired into the sequence.
-	fs.readFile( filename, sq.errfcb() );
+    // call Node.js' fs.readFile(), but pass in
+    // an error-first callback that is automatically
+    // wired into the sequence.
+    fs.readFile( filename, sq.errfcb() );
 
-	// now, return our sequence/promise, which is waiting for the
-	// fs.readFile() call to complete.
-	return sq;
+    // now, return our sequence/promise, which is waiting for the
+    // fs.readFile() call to complete.
+    return sq;
 }
 
 readFile("meaningoflife.txt")
-.then(..)	// will happen after fs.readFile invokes the "error-first" callback
+.then(..)    // will happen after fs.readFile invokes the "error-first" callback
 ..
 ```
 
@@ -328,13 +328,13 @@ Low-level (contrived) example, to show how the pieces fit together:
 
 ```js
 var seq = ASQ();
-var f =  seq.errfcb();	// now the sequence is waiting --- go ahead and add steps
+var f =  seq.errfcb();    // now the sequence is waiting --- go ahead and add steps
 seq
 .val( function(message) { console.log(message); } )
 .or( function(err) { console.log('Bogus! ' + err); } );
 
-f(null, "Hello, world!");	// Success (since null is falsy) --- prints `Hello, world!`
-//f("oops")			// Prints `Bogus! oops` if you call this instead of the preceding line
+f(null, "Hello, world!");    // Success (since null is falsy) --- prints `Hello, world!`
+//f("oops")            // Prints `Bogus! oops` if you call this instead of the preceding line
 ```
 
 ### `runner` Plugin
@@ -347,51 +347,51 @@ The generator/iterable-sequence/promise-producer will receive any value-messages
 
 ```js
 function thunkDouble(x) {
-	return function thunk(cb) {
-		setTimeout(function(){
-			// cb is an error-first style callback
-			cb(null,x * 2);
-		},500);
-	};
+    return function thunk(cb) {
+        setTimeout(function(){
+            // cb is an error-first style callback
+            cb(null,x * 2);
+        },500);
+    };
 }
 
 function promiseDouble(x) {
-	// using ES6 `Promise`s
-	return new Promise(function(resolve,reject){
-		setTimeout(function(){
-			resolve(x * 2);
-		},500);
-	});
+    // using ES6 `Promise`s
+    return new Promise(function(resolve,reject){
+        setTimeout(function(){
+            resolve(x * 2);
+        },500);
+    });
 }
 
 function seqDouble(x) {
-	return ASQ(function(done){
-		setTimeout(function(){
-			done(x * 2);
-		},500);
-	});
+    return ASQ(function(done){
+        setTimeout(function(){
+            done(x * 2);
+        },500);
+    });
 }
 
 ASQ(2)
 .runner(function *step(token){
-	// extract message from control-token so
-	// we can operate on it
-	var x = token.messages[0];				// 2
+    // extract message from control-token so
+    // we can operate on it
+    var x = token.messages[0];                // 2
 
-	while (x < 100) {
-		if (x < 10) {
-			x = yield thunkDouble(x);		// 4 8 16
-		}
-		else if (x < 40) {
-			x = yield promiseDouble(x);		// 32
-		}
-		else {
-			x = yield seqDouble(x);			// 64 128
-		}
-	}
+    while (x < 100) {
+        if (x < 10) {
+            x = yield thunkDouble(x);        // 4 8 16
+        }
+        else if (x < 40) {
+            x = yield promiseDouble(x);        // 32
+        }
+        else {
+            x = yield seqDouble(x);            // 64 128
+        }
+    }
 })
 .val(function(num){
-	console.log(num);						// 128
+    console.log(num);                        // 128
 });
 ```
 
@@ -399,45 +399,45 @@ ASQ(2)
 
 ```js
 function thunkDouble(x) {
-	return function thunk(cb) {
-		setTimeout(function(){
-			// cb is an error-first style callback
-			cb(null,x * 2);
-		},500);
-	};
+    return function thunk(cb) {
+        setTimeout(function(){
+            // cb is an error-first style callback
+            cb(null,x * 2);
+        },500);
+    };
 }
 
 function promiseDouble(x) {
-	// using ES6 `Promise`s
-	return new Promise(function(resolve,reject){
-		setTimeout(function(){
-			resolve(x * 2);
-		},500);
-	});
+    // using ES6 `Promise`s
+    return new Promise(function(resolve,reject){
+        setTimeout(function(){
+            resolve(x * 2);
+        },500);
+    });
 }
 
 function seqDouble(x) {
-	return ASQ(function(done){
-		setTimeout(function(){
-			done(x * 2);
-		},500);
-	});
+    return ASQ(function(done){
+        setTimeout(function(){
+            done(x * 2);
+        },500);
+    });
 }
 
 ASQ(2)
 .runner(
-	ASQ.iterable()
-	.then(function(token){
-		// extract message from control-token so
-		// we can operate on it
-		return token.messages[0];			// 2
-	})
-	.then(thunkDouble)						// 4
-	.then(promiseDouble)					// 8
-	.then(seqDouble)						// 16
+    ASQ.iterable()
+    .then(function(token){
+        // extract message from control-token so
+        // we can operate on it
+        return token.messages[0];            // 2
+    })
+    .then(thunkDouble)                        // 4
+    .then(promiseDouble)                    // 8
+    .then(seqDouble)                        // 16
 )
 .val(function(num){
-	console.log(num);						// 16
+    console.log(num);                        // 16
 });
 ```
 
@@ -445,27 +445,27 @@ ASQ(2)
 
 ```js
 function promiseDouble(x) {
-	// using ES6 `Promise`s
-	return new Promise(function(resolve,reject){
-		setTimeout(function(){
-			resolve(x * 2);
-		},500);
-	});
+    // using ES6 `Promise`s
+    return new Promise(function(resolve,reject){
+        setTimeout(function(){
+            resolve(x * 2);
+        },500);
+    });
 }
 
 ASQ(2)
 .runner(
-	// ES7 `async function`
-	async function step(token) {
-		var x = token.messages[0];			// 2
-		x = await promiseDouble(x);			// 4
-		x = await promiseDouble(x);			// 8
-		x = await promiseDouble(x);			// 16
-		return x;
-	}
+    // ES7 `async function`
+    async function step(token) {
+        var x = token.messages[0];            // 2
+        x = await promiseDouble(x);            // 4
+        x = await promiseDouble(x);            // 8
+        x = await promiseDouble(x);            // 16
+        return x;
+    }
 )
 .val(function(num){
-	console.log(num);						// 16
+    console.log(num);                        // 16
 });
 ```
 
@@ -486,36 +486,36 @@ You can also call `.add(..)` on the *control token* to add one or more generator
 ```js
 // promise to double `v` in 1000 ms
 function double(v) {
-	return new Promise(function(resolve,reject){
-		setTimeout(function(){
-			resolve(v * 2);
-		},1000);
-	});
+    return new Promise(function(resolve,reject){
+        setTimeout(function(){
+            resolve(v * 2);
+        },1000);
+    });
 }
 
 function makeGen(x,y) {
-	return function*(token){
-		token.messages.push( yield double(x) );
-		yield token;
-		token.messages.push( yield double(y) );
-	};
+    return function*(token){
+        token.messages.push( yield double(x) );
+        yield token;
+        token.messages.push( yield double(y) );
+    };
 }
 
 ASQ()
 .runner(
-	function*(token) {
-		token.add(
-			makeGen(10,20),
-			makeGen(100,200)
-		);
-		while (token.messages.length < 4) {
-			yield token;
-		}
-		yield token.messages;
-	}
+    function*(token) {
+        token.add(
+            makeGen(10,20),
+            makeGen(100,200)
+        );
+        while (token.messages.length < 4) {
+            yield token;
+        }
+        yield token.messages;
+    }
 )
 .val(function(msg){
-	console.log(msg); // [ 20, 200, 40, 400 ]
+    console.log(msg); // [ 20, 200, 40, 400 ]
 });
 ```
 
@@ -538,22 +538,22 @@ For example:
 ```js
 ASQ()
 .runner(
-	ASQ.csp.go(function*(ch){
-		console.log("sending value");
-		yield ASQ.csp.put(ch,42);
-		console.log("send complete");
-	}),
-	ASQ.csp.go(function*(ch){
-		console.log("waiting...");
-		yield ASQ.csp.take( ASQ.csp.timeout(1000) );
-		console.log(
-			"received value:",
-			yield ASQ.csp.take(ch)
-		);
-	})
+    ASQ.csp.go(function*(ch){
+        console.log("sending value");
+        yield ASQ.csp.put(ch,42);
+        console.log("send complete");
+    }),
+    ASQ.csp.go(function*(ch){
+        console.log("waiting...");
+        yield ASQ.csp.take( ASQ.csp.timeout(1000) );
+        console.log(
+            "received value:",
+            yield ASQ.csp.take(ch)
+        );
+    })
 )
 .val(function(){
-	console.log("all done");
+    console.log("all done");
 });
 
 // sending value
@@ -610,7 +610,7 @@ The `react` plugin separates the capabilities of listening for events and of res
 
 1. `react(..)` accepts a listener setup handler, which will receive a reactive trigger (called `proceed` in the snippet below) that event listener(s) "react" with by invoking. It will also receive a function you can call one or more times to register a *teardown* handler (to unbind event handlers, etc).
 2. The rest of the chain appears as a (mostly) normal *asynquence* sequence, which will then be repeat-executed each time a new sequence message is pumped.
-	- **Note:** The following sequence methods and plugins are not present on a reactive sequence, as their usage would be invalid: `pipe(..)`, `fork(..)`, `errfcb(..)`, `pThen(..)`/`pCatch(..)`, and `toPromise(..)`.
+    - **Note:** The following sequence methods and plugins are not present on a reactive sequence, as their usage would be invalid: `pipe(..)`, `fork(..)`, `errfcb(..)`, `pThen(..)`/`pCatch(..)`, and `toPromise(..)`.
 
 The `react` plugin reverses the paradigm of the first snippet, providing a way to specify the sequence externally and once, and have it be re-triggered each time an event fires.
 
@@ -662,19 +662,19 @@ The `proceed` function has two helpers on it for dealing with streams (particula
 
 ```js
 var rsq = ASQ.react(function(proceed,registerTeardownHandler){
-	proceed.onStream( mydatastream );
+    proceed.onStream( mydatastream );
 
-	registerTeardownHandler(function(){
-		proceed.unStream( mydatastream );
-	});
+    registerTeardownHandler(function(){
+        proceed.unStream( mydatastream );
+    });
 })
 .val(function(v){
-	if (v instanceof Error) throw v;
-	// ..
+    if (v instanceof Error) throw v;
+    // ..
 })
 // ..
 .or(function(err){
-	console.log(err);
+    console.log(err);
 });
 ```
 
