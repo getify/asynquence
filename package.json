@@ -3,6 +3,7 @@
 	"version": "0.10.3",
 	"description": "promise-style async sequence flow-control",
 	"main": "./asq.src.js",
+	"types": "./asq.d.ts",
 	"scripts": {
 		"test": "./node-tests.js",
 		"build-core": "./build-core.js",
