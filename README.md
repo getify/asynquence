@@ -36,7 +36,7 @@ Say you want to perform two or more asynchronous tasks one after the other (like
 
 You create a sequence by calling `ASQ(...)`. **Each time you call `ASQ()`, you create a new, separate sequence.**
 
-To create a new step, simply call `then(...)` with a function. That function will be executed when that step is ready to be processed, and it will be passed as its first parameter the completion trigger. Subsequent parameters, if any, will be any messages passsed on from the immediately previous step.
+To create a new step, simply call `then(...)` with a function. That function will be executed when that step is ready to be processed, and it will be passed as its first parameter to the completion trigger. Subsequent parameters, if any, will be any messages passed on from the immediately previous step.
 
 The completion trigger that your step function(s) receive can be called directly to indicate success, or you can add the `fail` flag (see examples below) to indicate failure of that step. In either case, you can pass one or more messages onto the next step (or the next failure handler) by simply adding them as parameters to the call.
 
