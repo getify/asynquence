@@ -525,8 +525,8 @@ If you want to pass on the channel messages from your generator run, end your la
 
 To get a better sense of how this advanced functionality works, check out these examples:
 
-* [State Machine](http://jsbin.com/luron/1/edit?js,console) with simple generator co-routines (hidden CSP)
-* [Ping Pong](http://jsbin.com/qutabu/1/edit?js,output) (from [js-csp](https://github.com/ubolonton/js-csp/blob/master/README.md#examples) and the [go ping-pong](http://talks.golang.org/2013/advconc.slide#6) example)
+* [State Machine](http://jsbin.com/luron/2/edit?js,console) with simple generator co-routines (hidden CSP)
+* [Ping Pong](http://jsbin.com/qutabu/4/edit?js,output) (from [js-csp](https://github.com/ubolonton/js-csp/blob/master/README.md#examples) and the [go ping-pong](http://talks.golang.org/2013/advconc.slide#6) example)
 * [Two generators paired as CSP-style co-routines](https://gist.github.com/getify/10172207)
 
 #### go-Style CSP API Emulation
@@ -678,7 +678,7 @@ var rsq = ASQ.react(function(proceed,registerTeardownHandler){
 });
 ```
 
-For a more real-world type of example, see [reactive sequences + `gate()`](http://jsbin.com/rozipaki/6/edit?js,output). Here's [another example](https://gist.github.com/getify/bba5ec0de9d6047b720e), which handles http request/response streams with reactive sequences.
+For a more real-world type of example, see [reactive sequences + `gate()`](http://jsbin.com/rozipaki/11/edit?js,output). Here's [another example](https://gist.github.com/getify/bba5ec0de9d6047b720e), which handles http request/response streams with reactive sequences.
 
 #### `react` Helpers
 
