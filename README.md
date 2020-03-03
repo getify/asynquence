@@ -24,10 +24,10 @@ If you're interested in detailed discussion about *asynquence*, here's some read
 * Example/explanation of [promise-style sequences](https://gist.github.com/jakearchibald/0e652d95c07442f205ce#comment-977119)
 * More advanced example of ["nested" composition of sequences](https://gist.github.com/getify/10273f3de07dda27ebce)
 * [Iterable sequences](#iterable-sequences): [sync loop](https://gist.github.com/getify/8211148#file-ex1-sync-iteration-js) and [async loop](https://gist.github.com/getify/8211148#file-ex2-async-iteration-js) and [async batch iteration of list](https://gist.github.com/getify/8464917)
-* ["State Machine" with generator coroutines](http://jsbin.com/luron/1/edit?js,console)
-* ["Ping Pong", CSP-flavored](http://jsbin.com/qutabu/1/edit?js,output) coroutine concurrency, via [`runner(..)` contrib plugin](https://github.com/getify/asynquence/blob/master/contrib/README.md#runner-plugin). Also [another example](https://gist.github.com/getify/10172207) showing message passing.
+* ["State Machine" with generator coroutines](http://jsbin.com/luron/2/edit?js,console)
+* ["Ping Pong", CSP-flavored](http://jsbin.com/qutabu/4/edit?js,output) coroutine concurrency, via [`runner(..)` contrib plugin](https://github.com/getify/asynquence/blob/master/contrib/README.md#runner-plugin). Also [another example](https://gist.github.com/getify/10172207) showing message passing.
 * [go-Style CSP](https://gist.github.com/getify/e0d04f1f5aa24b1947ae) emulating goroutines with generator wrappers (via [`runner(..)` contrib plugin](https://github.com/getify/asynquence/blob/master/contrib/README.md#runner-plugin) and [CSP emulation adapter](https://github.com/getify/asynquence/blob/master/contrib/README.md#go-style-csp-api-emulation)).
-* Event-Reactive Sequences ([example 1](http://jsbin.com/rozipaki/6/edit?js,output), [example 2](https://gist.github.com/getify/bba5ec0de9d6047b720e)) (via [`react(..)` plugin](https://github.com/getify/asynquence/blob/master/contrib/README.md#react-plugin)) inspired by [RxJS's Reactive Observables](http://rxjs.codeplex.com/)
+* Event-Reactive Sequences ([example 1](http://jsbin.com/rozipaki/11/edit?js,output), [example 2](https://gist.github.com/getify/bba5ec0de9d6047b720e)) (via [`react(..)` plugin](https://github.com/getify/asynquence/blob/master/contrib/README.md#react-plugin)) inspired by [RxJS's Reactive Observables](http://rxjs.codeplex.com/)
 * API [Usage Examples](#usage-examples)
 
 ### Sequences
