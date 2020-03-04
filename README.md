@@ -12,7 +12,7 @@ Promise-style async sequence flow control.
 
 If you're interested in detailed discussion about *asynquence*, here's some reading to check out:
 
-* ["You Don't Know JS: Async & Performance", Appendix A](https://github.com/getify/You-Dont-Know-JS/blob/master/async%20%26%20performance/apA.md#appendix-a-asynquence-library) and [Appendix B](https://github.com/getify/You-Dont-Know-JS/blob/master/async%20%26%20performance/apB.md#appendix-b-advanced-async-patterns).
+* ["You Don't Know JS: Async & Performance", Appendix A](https://github.com/getify/You-Dont-Know-JS/blob/1st-ed/async%20%26%20performance/apA.md#appendix-a-asynquence-library) and [Appendix B](https://github.com/getify/You-Dont-Know-JS/blob/1st-ed/async%20%26%20performance/apB.md#appendix-b-advanced-async-patterns).
 * [Two-part](http://davidwalsh.name/asynquence-part-1) blog [post series](http://davidwalsh.name/asynquence-part-2) on [David Walsh](http://twitter.com/davidwalshblog)'s site.
 
 -----
