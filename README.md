@@ -4,9 +4,7 @@
 
 Promise-style async sequence flow control.
 
-## Explanation
-
-*asynquence* ("async" + "sequence") is an abstraction on top of promises (promise chains) that lets you express flow control steps with callbacks, promises, or generators.
+*asynquence* ("async" + "sequence") is an abstraction on top of promises (promise chains) that lets you express flow control steps with callbacks, promises, or generators. See explanation below.
 
 -----
 
@@ -16,6 +14,43 @@ If you're interested in detailed discussion about *asynquence*, here's some read
 * [Two-part](http://davidwalsh.name/asynquence-part-1) blog [post series](http://davidwalsh.name/asynquence-part-2) on [David Walsh](http://twitter.com/davidwalshblog)'s site.
 
 -----
+
+## Installation and Usage
+
+### Get package
+
+- Clone or download this repository
+
+    ```git clone https://github.com/getify/asynquence.git```
+
+- or install via npm
+
+    ```npm i asynquence```
+
+### Build 
+
+The core library file can be built (minified) with an included utility:
+
+```
+./build-core.js
+```
+
+However, the recommended way to invoke this utility is via npm:
+
+```
+npm run-script build-core
+```
+
+### Use
+
+- Include in your html file
+
+```
+<script src="legacy.js"></script><!-- for old browsers -->
+<script src="asq.js"></script>
+```
+
+## Explanation
 
 ### TL;DR: By Example
 
@@ -580,20 +615,6 @@ ASQ()
 })
 .then(fn2)
 .then(yay);
-```
-
-## Builds
-
-The core library file can be built (minified) with an included utility:
-
-```
-./build-core.js
-```
-
-However, the recommended way to invoke this utility is via npm:
-
-```
-npm run-script build-core
 ```
 
 ## License
