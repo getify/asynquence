@@ -596,6 +596,30 @@ However, the recommended way to invoke this utility is via npm:
 npm run-script build-core
 ```
 
+You can bundle the contrib with the included utility:
+```
+./contrib/bundle.js
+```
+You can read more about this in the [contrib](https://github.com/getify/asynquence/tree/master/contrib#readme).
+
+If you got this repo from github you can run the other utility:
+```
+./build-all.js
+```
+This will actually run `npm install`. Only run this as soon as you get it or if you edit the deps.
+## Contributing
+
+You can start contributing by cloning this repo:
+```
+git clone https://github.com/getify/asynquence.git
+cd asynquence
+```
+Then run:
+```
+./build-all.js
+npm test
+```
+Then change things, refer to the [above](#builds) for how to build it.
 ## License
 
 The code and all the documentation are released under the MIT license.

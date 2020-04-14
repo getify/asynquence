@@ -1,3 +1,4 @@
 .gitignore
 node_modules
 contrib
+build-all.js
